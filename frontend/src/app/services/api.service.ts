@@ -1,0 +1,277 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpEventType, HttpErrorResponse } from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError, timer } from 'rxjs';
+import { catchError, map, switchMap, takeWhile } from 'rxjs/operators';
+
+export interface UploadResponse {
+  success: boolean;
+  data?: {
+    job_id: string;
+    file_path: string;
+    original_name: string;
+    file_size: number;
+    mime_type: string;
+    message: string;
+  };
+  error?: string;
+}
+
+export interface JobStatus {
+  job_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JobResults {
+  job_id: string;
+  status: 'completed' | 'failed';
+  extracted_data?: {
+    lastName: string;
+    firstName: string;
+    middleInitial: string;
+    addressStreet: string;
+    addressCity: string;
+    addressState: string;
+    addressZip: string;
+    sex: string;
+    dob: string;
+  };
+  confidence_score?: number;
+  error?: string;
+  processed_at?: string;
+}
+
+export interface DocumentData {
+  lastName: string;
+  firstName: string;
+  middleInitial: string;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
+  sex: string;
+  dob: Date | null;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ApiService {
+  private readonly API_BASE_URL = 'http://localhost:8000/api';
+  private readonly API_TOKEN = 'demo-token'; // In production, get from auth service
+
+  constructor(private http: HttpClient) { }
+
+  /**
+   * Upload ID document for OCR processing
+   */
+  uploadDocument(file: File): Observable<UploadResponse> {
+    const formData = new FormData();
+    formData.append('document', file);
+
+    return this.http.post<UploadResponse>(`${this.API_BASE_URL}/id/upload`, formData, {
+      headers: {
+        'Authorization': `Bearer ${this.API_TOKEN}`
+      }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get job status
+   */
+  getJobStatus(jobId: string): Observable<JobStatus> {
+    return this.http.get<JobStatus>(`${this.API_BASE_URL}/id/upload/${jobId}/status`, {
+      headers: {
+        'Authorization': `Bearer ${this.API_TOKEN}`
+      }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get job results
+   */
+  getJobResults(jobId: string): Observable<JobResults> {
+    return this.http.get<JobResults>(`${this.API_BASE_URL}/id/upload/${jobId}`, {
+      headers: {
+        'Authorization': `Bearer ${this.API_TOKEN}`
+      }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Poll job status until completion
+   */
+  pollJobStatus(jobId: string): Observable<JobStatus> {
+    return timer(0, 2000).pipe( // Start immediately, poll every 2 seconds
+      switchMap(() => this.getJobStatus(jobId)),
+      takeWhile(status => status.status === 'pending' || status.status === 'processing', true)
+    );
+  }
+
+  /**
+   * Process document upload with polling and results retrieval
+   */
+  processDocument(file: File): Observable<{status: string, data?: any, error?: string}> {
+    return new Observable(observer => {
+      // Step 1: Upload file
+      this.uploadDocument(file).subscribe({
+        next: (uploadResponse) => {
+          if (!uploadResponse.success || !uploadResponse.data) {
+            observer.next({
+              status: 'error',
+              error: uploadResponse.error || 'Upload failed'
+            });
+            observer.complete();
+            return;
+          }
+
+          const jobId = uploadResponse.data.job_id;
+          observer.next({ status: 'uploading', data: { jobId } });
+
+          // Step 2: Poll for job completion
+          this.pollJobStatus(jobId).subscribe({
+            next: (jobStatus) => {
+              observer.next({
+                status: 'processing',
+                data: {
+                  jobId,
+                  progress: jobStatus.progress,
+                  jobStatus: jobStatus.status
+                }
+              });
+
+              if (jobStatus.status === 'completed') {
+                // Step 3: Get final results
+                this.getJobResults(jobId).subscribe({
+                  next: (results) => {
+                    if (results.status === 'completed' && results.extracted_data) {
+                      observer.next({
+                        status: 'completed',
+                        data: {
+                          jobId,
+                          extractedData: this.formatExtractedData(results.extracted_data),
+                          confidenceScore: results.confidence_score,
+                          processedAt: results.processed_at
+                        }
+                      });
+                    } else {
+                      observer.next({
+                        status: 'error',
+                        error: results.error || 'OCR processing failed'
+                      });
+                    }
+                    observer.complete();
+                  },
+                  error: (error) => {
+                    observer.next({
+                      status: 'error',
+                      error: 'Failed to get OCR results'
+                    });
+                    observer.complete();
+                  }
+                });
+              } else if (jobStatus.status === 'failed') {
+                observer.next({
+                  status: 'error',
+                  error: 'OCR processing failed'
+                });
+                observer.complete();
+              }
+            },
+            error: (error) => {
+              observer.next({
+                status: 'error',
+                error: 'Failed to check job status'
+              });
+              observer.complete();
+            }
+          });
+        },
+        error: (error) => {
+          observer.next({
+            status: 'error',
+            error: 'Upload failed'
+          });
+          observer.complete();
+        }
+      });
+    });
+  }
+
+  /**
+   * Save extracted data to backend
+   */
+  saveDocumentData(data: DocumentData, jobId: string): Observable<any> {
+    return this.http.post(`${this.API_BASE_URL}/id/documents`, {
+      job_id: jobId,
+      ...data
+    }, {
+      headers: {
+        'Authorization': `Bearer ${this.API_TOKEN}`
+      }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Format extracted data from backend to frontend format
+   */
+  private formatExtractedData(backendData: any): DocumentData {
+    return {
+      lastName: backendData.lastName || '',
+      firstName: backendData.firstName || '',
+      middleInitial: backendData.middleInitial || '',
+      addressStreet: backendData.addressStreet || '',
+      addressCity: backendData.addressCity || '',
+      addressState: backendData.addressState || '',
+      addressZip: backendData.addressZip || '',
+      sex: backendData.sex || '',
+      dob: backendData.dob ? new Date(backendData.dob) : null
+    };
+  }
+
+  /**
+   * Handle HTTP errors
+   */
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An unknown error occurred';
+
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = error.error.message;
+    } else {
+      // Server-side error
+      if (error.status === 401) {
+        errorMessage = 'Authentication failed. Please check your credentials.';
+      } else if (error.status === 422) {
+        errorMessage = error.error?.error || 'Invalid data provided.';
+      } else if (error.status === 429) {
+        errorMessage = 'Too many requests. Please try again later.';
+      } else if (error.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.error?.error || `HTTP error: ${error.status}`;
+      }
+    }
+
+    return throwError(() => new Error(errorMessage));
+  }
+
+  /**
+   * Check API health
+   */
+  checkHealth(): Observable<any> {
+    return this.http.get(`${this.API_BASE_URL}/health`).pipe(
+      catchError(this.handleError)
+    );
+  }
+}

@@ -1,0 +1,58 @@
+<div class="upload-page-container">
+  <!-- Processing Progress Bar -->
+  <div *ngIf="isProcessing" class="processing-overlay">
+    <div class="progress-container">
+      <mat-progress-spinner
+        mode="determinate"
+        [value]="processingProgress"
+        diameter="80"
+        strokeWidth="4"
+      ></mat-progress-spinner>
+      <p>{{ Math.round(processingProgress) }}% - Processing document...</p>
+    </div>
+  </div>
+
+  <mat-grid-list cols="2" rowHeight="fit" gutterSize="20px">
+    <!-- Left Panel: Upload -->
+    <mat-grid-tile>
+      <div class="tile-content">
+        <mat-card class="upload-card">
+          <mat-card-header>
+            <mat-card-title>Upload Document</mat-card-title>
+            <mat-card-subtitle>
+              {{ isProcessing ? 'Processing...' : 'Select a document to begin' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-upload-panel
+              (fileProcessed)="onFileProcessed($event)"
+              [disabled]="isProcessing">
+            </app-upload-panel>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-grid-tile>
+
+    <!-- Right Panel: Form -->
+    <mat-grid-tile>
+      <div class="tile-content">
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-card-title>Document Information</mat-card-title>
+            <mat-card-subtitle>
+              {{ ocrData ? 'Review extracted information' : 'Waiting for document upload...' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-data-form
+              [ocrData]="ocrData"
+              [isProcessing]="isProcessing"
+              (formSave)="onDataFormSave($event)"
+              (formEdit)="onDataFormEdit()">
+            </app-data-form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

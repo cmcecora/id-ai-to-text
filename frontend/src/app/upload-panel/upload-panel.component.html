@@ -1,0 +1,105 @@
+<div class="upload-panel">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Choose Document</mat-label>
+    <input
+      id="file-input"
+      matInput
+      type="file"
+      [accept]="acceptedTypes.join(',')"
+      (change)="onFileSelected($event)"
+      [disabled]="isUploading || isCompressing || disabled"
+    />
+    <mat-icon matSuffix>cloud_upload</mat-icon>
+    <mat-hint>
+      Accepted formats: {{ acceptedTypes.join(', ').toUpperCase() }} • Max size: 10MB
+    </mat-hint>
+  </mat-form-field>
+
+  <!-- File Preview -->
+  <div *ngIf="selectedFile" class="file-preview">
+    <div class="preview-container">
+      <img
+        *ngIf="previewUrl && selectedFile?.type !== 'application/pdf'"
+        [src]="previewUrl"
+        alt="Document preview"
+        class="preview-image"
+      />
+
+      <div *ngIf="selectedFile?.type === 'application/pdf'" class="pdf-preview">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <p>PDF Document</p>
+      </div>
+    </div>
+
+    <!-- File Info -->
+    <div class="file-info">
+      <p><strong>{{ selectedFile.name }}</strong></p>
+      <p>{{ formatFileSize(selectedFile.size) }}</p>
+
+      <div *ngIf="fileSizeExceeded" class="error-message">
+        <mat-icon color="warn">warning</mat-icon>
+        <span>File size exceeds 10MB limit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading States -->
+  <div *ngIf="isCompressing" class="loading-container">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="40"
+    ></mat-progress-spinner>
+    <p>Processing file...</p>
+  </div>
+
+  <div *ngIf="isUploading" class="loading-container">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="40"
+    ></mat-progress-spinner>
+    <p>Uploading and processing document...</p>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="uploadFile()"
+      [disabled]="!selectedFile || isUploading || isCompressing || fileSizeExceeded"
+      class="upload-btn"
+    >
+      <mat-icon>upload</mat-icon>
+      Upload Document
+    </button>
+
+    <button
+      mat-button
+      (click)="clearFile()"
+      [disabled]="isUploading || isCompressing"
+      class="clear-btn"
+    >
+      <mat-icon>clear</mat-icon>
+      Clear
+    </button>
+  </div>
+
+  <!-- Upload Instructions -->
+  <div class="instructions">
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>Instructions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul>
+          <li>Select an identity document (ID card, driver's license, passport)</li>
+          <li>Accepted formats: JPG, PNG, PDF, HEIC</li>
+          <li>Maximum file size: 10MB</li>
+          <li>Images larger than 5MB will be automatically compressed</li>
+          <li>HEIC files will be converted to JPEG</li>
+          <li>Ensure the document is clear and all text is readable</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
