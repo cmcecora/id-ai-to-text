@@ -1,0 +1,101 @@
+.upload-page-container {
+  padding: 20px;
+  height: 100vh;
+  position: relative;
+}
+
+.tile-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-card,
+.form-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .mat-card-content {
+  flex: 1;
+  overflow: auto;
+}
+
+// Processing overlay
+.processing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+
+  .progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    mat-progress-spinner {
+      ::ng-deep circle {
+        stroke: #3f51b5;
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .upload-page-container {
+    padding: 10px;
+  }
+
+  .processing-overlay {
+    .progress-container {
+      padding: 30px 20px;
+      margin: 20px;
+      width: calc(100% - 40px);
+      max-width: 300px;
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Card subtitle styling
+::ng-deep .mat-card-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+// Disabled state during processing
+.upload-page-container.processing {
+  pointer-events: none;
+
+  .upload-card,
+  .form-card {
+    opacity: 0.7;
+  }
+}

@@ -1,0 +1,205 @@
+<div class="data-form">
+  <!-- Form Status -->
+  <div class="form-status" *ngIf="isProcessing || !ocrData">
+    <div *ngIf="isProcessing" class="status-processing">
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="40"
+      ></mat-progress-spinner>
+      <p>Extracting information from document...</p>
+    </div>
+
+    <div *ngIf="!ocrData && !isProcessing" class="status-waiting">
+      <mat-icon>cloud_upload</mat-icon>
+      <p>Waiting for document upload...</p>
+    </div>
+  </div>
+
+  <!-- Main Form -->
+  <form [formGroup]="documentForm" *ngIf="ocrData && !isProcessing">
+    <mat-grid-list cols="1" rowHeight="auto" gutterSize="16px">
+
+      <!-- Personal Information Section -->
+      <mat-grid-tile>
+        <div class="tile-content">
+          <h3>Personal Information</h3>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName"
+                     [readonly]="isFormLocked">
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('firstName')">
+                {{ getErrorMessage('firstName') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName"
+                     [readonly]="isFormLocked">
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('lastName')">
+                {{ getErrorMessage('lastName') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="middle-initial">
+              <mat-label>Middle Initial</mat-label>
+              <input matInput formControlName="middleInitial"
+                     maxlength="1" [readonly]="isFormLocked">
+              <mat-error *ngIf="isFieldInvalid('middleInitial')">
+                {{ getErrorMessage('middleInitial') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="sex-field">
+              <mat-label>Sex</mat-label>
+              <mat-select formControlName="sex" [disabled]="isFormLocked">
+                <mat-option value="">Select Sex</mat-option>
+                <mat-option *ngFor="let option of sexOptions" [value]="option">
+                  {{ option }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="isFieldInvalid('sex')">
+                {{ getErrorMessage('sex') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="dobPicker"
+                     formControlName="dob" [readonly]="isFormLocked">
+              <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+              <mat-error *ngIf="isFieldInvalid('dob')">
+                {{ getErrorMessage('dob') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <div class="tile-content">
+          <mat-divider></mat-divider>
+        </div>
+      </mat-grid-tile>
+
+      <!-- Address Information Section -->
+      <mat-grid-tile>
+        <div class="tile-content">
+          <h3>Address Information</h3>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Street Address</mat-label>
+              <input matInput formControlName="addressStreet"
+                     [readonly]="isFormLocked">
+              <mat-icon matSuffix>home</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('addressStreet')">
+                {{ getErrorMessage('addressStreet') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="city-field">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="addressCity"
+                     [readonly]="isFormLocked">
+              <mat-error *ngIf="isFieldInvalid('addressCity')">
+                {{ getErrorMessage('addressCity') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="state-field">
+              <mat-label>State</mat-label>
+              <mat-select formControlName="addressState" [disabled]="isFormLocked">
+                <mat-option value="">Select State</mat-option>
+                <mat-option *ngFor="let state of stateOptions" [value]="state">
+                  {{ state }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="isFieldInvalid('addressState')">
+                {{ getErrorMessage('addressState') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="zip-field">
+              <mat-label>ZIP Code</mat-label>
+              <input matInput formControlName="addressZip"
+                     [readonly]="isFormLocked">
+              <mat-error *ngIf="isFieldInvalid('addressZip')">
+                {{ getErrorMessage('addressZip') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSave()"
+        [disabled]="documentForm.invalid || isFormLocked || isSaving"
+        class="save-btn"
+        *ngIf="!isFormLocked"
+      >
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        <mat-progress-spinner
+          *ngIf="isSaving"
+          mode="indeterminate"
+          diameter="20"
+          strokeWidth="3"
+        ></mat-progress-spinner>
+        {{ isSaving ? 'Saving...' : 'Save' }}
+      </button>
+
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="onEdit()"
+        [disabled]="!isFormLocked || isSaving"
+        class="edit-btn"
+        *ngIf="isFormLocked"
+      >
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+
+      <button
+        mat-button
+        (click)="onClear()"
+        [disabled]="isSaving"
+        class="clear-btn"
+      >
+        <mat-icon>clear</mat-icon>
+        Clear Form
+      </button>
+    </div>
+
+    <!-- Form Validation Status -->
+    <div class="validation-status" *ngIf="!isFormLocked && documentForm.dirty">
+      <div *ngIf="documentForm.valid" class="status-valid">
+        <mat-icon color="primary">check_circle</mat-icon>
+        <span>All fields are valid</span>
+      </div>
+
+      <div *ngIf="documentForm.invalid" class="status-invalid">
+        <mat-icon color="warn">error</mat-icon>
+        <span>Please fix validation errors</span>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,29 @@
+.app-toolbar {
+  .toolbar-icon {
+    margin-right: 12px;
+  }
+
+  .toolbar-title {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .toolbar-subtitle {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+}
+
+.main-content {
+  height: calc(100vh - 64px);
+  overflow: auto;
+}
+
+:host {
+  display: block;
+  height: 100vh;
+}

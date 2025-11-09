@@ -1,0 +1,234 @@
+const express = require('express');
+const multer = require('multer');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs').promises;
+const uuid = require('uuid');
+const sharp = require('sharp');
+const heicConvert = require('heic-convert');
+
+// Import controllers
+const IdUploadController = require('./app/Http/Controllers/IdUploadController');
+const IdOcrJob = require('./app/Jobs/IdOcrJob');
+
+// Load environment variables
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 8000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  }
+});
+app.use(limiter);
+
+// Storage configuration (simulating Laravel's storage/app/uploads)
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadPath = process.env.UPLOAD_PATH || './storage/app/uploads';
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuid.v4()}-${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+// File filter (simulating Laravel's validation)
+const fileFilter = (req, file, cb) => {
+  const allowedMimes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'application/pdf',
+    'image/heic'
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPG, PNG, PDF, and HEIC files are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024 // 10MB
+  }
+});
+
+// Initialize controllers
+const idUploadController = new IdUploadController();
+
+// Routes (simulating Laravel routes/api.php)
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'ID OCR API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// POST /api/id/upload - Main upload endpoint
+app.post('/api/id/upload',
+  // Simulating Laravel auth:api middleware
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthenticated. Please provide a valid API token.'
+      });
+    }
+    // In real Laravel, this would validate the JWT/Passport token
+    next();
+  },
+  upload.single('document'),
+  idUploadController.upload.bind(idUploadController)
+);
+
+// GET /api/id/upload/{jobId} - Get OCR job status
+app.get('/api/id/upload/:jobId/status',
+  // Simulating Laravel auth:api middleware
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthenticated. Please provide a valid API token.'
+      });
+    }
+    next();
+  },
+  idUploadController.getStatus.bind(idUploadController)
+);
+
+// GET /api/id/upload/{jobId} - Get OCR results
+app.get('/api/id/upload/:jobId',
+  // Simulating Laravel auth:api middleware
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthenticated. Please provide a valid API token.'
+      });
+    }
+    next();
+  },
+  idUploadController.getResults.bind(idUploadController)
+);
+
+// Error handling middleware (simulating Laravel's error handling)
+app.use((error, req, res, next) => {
+  console.error('Error:', error);
+
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(422).json({
+        success: false,
+        error: 'The file may not be greater than 10MB.'
+      });
+    }
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(422).json({
+        success: false,
+        error: 'Only one file may be uploaded at a time.'
+      });
+    }
+  }
+
+  // Validation errors
+  if (error.message.includes('Invalid file type')) {
+    return res.status(422).json({
+      success: false,
+      error: error.message
+    });
+  }
+
+  // Generic error
+  res.status(500).json({
+    success: false,
+    error: 'An internal server error occurred.'
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Route not found.'
+  });
+});
+
+// Create necessary directories
+const ensureDirectories = async () => {
+  const directories = [
+    './storage',
+    './storage/app',
+    './storage/app/uploads',
+    './storage/app/temp',
+    './storage/logs'
+  ];
+
+  for (const dir of directories) {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      console.log(`✓ Created directory: ${dir}`);
+    } catch (error) {
+      // Directory might already exist
+      if (error.code !== 'EEXIST') {
+        console.error(`✗ Failed to create directory ${dir}:`, error.message);
+      }
+    }
+  }
+};
+
+// Start server
+const startServer = async () => {
+  try {
+    await ensureDirectories();
+
+    app.listen(PORT, () => {
+      console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║                    ID OCR API Server                          ║
+╠══════════════════════════════════════════════════════════════╣
+║ Server running on: http://localhost:${PORT}                      ║
+║ Environment: ${process.env.NODE_ENV || 'development'}                  ║
+║                                                              ║
+║ Available endpoints:                                         ║
+║  POST /api/id/upload          - Upload ID document          ║
+║  GET  /api/id/upload/:id      - Get upload results          ║
+║  GET  /api/id/upload/:id/status - Get job status           ║
+║  GET  /api/health              - Health check               ║
+╚══════════════════════════════════════════════════════════════╝
+      `);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -1,0 +1,273 @@
+.data-form {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.status-processing,
+.status-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #666;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+    font-weight: 500;
+  }
+}
+
+.tile-content {
+  padding: 16px 0;
+
+  h3 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 500;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .full-width {
+    flex: 1;
+  }
+
+  .middle-initial {
+    width: 120px;
+  }
+
+  .sex-field {
+    flex: 1;
+  }
+
+  .city-field {
+    flex: 2;
+  }
+
+  .state-field {
+    width: 120px;
+  }
+
+  .zip-field {
+    width: 140px;
+  }
+}
+
+::ng-deep .mat-form-field-appearance-outline {
+  .mat-form-field-outline {
+    color: #e0e0e0;
+  }
+
+  .mat-form-field-outline-thick {
+    color: #3f51b5;
+  }
+
+  &.mat-form-field-invalid {
+    .mat-form-field-outline-thick {
+      color: #f44336;
+    }
+  }
+
+  &.mat-form-field-disabled {
+    .mat-form-field-outline {
+      color: #e0e0e0;
+      opacity: 0.6;
+    }
+
+    .mat-input-element {
+      color: #666;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+
+  .save-btn {
+    flex: 1;
+    min-height: 48px;
+
+    mat-progress-spinner {
+      margin-right: 8px;
+    }
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .edit-btn {
+    flex: 1;
+    min-height: 48px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .clear-btn {
+    min-width: 120px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 6px;
+
+  &.status-valid {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+
+    mat-icon {
+      color: #2e7d32;
+    }
+  }
+
+  &.status-invalid {
+    background-color: #ffebee;
+    color: #c62828;
+
+    mat-icon {
+      color: #c62828;
+    }
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Form field icons styling
+::ng-deep .mat-form-field-appearance-outline {
+  .mat-form-field-suffix {
+    mat-icon {
+      color: #666;
+    }
+  }
+}
+
+// Disabled state styling
+form[readonly] {
+  opacity: 0.8;
+}
+
+// Loading state for form fields
+::ng-deep .mat-form-field-disabled {
+  .mat-input-element,
+  .mat-select-value {
+    color: #333;
+    font-weight: 500;
+  }
+}
+
+// Date picker styling
+::ng-deep .mat-datepicker-content {
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: #3f51b5;
+  }
+}
+
+// Select field styling
+::ng-deep .mat-select-disabled {
+  .mat-select-value {
+    color: #333;
+    font-weight: 500;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .data-form {
+    padding: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+
+    .middle-initial,
+    .sex-field,
+    .city-field,
+    .state-field,
+    .zip-field {
+      width: 100%;
+    }
+  }
+
+  .action-buttons {
+    flex-direction: column;
+
+    .save-btn,
+    .edit-btn,
+    .clear-btn {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tile-content {
+    padding: 12px 0;
+
+    h3 {
+      font-size: 16px;
+    }
+  }
+
+  .form-status {
+    padding: 20px 12px;
+
+    .status-processing,
+    .status-waiting {
+      mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
