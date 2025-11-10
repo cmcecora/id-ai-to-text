@@ -96,62 +96,59 @@ class IdOcrJob {
      */
     async callAnthropicOCR(fileData) {
         try {
-            if (!this.anthropicApiKey) {
+            if (!this.anthropicApiKey || this.anthropicApiKey === '') {
+                console.error('❌ ANTHROPIC_API_KEY is missing or empty!');
+                console.warn('⚠️  Using mock OCR response for demo purposes');
                 // Mock response for demo purposes
                 return this.getMockOCRResponse();
             }
 
-            const prompt = `Please analyze this identity document and extract the following information:
-1. ID Number (driver's license number, passport number, or other ID number)
-2. Last Name
-3. First Name
-4. Middle Initial
-5. Address (Street)
-6. Address (City)
-7. Address (State)
-8. Address (ZIP Code)
-9. Sex (M/F/Other)
-10. Date of Birth (YYYY-MM-DD format)
+            console.log('✅ Using Anthropic API key:',
+                this.anthropicApiKey.substring(0, 15) + '...');
 
-Please respond with the extracted information in JSON format. If any field cannot be read, use null for that field. Also provide a confidence score (0-1) for each extracted field.
+            const prompt = `You are extracting text from a driver's license or ID card image.
 
-Example response format:
+CRITICAL INSTRUCTIONS:
+1. Extract ONLY information that is clearly visible and legible
+2. Be extremely precise - extract text exactly as written
+3. For dates, convert to YYYY-MM-DD format when possible
+4. Return ONLY a JSON object with the fields below
+5. If a field is not visible or unclear, omit it completely (don't guess)
+
+Required fields to extract:
+- lastName: Family name/surname
+- firstName: Given/first name
+- middleInitial: Middle initial (single letter only, if present)
+- addressStreet: Street address
+- addressCity: City name
+- addressState: Two-letter state code (e.g., CA, NY, TX)
+- addressZip: ZIP code (5 digits or 5+4 format)
+- sex: Gender marker (M or F)
+- dob: Date of birth in YYYY-MM-DD format
+
+RESPONSE FORMAT - Return ONLY this JSON structure:
 {
-  "idNumber": "D12345678",
-  "lastName": "DOE",
-  "firstName": "JOHN",
-  "middleInitial": "A",
-  "addressStreet": "123 MAIN ST",
-  "addressCity": "NEW YORK",
-  "addressState": "NY",
-  "addressZip": "10001",
-  "sex": "M",
-  "dob": "1990-01-15",
-  "confidence": {
-    "idNumber": 0.95,
-    "lastName": 0.95,
-    "firstName": 0.95,
-    "middleInitial": 0.80,
-    "addressStreet": 0.90,
-    "addressCity": 0.90,
-    "addressState": 0.95,
-    "addressZip": 0.95,
-    "sex": 0.85,
-    "dob": 0.90
-  }
-}`;
+  "lastName": "...",
+  "firstName": "...",
+  "middleInitial": "...",
+  "addressStreet": "...",
+  "addressCity": "...",
+  "addressState": "...",
+  "addressZip": "...",
+  "sex": "...",
+  "dob": "..."
+}
+
+Do NOT include any explanatory text, markdown formatting, or code blocks.
+Return ONLY the raw JSON object.`;
 
             const requestBody = {
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 1000,
+                model: 'claude-3-opus-20240229',
+                max_tokens: 2048,
                 messages: [
                     {
                         role: 'user',
                         content: [
-                            {
-                                type: 'text',
-                                text: prompt
-                            },
                             {
                                 type: 'image',
                                 source: {
@@ -159,6 +156,10 @@ Example response format:
                                     media_type: fileData.mimeType,
                                     data: fileData.data.split(',')[1] // Remove data:image/...;base64, prefix
                                 }
+                            },
+                            {
+                                type: 'text',
+                                text: prompt
                             }
                         ]
                     }
@@ -171,21 +172,37 @@ Example response format:
                     'x-api-key': this.anthropicApiKey,
                     'anthropic-version': '2023-06-01'
                 },
-                timeout: 30000 // 30 seconds timeout
+                timeout: 60000 // 60 seconds timeout (increased for Opus)
             });
+
+            console.log('✅ Anthropic API response received');
 
             // Extract and parse the response
             const content = response.data.content[0].text;
+            console.log('📄 Raw API response:', content);
+
             const jsonMatch = content.match(/\{[\s\S]*\}/);
 
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                const parsedData = JSON.parse(jsonMatch[0]);
+                console.log('✅ Successfully parsed OCR data:', parsedData);
+                return parsedData;
             }
 
-            throw new Error('Could not parse OCR response');
+            throw new Error('Could not parse OCR response - no JSON found in response');
 
         } catch (error) {
-            console.error('Anthropic API error:', error);
+            console.error('❌ Anthropic API error:', error.message);
+
+            // Provide detailed error information
+            if (error.response) {
+                console.error(`API Status: ${error.response.status}`);
+                console.error(`API Error:`, error.response.data);
+            } else if (error.request) {
+                console.error('No response received from API');
+            }
+
+            console.warn('⚠️  Falling back to mock OCR response');
             // Return mock response for demo
             return this.getMockOCRResponse();
         }
@@ -196,7 +213,6 @@ Example response format:
      */
     getMockOCRResponse() {
         return {
-            idNumber: "D12345678",
             lastName: "DOE",
             firstName: "JOHN",
             middleInitial: "A",
@@ -207,7 +223,6 @@ Example response format:
             sex: "M",
             dob: "1990-01-15",
             confidence: {
-                idNumber: 0.95,
                 lastName: 0.95,
                 firstName: 0.95,
                 middleInitial: 0.80,
@@ -226,7 +241,6 @@ Example response format:
      */
     extractRequiredFields(ocrResult) {
         return {
-            idNumber: ocrResult.idNumber || null,
             lastName: ocrResult.lastName || null,
             firstName: ocrResult.firstName || null,
             middleInitial: ocrResult.middleInitial || null,

@@ -25,18 +25,6 @@
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>ID Number</mat-label>
-            <input matInput formControlName="idNumber"
-                   [readonly]="isFormLocked">
-            <mat-icon matSuffix>badge</mat-icon>
-            <mat-error *ngIf="isFieldInvalid('idNumber')">
-              {{ getErrorMessage('idNumber') }}
-            </mat-error>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
             <mat-label>First Name</mat-label>
             <input matInput formControlName="firstName"
                    [readonly]="isFormLocked">

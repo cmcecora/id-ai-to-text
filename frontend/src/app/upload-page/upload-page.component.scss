@@ -1,28 +1,36 @@
 .upload-page-container {
-  padding: 20px;
+  padding: 32px;
   min-height: calc(100vh - 64px); // Account for header height
   position: relative;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 // Two-column flexbox layout
 .two-column-layout {
   display: flex;
-  gap: 20px;
+  gap: 32px;
   flex: 1;
-  min-height: 0; // Important for flex children to shrink
+  min-height: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 
   .column {
     flex: 1;
-    min-width: 0; // Prevent overflow
+    min-width: 0;
     display: flex;
     flex-direction: column;
   }
 
-  .left-column,
+  .left-column {
+    max-width: 500px;
+  }
+
   .right-column {
-    max-width: 50%;
+    flex: 1.2;
+    max-width: none;
   }
 }
 
@@ -31,7 +39,15 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 600px; // Ensure minimum visible height
+  min-height: 600px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  background: white;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  }
 }
 
 ::ng-deep .mat-card-content {
@@ -80,24 +96,34 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@media (max-width: 968px) {
   .upload-page-container {
-    padding: 10px;
+    padding: 16px;
   }
 
   .two-column-layout {
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
 
     .left-column,
     .right-column {
-      max-width: 100%;
+      max-width: 100% !important;
     }
   }
 
   .upload-card,
   .form-card {
-    min-height: 400px; // Reduce min-height on mobile
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .upload-page-container {
+    padding: 12px;
+  }
+
+  .two-column-layout {
+    gap: 20px;
   }
 
   .processing-overlay {
