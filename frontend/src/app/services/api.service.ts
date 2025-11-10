@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, timer } from 'rxjs';
-import { catchError, map, switchMap, takeWhile } from 'rxjs/operators';
+import { catchError, map, switchMap, takeWhile, retry, timeout } from 'rxjs/operators';
 
 export interface UploadResponse {
   success: boolean;
@@ -28,7 +28,6 @@ export interface JobResults {
   job_id: string;
   status: 'completed' | 'failed';
   extracted_data?: {
-    idNumber: string;
     lastName: string;
     firstName: string;
     middleInitial: string;
@@ -45,7 +44,6 @@ export interface JobResults {
 }
 
 export interface DocumentData {
-  idNumber: string;
   lastName: string;
   firstName: string;
   middleInitial: string;
@@ -78,6 +76,8 @@ export class ApiService {
         'Authorization': `Bearer ${this.API_TOKEN}`
       }
     }).pipe(
+      timeout(30000), // 30 second timeout for upload
+      retry(1), // Retry once on failure
       catchError(this.handleError)
     );
   }
@@ -231,7 +231,6 @@ export class ApiService {
    */
   private formatExtractedData(backendData: any): DocumentData {
     return {
-      idNumber: backendData.idNumber || '',
       lastName: backendData.lastName || '',
       firstName: backendData.firstName || '',
       middleInitial: backendData.middleInitial || '',
@@ -253,20 +252,33 @@ export class ApiService {
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
+    } else if (error.name === 'TimeoutError') {
+      // Timeout error
+      errorMessage = 'Request timed out. Please try again.';
     } else {
       // Server-side error
-      if (error.status === 401) {
-        errorMessage = 'Authentication failed. Please check your credentials.';
+      if (error.status === 0) {
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.status === 413) {
+        errorMessage = 'File is too large. Maximum size is 10MB.';
       } else if (error.status === 422) {
-        errorMessage = error.error?.error || 'Invalid data provided.';
+        errorMessage = error.error?.error?.message || error.error?.error || 'Invalid data provided.';
       } else if (error.status === 429) {
-        errorMessage = 'Too many requests. Please try again later.';
+        errorMessage = 'Too many requests. Please wait a moment and try again.';
       } else if (error.status >= 500) {
         errorMessage = 'Server error. Please try again later.';
       } else {
-        errorMessage = error.error?.error || `HTTP error: ${error.status}`;
+        errorMessage = error.error?.error?.message || error.error?.error || `HTTP error: ${error.status}`;
       }
     }
+
+    console.error('API Error:', {
+      status: error.status,
+      message: errorMessage,
+      error: error.error
+    });
 
     return throwError(() => new Error(errorMessage));
   }

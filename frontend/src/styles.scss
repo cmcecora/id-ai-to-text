@@ -37,28 +37,36 @@ p {
 
 // Material Card enhancements
 .mat-card {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
   border-radius: 12px !important;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  overflow: hidden;
 
   &:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
   }
 }
 
 .mat-card-header {
-  margin-bottom: 16px;
+  padding: 24px 24px 16px !important;
+  margin-bottom: 0 !important;
+}
+
+.mat-card-content {
+  padding: 0 24px 24px !important;
 }
 
 .mat-card-title {
   font-size: 1.5rem !important;
   font-weight: 500 !important;
   color: #333 !important;
+  margin-bottom: 4px !important;
 }
 
 .mat-card-subtitle {
   color: #666 !important;
   font-size: 0.875rem !important;
+  margin-bottom: 0 !important;
 }
 
 // Button enhancements
@@ -67,10 +75,21 @@ p {
   font-weight: 500 !important;
   text-transform: none !important;
   transition: all 0.3s ease !important;
+  min-height: 48px !important;
+  padding: 0 24px !important;
+  letter-spacing: 0.5px !important;
 
   &:hover:not([disabled]) {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  &.mat-primary {
+    background-color: #3f51b5 !important;
+
+    &:hover:not([disabled]) {
+      background-color: #303f9f !important;
+    }
   }
 }
 
@@ -78,11 +97,41 @@ p {
   border-radius: 8px !important;
   text-transform: none !important;
   transition: all 0.2s ease !important;
+  min-height: 48px !important;
+  padding: 0 16px !important;
+}
+
+.mat-icon-button {
+  transition: all 0.2s ease !important;
+
+  &:hover:not([disabled]) {
+    background-color: rgba(63, 81, 181, 0.08) !important;
+  }
 }
 
 // Form field improvements
 .mat-form-field {
+  width: 100%;
   transition: all 0.3s ease;
+}
+
+.mat-form-field-appearance-outline {
+  .mat-form-field-outline {
+    color: rgba(0, 0, 0, 0.12);
+    transition: color 0.3s ease;
+  }
+
+  &.mat-focused .mat-form-field-outline-thick {
+    color: #3f51b5;
+  }
+
+  &:hover:not(.mat-focused) .mat-form-field-outline {
+    color: rgba(0, 0, 0, 0.24);
+  }
+}
+
+.mat-form-field + .mat-form-field {
+  margin-top: 4px;
 }
 
 // Utility classes

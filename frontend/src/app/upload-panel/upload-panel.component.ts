@@ -59,6 +59,13 @@ export class UploadPanelComponent implements OnInit {
     this.fileSizeExceeded = false;
     this.selectedFile = file;
     this.generatePreview(file);
+
+    // Auto-upload after a short delay (like React version)
+    setTimeout(() => {
+      if (this.selectedFile && !this.fileSizeExceeded && !this.disabled) {
+        this.uploadFile();
+      }
+    }, 500);
   }
 
   private async generatePreview(file: File): Promise<void> {
@@ -74,8 +81,20 @@ export class UploadPanelComponent implements OnInit {
         verticalPosition: 'top'
       });
     } else {
-      // For regular images (JPG, PNG)
-      this.previewUrl = URL.createObjectURL(file);
+      // For regular images (JPG, PNG) - use FileReader for reliable preview
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        this.previewUrl = e.target?.result as string;
+      };
+      reader.onerror = () => {
+        this.snackBar.open('Failed to preview image', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        this.previewUrl = null;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
