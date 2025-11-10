@@ -1,9 +1,91 @@
 /* You can add global styles to this file, and also import other style files */
 @import '~@angular/material/prebuilt-themes/indigo-pink.css';
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+// Global resets and base styles
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+// Typography improvements
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.25rem;
+  color: #3f51b5;
+  margin-bottom: 16px;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+// Material Card enhancements
+.mat-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+  }
+}
+
+.mat-card-header {
+  margin-bottom: 16px;
+}
+
+.mat-card-title {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+}
+
+.mat-card-subtitle {
+  color: #666 !important;
+  font-size: 0.875rem !important;
+}
+
+// Button enhancements
+.mat-raised-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: all 0.3s ease !important;
+
+  &:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+.mat-button {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+}
+
+// Form field improvements
+.mat-form-field {
+  transition: all 0.3s ease;
+}
+
+// Utility classes
 .upload-container {
   padding: 20px;
 }
@@ -25,4 +107,23 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .full-width {
   width: 100%;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+
+  &:hover {
+    background: #555;
+  }
 }

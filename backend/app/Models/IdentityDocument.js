@@ -51,6 +51,11 @@ const identityDocumentSchema = new mongoose.Schema({
 
     // Extracted data fields (required by acceptance criteria)
     extractedData: {
+        idNumber: {
+            type: String,
+            trim: true,
+            uppercase: true
+        },
         lastName: {
             type: String,
             trim: true,
@@ -100,15 +105,48 @@ const identityDocumentSchema = new mongoose.Schema({
             type: Date,
             validate: {
                 validator: function(v) {
-                    return !v || (v instanceof Date && !isNaN(v.getTime()));
+                    if (!v) return true; // Allow null/undefined
+
+                    if (!(v instanceof Date) || isNaN(v.getTime())) {
+                        return false; // Invalid date
+                    }
+
+                    const today = new Date();
+                    const birthDate = new Date(v);
+
+                    // Check if date is not in the future
+                    if (birthDate > today) {
+                        return false;
+                    }
+
+                    // Check if person is not too old (120 years)
+                    const maxAge = 120;
+                    const minDate = new Date();
+                    minDate.setFullYear(minDate.getFullYear() - maxAge);
+
+                    if (birthDate < minDate) {
+                        return false;
+                    }
+
+                    // Check if person is at least 1 year old
+                    const minAge = 1;
+                    const recentDate = new Date();
+                    recentDate.setFullYear(recentDate.getFullYear() - minAge);
+
+                    if (birthDate > recentDate) {
+                        return false;
+                    }
+
+                    return true;
                 },
-                message: 'Date of birth must be a valid date'
+                message: 'Date of birth must be a valid date between 1 and 120 years ago'
             }
         }
     },
 
     // Confidence scores for each field
     confidenceScores: {
+        idNumber: { type: Number, min: 0, max: 1 },
         lastName: { type: Number, min: 0, max: 1 },
         firstName: { type: Number, min: 0, max: 1 },
         middleInitial: { type: Number, min: 0, max: 1 },

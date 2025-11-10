@@ -17,13 +17,9 @@ class DatabaseConnection {
         try {
             const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/id_ocr_db';
             const options = {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
                 maxPoolSize: 10, // Maximum connection pool size
                 serverSelectionTimeoutMS: 5000, // Server selection timeout
                 socketTimeoutMS: 45000, // Socket timeout
-                bufferMaxEntries: 0, // Disable mongoose buffering
-                bufferCommands: false, // Disable mongoose buffering
             };
 
             console.log('Connecting to MongoDB...');

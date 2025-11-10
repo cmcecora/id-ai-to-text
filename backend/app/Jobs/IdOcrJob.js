@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const axios = require('axios');
 const sharp = require('sharp');
+const IdentityDocument = require('../Models/IdentityDocument');
 
 class IdOcrJob {
     constructor(filePath, userId, jobId) {
@@ -101,20 +102,22 @@ class IdOcrJob {
             }
 
             const prompt = `Please analyze this identity document and extract the following information:
-1. Last Name
-2. First Name
-3. Middle Initial
-4. Address (Street)
-5. Address (City)
-6. Address (State)
-7. Address (ZIP Code)
-8. Sex (M/F/Other)
-9. Date of Birth (YYYY-MM-DD format)
+1. ID Number (driver's license number, passport number, or other ID number)
+2. Last Name
+3. First Name
+4. Middle Initial
+5. Address (Street)
+6. Address (City)
+7. Address (State)
+8. Address (ZIP Code)
+9. Sex (M/F/Other)
+10. Date of Birth (YYYY-MM-DD format)
 
 Please respond with the extracted information in JSON format. If any field cannot be read, use null for that field. Also provide a confidence score (0-1) for each extracted field.
 
 Example response format:
 {
+  "idNumber": "D12345678",
   "lastName": "DOE",
   "firstName": "JOHN",
   "middleInitial": "A",
@@ -125,6 +128,7 @@ Example response format:
   "sex": "M",
   "dob": "1990-01-15",
   "confidence": {
+    "idNumber": 0.95,
     "lastName": 0.95,
     "firstName": 0.95,
     "middleInitial": 0.80,
@@ -192,6 +196,7 @@ Example response format:
      */
     getMockOCRResponse() {
         return {
+            idNumber: "D12345678",
             lastName: "DOE",
             firstName: "JOHN",
             middleInitial: "A",
@@ -202,6 +207,7 @@ Example response format:
             sex: "M",
             dob: "1990-01-15",
             confidence: {
+                idNumber: 0.95,
                 lastName: 0.95,
                 firstName: 0.95,
                 middleInitial: 0.80,
@@ -220,6 +226,7 @@ Example response format:
      */
     extractRequiredFields(ocrResult) {
         return {
+            idNumber: ocrResult.idNumber || null,
             lastName: ocrResult.lastName || null,
             firstName: ocrResult.firstName || null,
             middleInitial: ocrResult.middleInitial || null,
@@ -253,33 +260,58 @@ Example response format:
      */
     async saveToMongoDB(extractedData, confidence) {
         try {
-            // Simulate MongoDB save
-            const document = {
+            // Get file name from path
+            const path = require('path');
+            const originalFileName = path.basename(this.filePath);
+
+            // Get file stats for size
+            const stats = await fs.stat(this.filePath);
+
+            // Create document in MongoDB
+            const document = await IdentityDocument.create({
                 jobId: this.jobId,
                 userId: this.userId,
                 filePath: this.filePath,
-                extractedData: extractedData,
-                confidenceScore: confidence,
+                originalFileName: originalFileName,
+                fileSize: stats.size,
+                mimeType: this.getMimeType(this.filePath),
                 status: 'completed',
-                createdAt: new Date(),
+                extractedData: extractedData,
+                confidenceScores: extractedData.confidence || {},
+                overallConfidence: confidence,
                 processedAt: new Date()
-            };
-
-            console.log('Document saved to MongoDB:', {
-                jobId: this.jobId,
-                confidence: confidence,
-                fieldsExtracted: Object.keys(extractedData).length
             });
 
-            // In real implementation, this would use Mongoose or MongoDB driver
-            // await IdentityDocument.create(document);
+            console.log('✅ Document saved to MongoDB:', {
+                jobId: this.jobId,
+                confidence: confidence,
+                fieldsExtracted: Object.keys(extractedData).length,
+                documentId: document._id
+            });
 
             return document;
 
         } catch (error) {
-            console.error('MongoDB save error:', error);
-            throw new Error('Failed to save extracted data to database');
+            console.error('❌ MongoDB save error:', error);
+            // Don't throw error - allow job to complete even if DB save fails
+            console.warn('⚠️  OCR completed but failed to save to database');
+            return null;
         }
+    }
+
+    /**
+     * Get MIME type from file path
+     */
+    getMimeType(filePath) {
+        const ext = filePath.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'pdf': 'application/pdf',
+            'heic': 'image/heic'
+        };
+        return mimeTypes[ext] || 'application/octet-stream';
     }
 
     /**

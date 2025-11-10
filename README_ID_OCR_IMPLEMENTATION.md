@@ -81,7 +81,7 @@ cd backend
 npm install --legacy-peer-deps
 cp .env.example .env
 # Edit .env with your API keys
-npm start
+npm start  # Server runs on http://localhost:8010
 ```
 
 ### Database Setup:
@@ -161,7 +161,7 @@ cd frontend && npm start
 Backend `.env` file:
 ```env
 NODE_ENV=development
-PORT=8000
+PORT=8010
 MAX_FILE_SIZE=10485760
 ANTHROPIC_API_KEY=your_key_here
 MONGODB_URI=mongodb://localhost:27017/id_ocr_db

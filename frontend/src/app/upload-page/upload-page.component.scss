@@ -1,14 +1,29 @@
 .upload-page-container {
   padding: 20px;
-  height: 100vh;
+  min-height: calc(100vh - 64px); // Account for header height
   position: relative;
-}
-
-.tile-content {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+// Two-column flexbox layout
+.two-column-layout {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0; // Important for flex children to shrink
+
+  .column {
+    flex: 1;
+    min-width: 0; // Prevent overflow
+    display: flex;
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    max-width: 50%;
+  }
 }
 
 .upload-card,
@@ -16,6 +31,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 600px; // Ensure minimum visible height
 }
 
 ::ng-deep .mat-card-content {
@@ -69,6 +85,21 @@
     padding: 10px;
   }
 
+  .two-column-layout {
+    flex-direction: column;
+    gap: 16px;
+
+    .left-column,
+    .right-column {
+      max-width: 100%;
+    }
+  }
+
+  .upload-card,
+  .form-card {
+    min-height: 400px; // Reduce min-height on mobile
+  }
+
   .processing-overlay {
     .progress-container {
       padding: 30px 20px;
@@ -82,7 +113,6 @@
     }
   }
 }
-
 // Card subtitle styling
 ::ng-deep .mat-card-subtitle {
   color: #666;

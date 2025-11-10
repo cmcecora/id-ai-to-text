@@ -12,6 +12,9 @@ export class UploadPageComponent implements OnInit {
   processingProgress = 0;
   ocrData: DocumentData | null = null;
   currentJobId: string | null = null;
+  
+  // Expose Math to template
+  Math = Math;
 
   constructor(
     private apiService: ApiService,

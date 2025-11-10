@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms'
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 export interface DocumentData {
+  idNumber: string;
   lastName: string;
   firstName: string;
   middleInitial: string;
@@ -59,6 +60,7 @@ export class DataFormComponent implements OnInit, OnChanges {
 
   private createForm(): FormGroup {
     return this.fb.group({
+      idNumber: ['', [Validators.required, Validators.minLength(4)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       middleInitial: ['', Validators.maxLength(1)],
@@ -115,6 +117,7 @@ export class DataFormComponent implements OnInit, OnChanges {
 
   private populateForm(data: DocumentData): void {
     this.documentForm.patchValue({
+      idNumber: data.idNumber || '',
       lastName: data.lastName || '',
       firstName: data.firstName || '',
       middleInitial: data.middleInitial || '',

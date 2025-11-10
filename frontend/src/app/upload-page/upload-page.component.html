@@ -12,47 +12,44 @@
     </div>
   </div>
 
-  <mat-grid-list cols="2" rowHeight="fit" gutterSize="20px">
+  <!-- Two Column Flexbox Layout -->
+  <div class="two-column-layout">
     <!-- Left Panel: Upload -->
-    <mat-grid-tile>
-      <div class="tile-content">
-        <mat-card class="upload-card">
-          <mat-card-header>
-            <mat-card-title>Upload Document</mat-card-title>
-            <mat-card-subtitle>
-              {{ isProcessing ? 'Processing...' : 'Select a document to begin' }}
-            </mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <app-upload-panel
-              (fileProcessed)="onFileProcessed($event)"
-              [disabled]="isProcessing">
-            </app-upload-panel>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </mat-grid-tile>
+    <div class="column left-column">
+      <mat-card class="upload-card">
+        <mat-card-header>
+          <mat-card-title>Upload ID Photo</mat-card-title>
+          <mat-card-subtitle>
+            {{ isProcessing ? 'Processing...' : 'Select an ID photo to begin' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <app-upload-panel
+            (fileProcessed)="onFileProcessed($event)"
+            [disabled]="isProcessing">
+          </app-upload-panel>
+        </mat-card-content>
+      </mat-card>
+    </div>
 
     <!-- Right Panel: Form -->
-    <mat-grid-tile>
-      <div class="tile-content">
-        <mat-card class="form-card">
-          <mat-card-header>
-            <mat-card-title>Document Information</mat-card-title>
-            <mat-card-subtitle>
-              {{ ocrData ? 'Review extracted information' : 'Waiting for document upload...' }}
-            </mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <app-data-form
-              [ocrData]="ocrData"
-              [isProcessing]="isProcessing"
-              (formSave)="onDataFormSave($event)"
-              (formEdit)="onDataFormEdit()">
-            </app-data-form>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </mat-grid-tile>
-  </mat-grid-list>
+    <div class="column right-column">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>Extracted Information</mat-card-title>
+          <mat-card-subtitle>
+            {{ ocrData ? 'Review and edit extracted data' : 'Waiting for ID photo upload...' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <app-data-form
+            [ocrData]="ocrData"
+            [isProcessing]="isProcessing"
+            (formSave)="onDataFormSave($event)"
+            (formEdit)="onDataFormEdit()">
+          </app-data-form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 </div>

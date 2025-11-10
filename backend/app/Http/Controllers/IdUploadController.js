@@ -2,11 +2,12 @@ const fs = require('fs').promises;
 const path = require('path');
 const sharp = require('sharp');
 const heicConvert = require('heic-convert');
-const IdOcrJob = require('../Jobs/IdOcrJob');
+const IdOcrJob = require('../../Jobs/IdOcrJob');
+const IdentityDocument = require('../../Models/IdentityDocument');
 
 class IdUploadController {
     constructor() {
-        this.ocrJobs = new Map(); // In-memory job storage (use Redis in production)
+        this.ocrJobs = new Map(); // In-memory job storage for backwards compatibility
     }
 
     /**
@@ -52,7 +53,23 @@ class IdUploadController {
             // Generate job ID and dispatch OCR job
             const jobId = `ocr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-            // Store job information
+            // Create initial database record
+            try {
+                await IdentityDocument.create({
+                    jobId: jobId,
+                    userId: userId,
+                    filePath: processedFilePath,
+                    originalFileName: originalFilename,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    status: 'pending'
+                });
+                console.log(`✅ Created database record for job ${jobId}`);
+            } catch (dbError) {
+                console.warn('⚠️  Failed to create database record, using in-memory storage:', dbError.message);
+            }
+
+            // Store job information in memory (backwards compatibility)
             this.ocrJobs.set(jobId, {
                 id: jobId,
                 userId: userId,
@@ -68,8 +85,23 @@ class IdUploadController {
             // Dispatch OCR job
             const ocrJob = new IdOcrJob(processedFilePath, userId, jobId);
             ocrJob.handle()
-                .then(result => {
-                    // Update job status with results
+                .then(async result => {
+                    // Update job status in database
+                    try {
+                        await IdentityDocument.findOneAndUpdate(
+                            { jobId: jobId },
+                            {
+                                status: 'completed',
+                                extractedData: result.data,
+                                overallConfidence: result.confidence,
+                                processedAt: new Date()
+                            }
+                        );
+                    } catch (dbError) {
+                        console.warn('⚠️  Failed to update database record:', dbError.message);
+                    }
+
+                    // Update in-memory storage (backwards compatibility)
                     const job = this.ocrJobs.get(jobId);
                     if (job) {
                         job.status = 'completed';
@@ -79,8 +111,21 @@ class IdUploadController {
                         job.updatedAt = new Date();
                     }
                 })
-                .catch(error => {
-                    // Update job status with error
+                .catch(async error => {
+                    // Update job status in database
+                    try {
+                        await IdentityDocument.findOneAndUpdate(
+                            { jobId: jobId },
+                            {
+                                status: 'failed',
+                                errorMessage: error.message
+                            }
+                        );
+                    } catch (dbError) {
+                        console.warn('⚠️  Failed to update database record:', dbError.message);
+                    }
+
+                    // Update in-memory storage (backwards compatibility)
                     const job = this.ocrJobs.get(jobId);
                     if (job) {
                         job.status = 'failed';
@@ -118,9 +163,31 @@ class IdUploadController {
             const { jobId } = req.params;
             const userId = req.user?.id || 'demo-user';
 
-            const job = this.ocrJobs.get(jobId);
+            // Try to get from database first
+            let job = null;
+            try {
+                const dbJob = await IdentityDocument.findOne({ jobId: jobId, userId: userId });
+                if (dbJob) {
+                    job = {
+                        id: dbJob.jobId,
+                        status: dbJob.status,
+                        createdAt: dbJob.createdAt,
+                        updatedAt: dbJob.updatedAt
+                    };
+                }
+            } catch (dbError) {
+                console.warn('⚠️  Database query failed, using in-memory storage:', dbError.message);
+            }
 
-            if (!job || job.userId !== userId) {
+            // Fallback to in-memory storage
+            if (!job) {
+                const memJob = this.ocrJobs.get(jobId);
+                if (memJob && memJob.userId === userId) {
+                    job = memJob;
+                }
+            }
+
+            if (!job) {
                 return res.status(404).json({
                     success: false,
                     error: 'Job not found'
@@ -130,7 +197,7 @@ class IdUploadController {
             return res.json({
                 success: true,
                 data: {
-                    job_id: job.id,
+                    job_id: job.id || jobId,
                     status: job.status,
                     progress: this.getJobProgress(job.status),
                     created_at: job.createdAt.toISOString(),
@@ -155,9 +222,33 @@ class IdUploadController {
             const { jobId } = req.params;
             const userId = req.user?.id || 'demo-user';
 
-            const job = this.ocrJobs.get(jobId);
+            // Try to get from database first
+            let job = null;
+            try {
+                const dbJob = await IdentityDocument.findOne({ jobId: jobId, userId: userId });
+                if (dbJob) {
+                    job = {
+                        id: dbJob.jobId,
+                        status: dbJob.status,
+                        extractedData: dbJob.extractedData,
+                        confidenceScore: dbJob.overallConfidence,
+                        error: dbJob.errorMessage,
+                        processedAt: dbJob.processedAt
+                    };
+                }
+            } catch (dbError) {
+                console.warn('⚠️  Database query failed, using in-memory storage:', dbError.message);
+            }
 
-            if (!job || job.userId !== userId) {
+            // Fallback to in-memory storage
+            if (!job) {
+                const memJob = this.ocrJobs.get(jobId);
+                if (memJob && memJob.userId === userId) {
+                    job = memJob;
+                }
+            }
+
+            if (!job) {
                 return res.status(404).json({
                     success: false,
                     error: 'Results not found'
@@ -174,7 +265,7 @@ class IdUploadController {
             return res.json({
                 success: true,
                 data: {
-                    job_id: job.id,
+                    job_id: job.id || jobId,
                     status: job.status,
                     extracted_data: job.extractedData || null,
                     confidence_score: job.confidenceScore || 0,
@@ -188,6 +279,76 @@ class IdUploadController {
             return res.status(500).json({
                 success: false,
                 error: 'Failed to get job results'
+            });
+        }
+    }
+
+    /**
+     * Save or update document data
+     */
+    async saveDocumentData(req, res) {
+        try {
+            const userId = req.user?.id || 'demo-user';
+            const { job_id, lastName, firstName, middleInitial, addressStreet, addressCity, addressState, addressZip, sex, dob } = req.body;
+
+            if (!job_id) {
+                return res.status(422).json({
+                    success: false,
+                    error: 'job_id is required'
+                });
+            }
+
+            // Update database record
+            try {
+                const updatedDoc = await IdentityDocument.findOneAndUpdate(
+                    { jobId: job_id, userId: userId },
+                    {
+                        extractedData: {
+                            lastName,
+                            firstName,
+                            middleInitial,
+                            addressStreet,
+                            addressCity,
+                            addressState,
+                            addressZip,
+                            sex,
+                            dob: dob ? new Date(dob) : null
+                        },
+                        updatedAt: new Date()
+                    },
+                    { new: true }
+                );
+
+                if (!updatedDoc) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Document not found'
+                    });
+                }
+
+                console.log(`✅ Document data saved for job ${job_id}`);
+
+                return res.json({
+                    success: true,
+                    data: {
+                        job_id: updatedDoc.jobId,
+                        message: 'Document data saved successfully'
+                    }
+                });
+
+            } catch (dbError) {
+                console.error('❌ Database update failed:', dbError);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to save document data'
+                });
+            }
+
+        } catch (error) {
+            console.error('Save Document Error:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to save document data'
             });
         }
     }

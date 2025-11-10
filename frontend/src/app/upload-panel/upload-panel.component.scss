@@ -85,6 +85,27 @@
   }
 }
 
+.success-message {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin: 16px 0;
+  background-color: #e8f5e9;
+  border: 2px solid #4caf50;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-weight: 500;
+  font-size: 14px;
+
+  mat-icon {
+    margin-right: 12px;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #4caf50;
+  }
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;

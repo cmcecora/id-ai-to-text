@@ -28,6 +28,7 @@ export interface JobResults {
   job_id: string;
   status: 'completed' | 'failed';
   extracted_data?: {
+    idNumber: string;
     lastName: string;
     firstName: string;
     middleInitial: string;
@@ -44,6 +45,7 @@ export interface JobResults {
 }
 
 export interface DocumentData {
+  idNumber: string;
   lastName: string;
   firstName: string;
   middleInitial: string;
@@ -59,7 +61,7 @@ export interface DocumentData {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_BASE_URL = 'http://localhost:8000/api';
+  private readonly API_BASE_URL = 'http://localhost:8010/api';
   private readonly API_TOKEN = 'demo-token'; // In production, get from auth service
 
   constructor(private http: HttpClient) { }
@@ -84,11 +86,12 @@ export class ApiService {
    * Get job status
    */
   getJobStatus(jobId: string): Observable<JobStatus> {
-    return this.http.get<JobStatus>(`${this.API_BASE_URL}/id/upload/${jobId}/status`, {
+    return this.http.get<any>(`${this.API_BASE_URL}/id/upload/${jobId}/status`, {
       headers: {
         'Authorization': `Bearer ${this.API_TOKEN}`
       }
     }).pipe(
+      map(response => response.data), // Unwrap data property from backend response
       catchError(this.handleError)
     );
   }
@@ -97,11 +100,12 @@ export class ApiService {
    * Get job results
    */
   getJobResults(jobId: string): Observable<JobResults> {
-    return this.http.get<JobResults>(`${this.API_BASE_URL}/id/upload/${jobId}`, {
+    return this.http.get<any>(`${this.API_BASE_URL}/id/upload/${jobId}`, {
       headers: {
         'Authorization': `Bearer ${this.API_TOKEN}`
       }
     }).pipe(
+      map(response => response.data), // Unwrap data property from backend response
       catchError(this.handleError)
     );
   }
@@ -227,6 +231,7 @@ export class ApiService {
    */
   private formatExtractedData(backendData: any): DocumentData {
     return {
+      idNumber: backendData.idNumber || '',
       lastName: backendData.lastName || '',
       firstName: backendData.firstName || '',
       middleInitial: backendData.middleInitial || '',

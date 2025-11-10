@@ -1,19 +1,39 @@
 <div class="upload-panel">
+  <!-- Readonly text field to display selected filename -->
   <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Choose Document</mat-label>
+    <mat-label>Choose ID Photo</mat-label>
     <input
-      id="file-input"
       matInput
-      type="file"
-      [accept]="acceptedTypes.join(',')"
-      (change)="onFileSelected($event)"
-      [disabled]="isUploading || isCompressing || disabled"
+      type="text"
+      [value]="selectedFile?.name || ''"
+      placeholder="Select a file to upload"
+      readonly
     />
-    <mat-icon matSuffix>cloud_upload</mat-icon>
+    <!-- Button suffix triggers hidden file input -->
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      (click)="fileInput.click()"
+      [disabled]="isUploading || disabled"
+      aria-label="Select file"
+    >
+      <mat-icon>cloud_upload</mat-icon>
+    </button>
     <mat-hint>
       Accepted formats: {{ acceptedTypes.join(', ').toUpperCase() }} • Max size: 10MB
     </mat-hint>
   </mat-form-field>
+
+  <!-- Hidden native file input (matInput does not support type=file) -->
+  <input
+    #fileInput
+    id="file-input"
+    type="file"
+    [accept]="acceptedTypes.join(',')"
+    (change)="onFileSelected($event)"
+    hidden
+  />
 
   <!-- File Preview -->
   <div *ngIf="selectedFile" class="file-preview">
@@ -21,7 +41,7 @@
       <img
         *ngIf="previewUrl && selectedFile?.type !== 'application/pdf'"
         [src]="previewUrl"
-        alt="Document preview"
+        alt="ID photo preview"
         class="preview-image"
       />
 
@@ -43,21 +63,19 @@
     </div>
   </div>
 
-  <!-- Loading States -->
-  <div *ngIf="isCompressing" class="loading-container">
-    <mat-progress-spinner
-      mode="indeterminate"
-      diameter="40"
-    ></mat-progress-spinner>
-    <p>Processing file...</p>
+  <!-- Success Message -->
+  <div *ngIf="uploadSuccess && !isUploading" class="success-message">
+    <mat-icon color="primary">check_circle</mat-icon>
+    <span>ID photo uploaded and processed successfully!</span>
   </div>
 
+  <!-- Loading State -->
   <div *ngIf="isUploading" class="loading-container">
     <mat-progress-spinner
       mode="indeterminate"
       diameter="40"
     ></mat-progress-spinner>
-    <p>Uploading and processing document...</p>
+    <p>Extracting text from ID photo...</p>
   </div>
 
   <!-- Action Buttons -->
@@ -66,21 +84,21 @@
       mat-raised-button
       color="primary"
       (click)="uploadFile()"
-      [disabled]="!selectedFile || isUploading || isCompressing || fileSizeExceeded"
+      [disabled]="!selectedFile || isUploading || fileSizeExceeded"
       class="upload-btn"
     >
       <mat-icon>upload</mat-icon>
-      Upload Document
+      Extract Text
     </button>
 
     <button
       mat-button
       (click)="clearFile()"
-      [disabled]="isUploading || isCompressing"
+      [disabled]="isUploading"
       class="clear-btn"
     >
       <mat-icon>clear</mat-icon>
-      Clear
+      Choose Different File
     </button>
   </div>
 
@@ -95,8 +113,7 @@
           <li>Select an identity document (ID card, driver's license, passport)</li>
           <li>Accepted formats: JPG, PNG, PDF, HEIC</li>
           <li>Maximum file size: 10MB</li>
-          <li>Images larger than 5MB will be automatically compressed</li>
-          <li>HEIC files will be converted to JPEG</li>
+          <li>HEIC files will be converted to JPEG by the server</li>
           <li>Ensure the document is clear and all text is readable</li>
         </ul>
       </mat-card-content>

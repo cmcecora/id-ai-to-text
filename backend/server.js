@@ -13,11 +13,14 @@ const heicConvert = require('heic-convert');
 const IdUploadController = require('./app/Http/Controllers/IdUploadController');
 const IdOcrJob = require('./app/Jobs/IdOcrJob');
 
+// Import database connection
+const database = require('./config/database');
+
 // Load environment variables
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8010;
 
 // Middleware
 app.use(helmet());
@@ -139,6 +142,22 @@ app.get('/api/id/upload/:jobId',
   idUploadController.getResults.bind(idUploadController)
 );
 
+// POST /api/id/documents - Save/update document data
+app.post('/api/id/documents',
+  // Simulating Laravel auth:api middleware
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthenticated. Please provide a valid API token.'
+      });
+    }
+    next();
+  },
+  idUploadController.saveDocumentData.bind(idUploadController)
+);
+
 // Error handling middleware (simulating Laravel's error handling)
 app.use((error, req, res, next) => {
   console.error('Error:', error);
@@ -207,7 +226,16 @@ const ensureDirectories = async () => {
 // Start server
 const startServer = async () => {
   try {
+    // Ensure directories exist
     await ensureDirectories();
+
+    // Connect to MongoDB
+    console.log('Connecting to MongoDB...');
+    await database.connect();
+
+    // Create database indexes
+    console.log('Creating MongoDB indexes...');
+    await database.createIndexes();
 
     app.listen(PORT, () => {
       console.log(`
@@ -216,18 +244,40 @@ const startServer = async () => {
 ╠══════════════════════════════════════════════════════════════╣
 ║ Server running on: http://localhost:${PORT}                      ║
 ║ Environment: ${process.env.NODE_ENV || 'development'}                  ║
+║ MongoDB: Connected ✅                                        ║
 ║                                                              ║
 ║ Available endpoints:                                         ║
-║  POST /api/id/upload          - Upload ID document          ║
-║  GET  /api/id/upload/:id      - Get upload results          ║
-║  GET  /api/id/upload/:id/status - Get job status           ║
-║  GET  /api/health              - Health check               ║
+║  POST /api/id/upload             - Upload ID document       ║
+║  GET  /api/id/upload/:id         - Get upload results       ║
+║  GET  /api/id/upload/:id/status  - Get job status          ║
+║  POST /api/id/documents          - Save document data       ║
+║  GET  /api/health                - Health check             ║
 ╚══════════════════════════════════════════════════════════════╝
       `);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
-    process.exit(1);
+    console.error('Error details:', error.message);
+
+    // If MongoDB connection fails, warn but continue with in-memory storage
+    if (error.message && error.message.includes('MongoDB')) {
+      console.warn('⚠️  Starting server without MongoDB connection');
+      console.warn('⚠️  Using in-memory storage (data will be lost on restart)');
+
+      app.listen(PORT, () => {
+        console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║                    ID OCR API Server                          ║
+╠══════════════════════════════════════════════════════════════╣
+║ Server running on: http://localhost:${PORT}                      ║
+║ Environment: ${process.env.NODE_ENV || 'development'}                  ║
+║ MongoDB: Disconnected ⚠️  (using in-memory storage)          ║
+╚══════════════════════════════════════════════════════════════╝
+        `);
+      });
+    } else {
+      process.exit(1);
+    }
   }
 };
 
