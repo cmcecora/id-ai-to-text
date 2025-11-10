@@ -1,0 +1,5 @@
+
+# Never commit env files
+.env
+*.env
+backend/.env
