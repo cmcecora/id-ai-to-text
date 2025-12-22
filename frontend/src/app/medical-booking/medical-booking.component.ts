@@ -17,8 +17,20 @@ interface MedicalTest {
   id: string;
   name: string;
   description: string;
+  category: string;
   resultsTime: string;
   price: number;
+  icon: string;
+}
+
+interface RecentSearch {
+  name: string;
+  searchedAgo: string;
+}
+
+interface TestCategory {
+  id: string;
+  name: string;
   icon: string;
 }
 
@@ -171,33 +183,49 @@ export class MedicalBookingComponent implements OnInit {
   // Step 1: Test Selection & Search
   testSearchQuery = '';
   isTestDropdownOpen = false;
+  isTestSearchLoading = false;
   filteredTests: MedicalTest[] = [];
   testHighlightedIndex = -1;
 
+  // Categories for quick browse
+  testCategories: TestCategory[] = [
+    { id: 'blood', name: 'Blood Tests', icon: 'water_drop' },
+    { id: 'imaging', name: 'Imaging', icon: 'image' },
+    { id: 'cardiac', name: 'Cardiac', icon: 'favorite' },
+    { id: 'hormone', name: 'Hormones', icon: 'monitor_heart' },
+    { id: 'genetic', name: 'Genetic', icon: 'biotech' }
+  ];
+
+  // Recent searches
+  recentSearches: RecentSearch[] = [
+    { name: 'Complete Blood Count (CBC)', searchedAgo: '2 days ago' },
+    { name: 'Lipid Panel', searchedAgo: '1 week ago' }
+  ];
+
   selectedTest: MedicalTest | null = null;
   medicalTests: MedicalTest[] = [
-    { id: 'cbc', name: 'Complete Blood Count (CBC)', description: 'Comprehensive blood cell analysis', resultsTime: '24 hours', price: 29, icon: 'favorite' },
-    { id: 'cmp', name: 'Complete Metabolic Panel (CMP)', description: '14 blood tests for metabolism', resultsTime: '24 hours', price: 45, icon: 'science' },
-    { id: 'thyroid-full', name: 'Comprehensive Thyroid Panel', description: 'TSH, T3, T4, and antibodies', resultsTime: '48 hours', price: 89, icon: 'monitor_heart' },
-    { id: 'lipid', name: 'Lipid Panel', description: 'Cholesterol and triglycerides', resultsTime: '24 hours', price: 35, icon: 'favorite' },
-    { id: 'a1c', name: 'Hemoglobin A1C', description: 'Blood sugar average over 3 months', resultsTime: '24 hours', price: 32, icon: 'water_drop' },
-    { id: 'vitd', name: 'Vitamin D, 25-Hydroxy', description: 'Vitamin D deficiency screening', resultsTime: '48 hours', price: 55, icon: 'wb_sunny' },
-    { id: 'tsh', name: 'Thyroid Stimulating Hormone (TSH)', description: 'Basic thyroid function test', resultsTime: '24 hours', price: 35, icon: 'monitor_heart' },
-    { id: 'xray', name: 'Chest X-Ray', description: 'Standard chest radiograph', resultsTime: '2-4 hours', price: 75, icon: 'image' },
-    { id: 'mri', name: 'MRI Brain', description: 'Detailed brain imaging', resultsTime: '24-48 hours', price: 450, icon: 'image' },
-    { id: 'ct', name: 'CT Scan Abdomen', description: 'Abdominal computed tomography', resultsTime: '24 hours', price: 350, icon: 'image' },
-    { id: 'ecg', name: 'Electrocardiogram (ECG/EKG)', description: 'Heart electrical activity', resultsTime: '1 hour', price: 50, icon: 'favorite' },
-    { id: 'echo', name: 'Echocardiogram', description: 'Heart ultrasound imaging', resultsTime: '24 hours', price: 180, icon: 'favorite' },
-    { id: 'testosterone', name: 'Testosterone, Total', description: 'Male hormone level test', resultsTime: '48 hours', price: 65, icon: 'science' },
-    { id: 'estrogen', name: 'Estrogen Panel', description: 'Female hormone levels', resultsTime: '48 hours', price: 85, icon: 'science' },
-    { id: 'genetic', name: 'Genetic Carrier Screening', description: 'Hereditary condition testing', resultsTime: '2-3 weeks', price: 299, icon: 'biotech' },
-    { id: 'brca', name: 'BRCA Gene Testing', description: 'Breast cancer gene analysis', resultsTime: '2-3 weeks', price: 399, icon: 'biotech' },
-    { id: 'food-allergy', name: 'Food Allergy Panel', description: 'Common food allergen test', resultsTime: '5-7 days', price: 189, icon: 'restaurant' },
-    { id: 'resp-allergy', name: 'Respiratory Allergy Panel', description: 'Airborne allergen screening', resultsTime: '5-7 days', price: 169, icon: 'air' },
-    { id: 'psa', name: 'Prostate Specific Antigen (PSA)', description: 'Prostate health screening', resultsTime: '24 hours', price: 45, icon: 'science' },
-    { id: 'liver', name: 'Liver Function Panel', description: 'Hepatic health assessment', resultsTime: '24 hours', price: 42, icon: 'science' },
-    { id: 'glucose', name: 'Blood Glucose Test', description: 'Fasting blood sugar level', resultsTime: '12 hours', price: 25, icon: 'water_drop' },
-    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', resultsTime: '24 hours', price: 50, icon: 'biotech' }
+    { id: 'cbc', name: 'Complete Blood Count (CBC)', description: 'Comprehensive blood cell analysis', category: 'blood', resultsTime: '24 hours', price: 29, icon: 'favorite' },
+    { id: 'cmp', name: 'Complete Metabolic Panel (CMP)', description: '14 blood tests for metabolism', category: 'blood', resultsTime: '24 hours', price: 45, icon: 'science' },
+    { id: 'thyroid-full', name: 'Comprehensive Thyroid Panel', description: 'TSH, T3, T4, and antibodies', category: 'hormone', resultsTime: '48 hours', price: 89, icon: 'monitor_heart' },
+    { id: 'lipid', name: 'Lipid Panel', description: 'Cholesterol and triglycerides', category: 'cardiac', resultsTime: '24 hours', price: 35, icon: 'favorite' },
+    { id: 'a1c', name: 'Hemoglobin A1C', description: 'Blood sugar average over 3 months', category: 'blood', resultsTime: '24 hours', price: 32, icon: 'water_drop' },
+    { id: 'vitd', name: 'Vitamin D, 25-Hydroxy', description: 'Vitamin D deficiency screening', category: 'blood', resultsTime: '48 hours', price: 55, icon: 'wb_sunny' },
+    { id: 'tsh', name: 'Thyroid Stimulating Hormone (TSH)', description: 'Basic thyroid function test', category: 'hormone', resultsTime: '24 hours', price: 35, icon: 'monitor_heart' },
+    { id: 'xray', name: 'Chest X-Ray', description: 'Standard chest radiograph', category: 'imaging', resultsTime: '2-4 hours', price: 75, icon: 'image' },
+    { id: 'mri', name: 'MRI Brain', description: 'Detailed brain imaging', category: 'imaging', resultsTime: '24-48 hours', price: 450, icon: 'image' },
+    { id: 'ct', name: 'CT Scan Abdomen', description: 'Abdominal computed tomography', category: 'imaging', resultsTime: '24 hours', price: 350, icon: 'image' },
+    { id: 'ecg', name: 'Electrocardiogram (ECG/EKG)', description: 'Heart electrical activity', category: 'cardiac', resultsTime: '1 hour', price: 50, icon: 'favorite' },
+    { id: 'echo', name: 'Echocardiogram', description: 'Heart ultrasound imaging', category: 'cardiac', resultsTime: '24 hours', price: 180, icon: 'favorite' },
+    { id: 'testosterone', name: 'Testosterone, Total', description: 'Male hormone level test', category: 'hormone', resultsTime: '48 hours', price: 65, icon: 'science' },
+    { id: 'estrogen', name: 'Estrogen Panel', description: 'Female hormone levels', category: 'hormone', resultsTime: '48 hours', price: 85, icon: 'science' },
+    { id: 'genetic', name: 'Genetic Carrier Screening', description: 'Hereditary condition testing', category: 'genetic', resultsTime: '2-3 weeks', price: 299, icon: 'biotech' },
+    { id: 'brca', name: 'BRCA Gene Testing', description: 'Breast cancer gene analysis', category: 'genetic', resultsTime: '2-3 weeks', price: 399, icon: 'biotech' },
+    { id: 'food-allergy', name: 'Food Allergy Panel', description: 'Common food allergen test', category: 'allergy', resultsTime: '5-7 days', price: 189, icon: 'restaurant' },
+    { id: 'resp-allergy', name: 'Respiratory Allergy Panel', description: 'Airborne allergen screening', category: 'allergy', resultsTime: '5-7 days', price: 169, icon: 'air' },
+    { id: 'psa', name: 'Prostate Specific Antigen (PSA)', description: 'Prostate health screening', category: 'blood', resultsTime: '24 hours', price: 45, icon: 'science' },
+    { id: 'liver', name: 'Liver Function Panel', description: 'Hepatic health assessment', category: 'blood', resultsTime: '24 hours', price: 42, icon: 'science' },
+    { id: 'glucose', name: 'Blood Glucose Test', description: 'Fasting blood sugar level', category: 'blood', resultsTime: '12 hours', price: 25, icon: 'water_drop' },
+    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', resultsTime: '24 hours', price: 50, icon: 'biotech' }
   ];
 
   // Step 2: Date/Time Selection
@@ -307,7 +335,7 @@ export class MedicalBookingComponent implements OnInit {
     }
   ];
 
-  // Step 3: ID Upload (NEW)
+  // Step 3: ID Upload
   ocrData: DocumentData | null = null;
   isProcessingOcr = false;
   ocrProgress = 0;
@@ -316,6 +344,15 @@ export class MedicalBookingComponent implements OnInit {
   ocrError: string | null = null;
   uploadedImageUrl: string | null = null;
   showImageModal = false;
+
+  // Step 3: Insurance Card Upload
+  insuranceData: { carrier: string; memberId: string } | null = null;
+  isProcessingInsurance = false;
+  insuranceProgress = 0;
+  insuranceSkipped = false;
+  insuranceError: string | null = null;
+  insuranceImageUrl: string | null = null;
+  showInsuranceModal = false;
 
   // Step 4: Patient Details Form
   patientForm!: FormGroup;
@@ -586,7 +623,25 @@ export class MedicalBookingComponent implements OnInit {
   onTestSearchInput(): void {
     this.isTestDropdownOpen = true;
     this.testHighlightedIndex = -1;
-    this.filterTests();
+
+    const query = this.testSearchQuery.trim().toLowerCase();
+
+    if (query.length > 0) {
+      this.isTestSearchLoading = true;
+      // Simulate API delay for better UX
+      setTimeout(() => {
+        this.filteredTests = this.medicalTests.filter(test =>
+          test.name.toLowerCase().includes(query) ||
+          test.description.toLowerCase().includes(query) ||
+          test.category.toLowerCase().includes(query)
+        );
+        this.isTestSearchLoading = false;
+        this.testHighlightedIndex = -1;
+      }, 200);
+    } else {
+      this.filteredTests = [];
+      this.isTestSearchLoading = false;
+    }
   }
 
   private filterTests(): void {
@@ -594,7 +649,8 @@ export class MedicalBookingComponent implements OnInit {
     if (query.length > 0) {
       this.filteredTests = this.medicalTests.filter(test =>
         test.name.toLowerCase().includes(query) ||
-        test.description.toLowerCase().includes(query)
+        test.description.toLowerCase().includes(query) ||
+        test.category.toLowerCase().includes(query)
       );
     } else {
       this.filteredTests = [];
@@ -602,14 +658,16 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   onTestSearchKeyDown(event: KeyboardEvent): void {
-    if (!this.isTestDropdownOpen || this.filteredTests.length === 0) return;
+    if (!this.isTestDropdownOpen) return;
+
+    const items = this.filteredTests.length > 0 ? this.filteredTests : [];
 
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
         this.testHighlightedIndex = Math.min(
           this.testHighlightedIndex + 1,
-          this.filteredTests.length - 1
+          items.length - 1
         );
         break;
       case 'ArrowUp':
@@ -618,8 +676,8 @@ export class MedicalBookingComponent implements OnInit {
         break;
       case 'Enter':
         event.preventDefault();
-        if (this.testHighlightedIndex >= 0 && this.filteredTests[this.testHighlightedIndex]) {
-          this.selectFilteredTest(this.filteredTests[this.testHighlightedIndex]);
+        if (this.testHighlightedIndex >= 0 && items[this.testHighlightedIndex]) {
+          this.selectFilteredTest(items[this.testHighlightedIndex]);
         }
         break;
       case 'Escape':
@@ -633,7 +691,23 @@ export class MedicalBookingComponent implements OnInit {
     this.filteredTests = [];
     this.isTestDropdownOpen = false;
     this.testHighlightedIndex = -1;
+    this.isTestSearchLoading = false;
     this.testSearchInputRef?.nativeElement.focus();
+  }
+
+  selectTestCategory(category: TestCategory): void {
+    this.testSearchQuery = category.name;
+    this.filteredTests = this.medicalTests.filter(t => t.category === category.id);
+    this.isTestSearchLoading = false;
+  }
+
+  selectRecentSearch(recent: RecentSearch): void {
+    this.testSearchQuery = recent.name;
+    this.onTestSearchInput();
+  }
+
+  clearRecentSearches(): void {
+    this.recentSearches = [];
   }
 
   selectFilteredTest(test: MedicalTest): void {
@@ -642,6 +716,7 @@ export class MedicalBookingComponent implements OnInit {
     this.filteredTests = [];
     this.isTestDropdownOpen = false;
     this.testHighlightedIndex = -1;
+    this.isTestSearchLoading = false;
   }
 
   highlightSearchMatch(text: string): string {
@@ -652,6 +727,22 @@ export class MedicalBookingComponent implements OnInit {
 
   private escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  getCategoryClass(category: string): string {
+    const classMap: { [key: string]: string } = {
+      blood: 'blood',
+      imaging: 'imaging',
+      cardiac: 'cardiac',
+      hormone: 'hormone',
+      genetic: 'genetic',
+      allergy: 'allergy'
+    };
+    return classMap[category] || 'blood';
+  }
+
+  getIconClass(category: string): string {
+    return this.getCategoryClass(category);
   }
 
   // Navigation
@@ -773,16 +864,26 @@ export class MedicalBookingComponent implements OnInit {
       this.filteredTests = [];
       this.isTestDropdownOpen = false;
       this.testHighlightedIndex = -1;
+      this.isTestSearchLoading = false;
 
       // Reset ID upload state
       this.ocrData = null;
+      this.ocrError = null;
       this.isProcessingOcr = false;
       this.ocrProgress = 0;
       this.uploadSkipped = false;
       this.currentJobId = null;
-      this.ocrError = null;
       this.uploadedImageUrl = null;
       this.showImageModal = false;
+
+      // Reset insurance upload state
+      this.insuranceData = null;
+      this.insuranceError = null;
+      this.isProcessingInsurance = false;
+      this.insuranceProgress = 0;
+      this.insuranceSkipped = false;
+      this.insuranceImageUrl = null;
+      this.showInsuranceModal = false;
 
       // Reset payment state
       this.paymentForm.reset();
@@ -940,54 +1041,212 @@ export class MedicalBookingComponent implements OnInit {
     this.showImageModal = false;
   }
 
+  // ===========================
+  // Insurance Card Upload Methods
+  // ===========================
+
   /**
-   * Pre-fill patient form with OCR extracted data
+   * Handle insurance card file upload
+   */
+  onInsuranceFileProcessed(file: File): void {
+    this.createInsuranceImagePreview(file);
+    this.processInsuranceCard(file);
+  }
+
+  /**
+   * Convert insurance file to base64 data URL for persistent preview
+   */
+  private createInsuranceImagePreview(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      this.insuranceImageUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Process insurance card through OCR
+   */
+  private processInsuranceCard(file: File): void {
+    this.isProcessingInsurance = true;
+    this.insuranceProgress = 0;
+    this.insuranceData = null;
+    this.insuranceError = null;
+    this.insuranceSkipped = false;
+
+    // Simulate progress animation
+    const progressInterval = setInterval(() => {
+      if (this.insuranceProgress < 80) {
+        this.insuranceProgress += 10;
+      }
+    }, 200);
+
+    // Use the API service to process the insurance card
+    this.apiService.processInsuranceCard(file).subscribe({
+      next: (response) => {
+        clearInterval(progressInterval);
+        this.insuranceProgress = 100;
+        this.isProcessingInsurance = false;
+
+        if (response.status === 'completed' && response.data) {
+          this.insuranceData = {
+            carrier: response.data.carrier || '',
+            memberId: response.data.memberId || ''
+          };
+          this.snackBar.open(
+            'Insurance card processed successfully!',
+            'Close',
+            {
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top'
+            }
+          );
+        } else if (response.status === 'error') {
+          this.insuranceError = response.error || 'Failed to process insurance card';
+        }
+      },
+      error: (error) => {
+        clearInterval(progressInterval);
+        this.isProcessingInsurance = false;
+        this.insuranceProgress = 0;
+        this.insuranceError = error.message || 'Failed to process insurance card';
+        this.snackBar.open(
+          'Failed to process insurance card: ' + this.insuranceError,
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }
+        );
+      }
+    });
+  }
+
+  /**
+   * Skip insurance card upload
+   */
+  skipInsuranceUpload(): void {
+    this.insuranceSkipped = true;
+    this.insuranceData = null;
+    this.insuranceError = null;
+  }
+
+  /**
+   * Retry insurance card processing after an error
+   */
+  retryInsuranceUpload(): void {
+    this.insuranceError = null;
+    this.insuranceData = null;
+  }
+
+  /**
+   * Clear current insurance upload and allow new upload
+   */
+  clearInsuranceUpload(): void {
+    this.insuranceData = null;
+    this.insuranceError = null;
+    this.insuranceProgress = 0;
+    this.insuranceSkipped = false;
+    this.insuranceImageUrl = null;
+    this.showInsuranceModal = false;
+  }
+
+  /**
+   * Open insurance image modal
+   */
+  openInsuranceImageModal(): void {
+    this.showInsuranceModal = true;
+  }
+
+  /**
+   * Close insurance image modal
+   */
+  closeInsuranceImageModal(): void {
+    this.showInsuranceModal = false;
+  }
+
+  /**
+   * Pre-fill patient form with OCR extracted data and insurance data
    */
   private prefillPatientForm(): void {
-    if (!this.ocrData) return;
-
-    // Map OCR data to patient form fields
     const formUpdates: { [key: string]: any } = {};
 
-    if (this.ocrData.firstName) {
-      formUpdates['firstName'] = this.ocrData.firstName;
+    // Map OCR data to patient form fields
+    if (this.ocrData) {
+      if (this.ocrData.firstName) {
+        formUpdates['firstName'] = this.ocrData.firstName;
+      }
+      if (this.ocrData.lastName) {
+        formUpdates['lastName'] = this.ocrData.lastName;
+      }
+      if (this.ocrData.dob) {
+        // Parse date string to Date object for the datepicker
+        formUpdates['dob'] = new Date(this.ocrData.dob);
+      }
+      if (this.ocrData.sex) {
+        formUpdates['sex'] = this.ocrData.sex;
+      }
+      if (this.ocrData.addressStreet) {
+        formUpdates['addressStreet'] = this.ocrData.addressStreet;
+      }
+      if (this.ocrData.addressCity) {
+        formUpdates['addressCity'] = this.ocrData.addressCity;
+      }
+      if (this.ocrData.addressState) {
+        formUpdates['addressState'] = this.ocrData.addressState;
+      }
+      if (this.ocrData.addressZip) {
+        formUpdates['addressZip'] = this.ocrData.addressZip;
+      }
     }
-    if (this.ocrData.lastName) {
-      formUpdates['lastName'] = this.ocrData.lastName;
-    }
-    if (this.ocrData.dob) {
-      // Parse date string to Date object for the datepicker
-      formUpdates['dob'] = new Date(this.ocrData.dob);
-    }
-    if (this.ocrData.sex) {
-      formUpdates['sex'] = this.ocrData.sex;
-    }
-    if (this.ocrData.addressStreet) {
-      formUpdates['addressStreet'] = this.ocrData.addressStreet;
-    }
-    if (this.ocrData.addressCity) {
-      formUpdates['addressCity'] = this.ocrData.addressCity;
-    }
-    if (this.ocrData.addressState) {
-      formUpdates['addressState'] = this.ocrData.addressState;
-    }
-    if (this.ocrData.addressZip) {
-      formUpdates['addressZip'] = this.ocrData.addressZip;
+
+    // Map insurance data to form fields
+    if (this.insuranceData) {
+      if (this.insuranceData.carrier) {
+        // Map carrier name to form value
+        const carrierMap: { [key: string]: string } = {
+          'aetna': 'aetna',
+          'blue cross': 'bluecross',
+          'blue cross blue shield': 'bluecross',
+          'bcbs': 'bluecross',
+          'cigna': 'cigna',
+          'united': 'united',
+          'united healthcare': 'united',
+          'unitedhealthcare': 'united',
+          'humana': 'humana',
+          'kaiser': 'kaiser',
+          'kaiser permanente': 'kaiser'
+        };
+        const normalizedCarrier = this.insuranceData.carrier.toLowerCase();
+        const matchedCarrier = Object.keys(carrierMap).find(key =>
+          normalizedCarrier.includes(key)
+        );
+        formUpdates['insuranceProvider'] = matchedCarrier ? carrierMap[matchedCarrier] : 'other';
+      }
+      if (this.insuranceData.memberId) {
+        formUpdates['memberId'] = this.insuranceData.memberId;
+      }
     }
 
     // Patch form with extracted values
-    this.patientForm.patchValue(formUpdates);
+    if (Object.keys(formUpdates).length > 0) {
+      this.patientForm.patchValue(formUpdates);
 
-    // Show success message about pre-fill
-    this.snackBar.open(
-      'Form pre-filled with your ID information. Please verify and complete.',
-      'OK',
-      {
+      // Show success message about pre-fill
+      const message = this.ocrData && this.insuranceData
+        ? 'Form pre-filled with your ID and insurance information. Please verify and complete.'
+        : this.ocrData
+          ? 'Form pre-filled with your ID information. Please verify and complete.'
+          : 'Form pre-filled with your insurance information. Please verify and complete.';
+
+      this.snackBar.open(message, 'OK', {
         duration: 4000,
         horizontalPosition: 'center',
         verticalPosition: 'top'
-      }
-    );
+      });
+    }
   }
 
   // ===========================

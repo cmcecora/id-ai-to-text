@@ -99,7 +99,7 @@
               (focus)="onTestSearchFocus()"
               (input)="onTestSearchInput()"
               (keydown)="onTestSearchKeyDown($event)"
-              placeholder="Search for a test..."
+              placeholder="Search tests, panels, or conditions..."
               autocomplete="off"
             >
             <button
@@ -114,34 +114,107 @@
           <!-- Autocomplete Dropdown -->
           <div
             class="test-autocomplete-dropdown"
-            *ngIf="isTestDropdownOpen && testSearchQuery"
+            *ngIf="isTestDropdownOpen"
             @dropdownAnimation
           >
-            <!-- Search Results -->
-            <div class="autocomplete-results" *ngIf="filteredTests.length > 0">
-              <div
-                class="autocomplete-result-item"
-                *ngFor="let test of filteredTests; let i = index"
-                [class.highlighted]="i === testHighlightedIndex"
-                (click)="selectFilteredTest(test)"
-              >
-                <div class="result-icon icon-container icon-md icon-purple">
-                  <mat-icon>{{test.icon}}</mat-icon>
-                </div>
-                <div class="result-content">
-                  <div class="result-name" [innerHTML]="highlightSearchMatch(test.name)"></div>
-                  <div class="result-description">{{test.description}}</div>
-                </div>
-                <div class="result-meta">
-                  <span class="result-price">${{test.price}}</span>
+            <!-- Loading State -->
+            <div class="loading-state" *ngIf="isTestSearchLoading">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span class="loading-text">Searching tests...</span>
+            </div>
+
+            <!-- Quick Categories (shown when empty) -->
+            <div class="dropdown-section" *ngIf="!testSearchQuery && !isTestSearchLoading">
+              <div class="dropdown-section-header">
+                <span class="dropdown-section-title">Browse Categories</span>
+              </div>
+              <div class="quick-categories">
+                <div
+                  class="category-chip"
+                  *ngFor="let cat of testCategories"
+                  (click)="selectTestCategory(cat)"
+                >
+                  <mat-icon>{{cat.icon}}</mat-icon>
+                  {{cat.name}}
                 </div>
               </div>
             </div>
 
-            <!-- No Results -->
-            <div class="no-results-state" *ngIf="filteredTests.length === 0">
-              <mat-icon>search_off</mat-icon>
-              <span>No tests found for "{{testSearchQuery}}"</span>
+            <!-- Recent Searches -->
+            <div class="dropdown-section" *ngIf="!testSearchQuery && !isTestSearchLoading && recentSearches.length > 0">
+              <div class="dropdown-section-header">
+                <span class="dropdown-section-title">Recent Searches</span>
+                <button class="dropdown-section-action" (click)="clearRecentSearches()">Clear all</button>
+              </div>
+              <div
+                class="autocomplete-item"
+                *ngFor="let recent of recentSearches"
+                (click)="selectRecentSearch(recent)"
+              >
+                <div class="item-icon recent">
+                  <mat-icon>schedule</mat-icon>
+                </div>
+                <div class="item-content">
+                  <div class="item-name">{{recent.name}}</div>
+                  <div class="item-description">Searched {{recent.searchedAgo}}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Search Results -->
+            <div class="dropdown-section" *ngIf="testSearchQuery && !isTestSearchLoading && filteredTests.length > 0">
+              <div class="dropdown-section-header">
+                <span class="dropdown-section-title">Test Results</span>
+              </div>
+              <div
+                class="autocomplete-item"
+                *ngFor="let test of filteredTests; let i = index"
+                [class.highlighted]="i === testHighlightedIndex"
+                (click)="selectFilteredTest(test)"
+              >
+                <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                  <mat-icon>{{test.icon}}</mat-icon>
+                </div>
+                <div class="item-content">
+                  <div class="item-name" [innerHTML]="highlightSearchMatch(test.name)"></div>
+                  <div class="item-description">{{test.description}}</div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-category" [ngClass]="getCategoryClass(test.category)">{{test.category}}</span>
+                  <span class="item-price">${{test.price}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Results State -->
+            <div class="no-results" *ngIf="testSearchQuery && !isTestSearchLoading && filteredTests.length === 0">
+              <div class="no-results-icon">
+                <mat-icon>search_off</mat-icon>
+              </div>
+              <div class="no-results-title">No tests found</div>
+              <div class="no-results-text">Try adjusting your search or browse categories above</div>
+            </div>
+
+            <!-- Dropdown Footer -->
+            <div class="dropdown-footer" *ngIf="!isTestSearchLoading">
+              <div class="keyboard-hints">
+                <div class="keyboard-hint">
+                  <span class="kbd">↑</span>
+                  <span class="kbd">↓</span>
+                  <span>Navigate</span>
+                </div>
+                <div class="keyboard-hint">
+                  <span class="kbd">Enter</span>
+                  <span>Select</span>
+                </div>
+                <div class="keyboard-hint">
+                  <span class="kbd">Esc</span>
+                  <span>Close</span>
+                </div>
+              </div>
+              <span class="results-count" *ngIf="testSearchQuery && filteredTests.length > 0">
+                {{filteredTests.length}} results
+              </span>
             </div>
           </div>
         </div>
@@ -433,122 +506,169 @@
         </div>
       </div>
 
-      <!-- Step 3: Upload ID (NEW) -->
+      <!-- Step 3: Upload Documents -->
       <div
         class="step-content"
         *ngIf="currentStep === 3"
         [@slideAnimation]="animationDirection"
         (@slideAnimation.done)="onAnimationDone()"
       >
-        <h2>Upload Your ID</h2>
+        <h2>Upload Your Documents</h2>
         <p class="step-description">
-          Speed up your check-in by uploading a photo of your ID. We'll automatically fill in your information.
+          Speed up your check-in by uploading photos of your ID and insurance card. We'll automatically fill in your information.
           <strong>This step is optional</strong> - you can skip and enter details manually.
         </p>
 
-        <!-- Processing Overlay -->
-        <div *ngIf="isProcessingOcr" class="ocr-processing-overlay">
-          <div class="processing-content">
-            <mat-progress-spinner
-              mode="determinate"
-              [value]="ocrProgress"
-              diameter="60"
-              strokeWidth="4"
-            ></mat-progress-spinner>
-            <p class="processing-text">Processing your ID...</p>
-            <p class="processing-subtext">Extracting information using AI</p>
-          </div>
-        </div>
-
-        <!-- Upload Panel (reuse existing component) -->
-        <div class="upload-section" *ngIf="!ocrData && !isProcessingOcr && !ocrError">
-          <app-upload-panel
-            (fileProcessed)="onFileProcessed($event)"
-            [disabled]="isProcessingOcr"
-          ></app-upload-panel>
-        </div>
-
-        <!-- Error State -->
-        <div *ngIf="ocrError && !isProcessingOcr" class="ocr-error-card">
-          <div class="error-icon icon-container icon-lg icon-red">
-            <mat-icon>error_outline</mat-icon>
-          </div>
-          <div class="error-content">
-            <p class="error-title">Failed to process ID</p>
-            <p class="error-message">{{ ocrError }}</p>
-          </div>
-          <div class="error-actions">
-            <button class="btn btn-outline" (click)="retryUpload()">
-              <mat-icon>refresh</mat-icon>
-              Try Again
-            </button>
-            <button class="btn btn-primary" (click)="skipIdUpload()">
-              Skip & Enter Manually
-            </button>
-          </div>
-        </div>
-
-        <!-- Success State -->
-        <div *ngIf="ocrData && !isProcessingOcr" class="ocr-success-card">
-          <div class="success-header">
-            <div class="success-icon icon-container icon-lg icon-green">
-              <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="success-content">
-              <p class="success-title">ID Processed Successfully!</p>
-              <p class="success-message">
-                We extracted your information. It will be pre-filled in the next step for you to verify.
-              </p>
-            </div>
-          </div>
-
-          <!-- Image Preview Thumbnail -->
-          <div class="uploaded-image-preview" *ngIf="uploadedImageUrl">
-            <div class="image-thumbnail" (click)="openImageModal()">
-              <img [src]="uploadedImageUrl" alt="Uploaded ID">
-              <div class="image-overlay">
-                <mat-icon>zoom_in</mat-icon>
-                <span>Click to enlarge</span>
+        <!-- Two Column Upload Grid -->
+        <div class="upload-grid">
+          <!-- Government ID Upload Card -->
+          <div class="upload-card">
+            <div class="upload-card-header">
+              <div class="upload-card-icon icon-container icon-lg icon-purple">
+                <mat-icon>badge</mat-icon>
+              </div>
+              <div class="upload-card-title">
+                <h4>Government ID</h4>
+                <p>Driver's license or state ID</p>
               </div>
             </div>
+
+            <!-- Processing State -->
+            <div *ngIf="isProcessingOcr" class="upload-card-processing">
+              <mat-progress-spinner
+                mode="determinate"
+                [value]="ocrProgress"
+                diameter="48"
+                strokeWidth="4"
+              ></mat-progress-spinner>
+              <p>Processing ID...</p>
+            </div>
+
+            <!-- Upload Panel -->
+            <div class="upload-card-content" *ngIf="!ocrData && !isProcessingOcr && !ocrError">
+              <app-upload-panel
+                (fileProcessed)="onFileProcessed($event)"
+                [disabled]="isProcessingOcr"
+              ></app-upload-panel>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="ocrError && !isProcessingOcr" class="upload-card-error">
+              <div class="error-badge">
+                <mat-icon>error</mat-icon>
+                <span>{{ ocrError }}</span>
+              </div>
+              <div class="error-actions">
+                <button class="btn btn-sm btn-outline" (click)="retryUpload()">
+                  <mat-icon>refresh</mat-icon>
+                  Retry
+                </button>
+              </div>
+            </div>
+
+            <!-- Success State -->
+            <div *ngIf="ocrData && !isProcessingOcr" class="upload-card-success">
+              <div class="success-badge">
+                <mat-icon>check_circle</mat-icon>
+                <span>ID Processed</span>
+              </div>
+              <div class="uploaded-image-preview" *ngIf="uploadedImageUrl">
+                <div class="image-thumbnail" (click)="openImageModal()">
+                  <img [src]="uploadedImageUrl" alt="Uploaded ID">
+                  <div class="image-overlay">
+                    <mat-icon>zoom_in</mat-icon>
+                  </div>
+                </div>
+              </div>
+              <div class="extracted-summary">
+                <p *ngIf="ocrData.firstName || ocrData.lastName">
+                  <strong>{{ ocrData.firstName }} {{ ocrData.lastName }}</strong>
+                </p>
+                <p *ngIf="ocrData.dob">DOB: {{ formatDob(ocrData.dob) }}</p>
+              </div>
+              <button class="btn btn-sm btn-text" (click)="clearUpload()">
+                <mat-icon>refresh</mat-icon>
+                Upload Different
+              </button>
+            </div>
           </div>
 
-          <!-- Preview of extracted data -->
-          <div class="extracted-preview">
-            <div class="preview-item" *ngIf="ocrData.firstName || ocrData.lastName">
-              <span class="preview-label">Name:</span>
-              <span class="preview-value">
-                {{ ocrData.firstName }}
-                <span *ngIf="ocrData.middleInitial"> {{ ocrData.middleInitial }}.</span>
-                {{ ocrData.lastName }}
-              </span>
+          <!-- Insurance Card Upload Card -->
+          <div class="upload-card">
+            <div class="upload-card-header">
+              <div class="upload-card-icon icon-container icon-lg icon-blue">
+                <mat-icon>health_and_safety</mat-icon>
+              </div>
+              <div class="upload-card-title">
+                <h4>Insurance Card</h4>
+                <p>Front of insurance card</p>
+              </div>
+              <span class="optional-badge">Optional</span>
             </div>
-            <div class="preview-item" *ngIf="ocrData.sex">
-              <span class="preview-label">Sex:</span>
-              <span class="preview-value">{{ ocrData.sex }}</span>
-            </div>
-            <div class="preview-item" *ngIf="ocrData.dob">
-              <span class="preview-label">Date of Birth:</span>
-              <span class="preview-value">{{ formatDob(ocrData.dob) }}</span>
-            </div>
-            <div class="preview-item" *ngIf="ocrData.addressStreet">
-              <span class="preview-label">Address:</span>
-              <span class="preview-value">
-                {{ ocrData.addressStreet }}<span *ngIf="ocrData.addressCity">, {{ ocrData.addressCity }}</span><span *ngIf="ocrData.addressState">, {{ ocrData.addressState }}</span><span *ngIf="ocrData.addressZip"> {{ ocrData.addressZip }}</span>
-              </span>
-            </div>
-          </div>
 
-          <div class="success-actions">
-            <button class="btn btn-outline" (click)="clearUpload()">
-              <mat-icon>refresh</mat-icon>
-              Upload Different ID
-            </button>
+            <!-- Processing State -->
+            <div *ngIf="isProcessingInsurance" class="upload-card-processing">
+              <mat-progress-spinner
+                mode="determinate"
+                [value]="insuranceProgress"
+                diameter="48"
+                strokeWidth="4"
+              ></mat-progress-spinner>
+              <p>Processing card...</p>
+            </div>
+
+            <!-- Upload Panel -->
+            <div class="upload-card-content" *ngIf="!insuranceData && !isProcessingInsurance && !insuranceError">
+              <app-upload-panel
+                (fileProcessed)="onInsuranceFileProcessed($event)"
+                [disabled]="isProcessingInsurance"
+              ></app-upload-panel>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="insuranceError && !isProcessingInsurance" class="upload-card-error">
+              <div class="error-badge">
+                <mat-icon>error</mat-icon>
+                <span>{{ insuranceError }}</span>
+              </div>
+              <div class="error-actions">
+                <button class="btn btn-sm btn-outline" (click)="retryInsuranceUpload()">
+                  <mat-icon>refresh</mat-icon>
+                  Retry
+                </button>
+              </div>
+            </div>
+
+            <!-- Success State -->
+            <div *ngIf="insuranceData && !isProcessingInsurance" class="upload-card-success">
+              <div class="success-badge success-blue">
+                <mat-icon>verified</mat-icon>
+                <span>Card Processed</span>
+              </div>
+              <div class="uploaded-image-preview" *ngIf="insuranceImageUrl">
+                <div class="image-thumbnail" (click)="openInsuranceImageModal()">
+                  <img [src]="insuranceImageUrl" alt="Uploaded Insurance Card">
+                  <div class="image-overlay">
+                    <mat-icon>zoom_in</mat-icon>
+                  </div>
+                </div>
+              </div>
+              <div class="extracted-summary">
+                <p *ngIf="insuranceData.carrier">
+                  <strong>{{ insuranceData.carrier }}</strong>
+                </p>
+                <p *ngIf="insuranceData.memberId">ID: {{ insuranceData.memberId }}</p>
+              </div>
+              <button class="btn btn-sm btn-text" (click)="clearInsuranceUpload()">
+                <mat-icon>refresh</mat-icon>
+                Upload Different
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Skip Option (always visible unless processing or success) -->
-        <div *ngIf="!isProcessingOcr && !ocrData" class="skip-section">
+        <!-- Skip Option -->
+        <div class="skip-section">
           <div class="divider-with-text">
             <span>or</span>
           </div>
@@ -635,6 +755,7 @@
 
         <!-- Patient Form -->
         <form [formGroup]="patientForm" class="patient-form">
+          <!-- Section 1: Personal Information -->
           <div class="form-section">
             <h3 class="section-title">Personal Information</h3>
             <div class="form-row">
@@ -700,26 +821,9 @@
                 <mat-error *ngIf="patientForm.get('addressZip')?.hasError('required')">ZIP is required</mat-error>
               </mat-form-field>
             </div>
-
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Email Address</mat-label>
-                <input matInput formControlName="email" type="email" placeholder="Enter your email" autocomplete="email" name="email">
-                <mat-icon matPrefix>email</mat-icon>
-                <mat-error *ngIf="patientForm.get('email')?.hasError('required')">Email is required</mat-error>
-                <mat-error *ngIf="patientForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phone" type="tel" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event)" autocomplete="tel" name="phone">
-                <mat-icon matPrefix>phone</mat-icon>
-                <mat-error *ngIf="patientForm.get('phone')?.hasError('required')">Phone number is required</mat-error>
-                <mat-error *ngIf="patientForm.get('phone')?.hasError('pattern')">Format: (555) 123-4567</mat-error>
-              </mat-form-field>
-            </div>
           </div>
 
+          <!-- Section 2: Insurance Information -->
           <div class="form-section">
             <h3 class="section-title">Insurance Information <span class="optional">(Optional)</span></h3>
             <div class="form-row">
@@ -741,6 +845,28 @@
               <mat-form-field appearance="outline">
                 <mat-label>Member ID</mat-label>
                 <input matInput formControlName="memberId" placeholder="Enter member ID">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Section 3: Contact Information -->
+          <div class="form-section">
+            <h3 class="section-title">Contact Information</h3>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Email Address</mat-label>
+                <input matInput formControlName="email" type="email" placeholder="Enter your email" autocomplete="email" name="email">
+                <mat-icon matPrefix>email</mat-icon>
+                <mat-error *ngIf="patientForm.get('email')?.hasError('required')">Email is required</mat-error>
+                <mat-error *ngIf="patientForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Phone Number</mat-label>
+                <input matInput formControlName="phone" type="tel" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event)" autocomplete="tel" name="phone">
+                <mat-icon matPrefix>phone</mat-icon>
+                <mat-error *ngIf="patientForm.get('phone')?.hasError('required')">Phone number is required</mat-error>
+                <mat-error *ngIf="patientForm.get('phone')?.hasError('pattern')">Format: (555) 123-4567</mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -1202,6 +1328,16 @@
         <mat-icon>close</mat-icon>
       </button>
       <img [src]="uploadedImageUrl" alt="Uploaded ID - Full Size">
+    </div>
+  </div>
+
+  <!-- Insurance Image Preview Modal -->
+  <div class="image-modal-overlay" *ngIf="showInsuranceModal" (click)="closeInsuranceImageModal()">
+    <div class="image-modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeInsuranceImageModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="insuranceImageUrl" alt="Uploaded Insurance Card - Full Size">
     </div>
   </div>
 </div>
