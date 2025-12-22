@@ -1,7 +1,127 @@
-/* You can add global styles to this file, and also import other style files */
+/* Whelp Design System - Global Styles */
 @import '~@angular/material/prebuilt-themes/indigo-pink.css';
 
-// Global resets and base styles
+// ===========================
+// CSS Custom Properties (Design Tokens)
+// ===========================
+:root {
+  // Brand Colors
+  --main: #fefbf6;
+  --footer-bg: #f5f4ef;
+  --text: #000000;
+  --subtext: #555f68;
+
+  // Blue Scale (Primary)
+  --wh-blue-0: #ecf5fe;
+  --wh-blue-5: #d9ecfd;
+  --wh-blue-10: #c1e0fb;
+  --wh-blue-20: #a4d1f9;
+  --wh-blue-30: #66b2f5;
+  --wh-blue-40: #3a9df2;
+  --wh-blue-50: #0f82e6;
+  --wh-blue-60: #0d77d3;
+  --wh-blue-70: #0b61ad;
+  --wh-blue-80: #084981;
+  --wh-blue-90: #063660;
+  --wh-blue-100: #052b4d;
+
+  // Green Scale
+  --wh-green-0: #e5faf0;
+  --wh-green-5: #c7f5df;
+  --wh-green-10: #a4efcb;
+  --wh-green-20: #70e6ad;
+  --wh-green-30: #22c375;
+  --wh-green-40: #1fad68;
+  --wh-green-50: #1b985b;
+  --wh-green-60: #188651;
+  --wh-green-70: #147144;
+  --wh-green-80: #0f5232;
+  --wh-green-90: #0b3d25;
+  --wh-green-100: #08301d;
+
+  // Purple Scale (Accent)
+  --wh-purple-0: #f9f1fd;
+  --wh-purple-5: #f4e3fc;
+  --wh-purple-10: #ecd1fa;
+  --wh-purple-20: #e5bff8;
+  --wh-purple-30: #d495f3;
+  --wh-purple-40: #c775f0;
+  --wh-purple-50: #b64ceb;
+  --wh-purple-60: #af3ae9;
+  --wh-purple-70: #9117cf;
+  --wh-purple-80: #7112a1;
+  --wh-purple-90: #540d77;
+  --wh-purple-100: #410a5c;
+
+  // Orange Scale
+  --wh-orange-0: #fdf3ed;
+  --wh-orange-5: #fae4d6;
+  --wh-orange-10: #f8d6bf;
+  --wh-orange-20: #f5c4a3;
+  --wh-orange-30: #efa06c;
+  --wh-orange-40: #e9803a;
+  --wh-orange-50: #cf6017;
+
+  // Yellow Scale
+  --wh-yellow-0: #fdf4e2;
+  --wh-yellow-30: #f0a314;
+  --wh-yellow-40: #ce8b0d;
+  --wh-yellow-50: #b1770b;
+
+  // Red Scale
+  --wh-red-50: #ea4343;
+  --wh-red-60: #e61919;
+
+  // Steel Scale (Cool Grays)
+  --wh-steel-0: #f4f5f6;
+  --wh-steel-5: #e9ebed;
+  --wh-steel-10: #dbdee1;
+  --wh-steel-20: #cacfd3;
+  --wh-steel-30: #a8b0b8;
+  --wh-steel-40: #949fa8;
+  --wh-steel-50: #788591;
+  --wh-steel-60: #6a7681;
+  --wh-steel-70: #555f68;
+  --wh-steel-80: #40484f;
+  --wh-steel-90: #30363b;
+  --wh-steel-100: #25292d;
+
+  // Neutral Scale (Pure Grays)
+  --wh-neutral-0: #fafafa;
+  --wh-neutral-5: #f5f5f5;
+  --wh-neutral-10: #f0f0f0;
+  --wh-neutral-20: #ebebeb;
+  --wh-neutral-30: #dbdbdb;
+  --wh-neutral-40: #bfbfbf;
+  --wh-neutral-50: #8a8a8a;
+  --wh-neutral-60: #5c5c5c;
+  --wh-neutral-70: #404040;
+  --wh-neutral-80: #1f1f1f;
+  --wh-neutral-90: #1c1c1c;
+  --wh-neutral-100: #141414;
+
+  --wh-black: #000000;
+  --wh-white: #ffffff;
+
+  // Shadows
+  --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-floating: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 4px 30px rgba(0, 0, 0, 0.08);
+
+  // Layout
+  --navbar-height: 80px;
+  --navbar-height-sm: 64px;
+  --container-max-width: 1200px;
+}
+
+// ===========================
+// Global Resets and Base Styles
+// ===========================
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -10,24 +130,50 @@ html, body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--main);
+  color: var(--text);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-// Typography improvements
+// ===========================
+// Typography
+// ===========================
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   margin-bottom: 0.5em;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
+  color: var(--text);
+}
+
+h1 {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 768px) {
+    font-size: 32px;
+  }
+}
+
+h2 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
 }
 
 h3 {
-  font-size: 1.25rem;
-  color: #3f51b5;
-  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
 }
 
 p {
@@ -35,15 +181,259 @@ p {
   margin-bottom: 1em;
 }
 
-// Material Card enhancements
+// ===========================
+// Container
+// ===========================
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+// ===========================
+// Whelp Button Styles
+// ===========================
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--wh-blue-50);
+  color: var(--wh-white);
+
+  &:hover:not(:disabled) {
+    background: var(--wh-blue-60);
+  }
+}
+
+.btn-black {
+  background: var(--wh-black);
+  color: var(--wh-white);
+
+  &:hover:not(:disabled) {
+    background: var(--wh-neutral-90);
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--wh-black);
+  color: var(--wh-black);
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.btn-text {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  padding: 10px 20px;
+}
+
+// ===========================
+// Whelp Card Styles
+// ===========================
+.wh-card {
+  background: var(--wh-white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.wh-card-sm {
+  background: var(--wh-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+.wh-card-floating {
+  background: var(--wh-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-floating);
+  padding: 12px 16px;
+}
+
+// ===========================
+// Section Backgrounds
+// ===========================
+.section-purple {
+  background: var(--wh-purple-0);
+  border-radius: 24px;
+  padding: 60px;
+}
+
+.section-green {
+  background: var(--wh-green-0);
+  border-radius: 24px;
+  padding: 60px;
+}
+
+.section-neutral {
+  background: var(--wh-neutral-5);
+  padding: 60px 0;
+}
+
+.section-gradient {
+  background: linear-gradient(135deg, #7112a1 0%, #540d77 100%);
+  padding: 80px 0;
+  color: var(--wh-white);
+}
+
+// ===========================
+// Icon Containers
+// ===========================
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+
+  &.icon-sm {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  &.icon-md {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  &.icon-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  &.icon-xl {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+  }
+
+  &.icon-blue {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-50);
+  }
+
+  &.icon-green {
+    background: var(--wh-green-10);
+    color: var(--wh-green-50);
+  }
+
+  &.icon-purple {
+    background: var(--wh-purple-10);
+    color: var(--wh-purple-80);
+  }
+
+  &.icon-orange {
+    background: var(--wh-orange-10);
+    color: var(--wh-orange-50);
+  }
+}
+
+// ===========================
+// Status Indicators
+// ===========================
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.green {
+    background: var(--wh-green-40);
+  }
+
+  &.yellow {
+    background: var(--wh-yellow-40);
+  }
+
+  &.red {
+    background: var(--wh-red-50);
+  }
+
+  &.blue {
+    background: var(--wh-blue-40);
+  }
+}
+
+// ===========================
+// Text Utilities
+// ===========================
+.text-subtext {
+  color: var(--subtext);
+}
+
+.text-primary {
+  color: var(--wh-blue-50);
+}
+
+.text-success {
+  color: var(--wh-green-50);
+}
+
+.text-error {
+  color: var(--wh-red-50);
+}
+
+.text-sm {
+  font-size: 12px;
+}
+
+.text-base {
+  font-size: 14px;
+}
+
+.text-lg {
+  font-size: 16px;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+// ===========================
+// Material Card Overrides
+// ===========================
 .mat-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  border-radius: 12px !important;
+  box-shadow: var(--shadow-card) !important;
+  border-radius: 16px !important;
   transition: box-shadow 0.3s ease, transform 0.2s ease;
   overflow: hidden;
+  font-family: 'Poppins', sans-serif !important;
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    box-shadow: var(--shadow-floating) !important;
   }
 }
 
@@ -58,37 +448,40 @@ p {
 
 .mat-card-title {
   font-size: 1.5rem !important;
-  font-weight: 500 !important;
-  color: #333 !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
   margin-bottom: 4px !important;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 .mat-card-subtitle {
-  color: #666 !important;
+  color: var(--subtext) !important;
   font-size: 0.875rem !important;
   margin-bottom: 0 !important;
 }
 
-// Button enhancements
+// ===========================
+// Material Button Overrides
+// ===========================
 .mat-raised-button {
   border-radius: 8px !important;
   font-weight: 500 !important;
   text-transform: none !important;
-  transition: all 0.3s ease !important;
-  min-height: 48px !important;
-  padding: 0 24px !important;
-  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+  min-height: 44px !important;
+  padding: 0 20px !important;
+  font-family: 'Poppins', sans-serif !important;
 
   &:hover:not([disabled]) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-floating) !important;
   }
 
   &.mat-primary {
-    background-color: #3f51b5 !important;
+    background-color: var(--wh-blue-50) !important;
 
     &:hover:not([disabled]) {
-      background-color: #303f9f !important;
+      background-color: var(--wh-blue-60) !important;
     }
   }
 }
@@ -97,36 +490,40 @@ p {
   border-radius: 8px !important;
   text-transform: none !important;
   transition: all 0.2s ease !important;
-  min-height: 48px !important;
+  min-height: 44px !important;
   padding: 0 16px !important;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 .mat-icon-button {
   transition: all 0.2s ease !important;
 
   &:hover:not([disabled]) {
-    background-color: rgba(63, 81, 181, 0.08) !important;
+    background-color: rgba(15, 130, 230, 0.08) !important;
   }
 }
 
-// Form field improvements
+// ===========================
+// Material Form Field Overrides
+// ===========================
 .mat-form-field {
   width: 100%;
   transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 .mat-form-field-appearance-outline {
   .mat-form-field-outline {
-    color: rgba(0, 0, 0, 0.12);
+    color: var(--wh-neutral-30);
     transition: color 0.3s ease;
   }
 
   &.mat-focused .mat-form-field-outline-thick {
-    color: #3f51b5;
+    color: var(--wh-blue-50);
   }
 
   &:hover:not(.mat-focused) .mat-form-field-outline {
-    color: rgba(0, 0, 0, 0.24);
+    color: var(--wh-neutral-40);
   }
 }
 
@@ -134,7 +531,9 @@ p {
   margin-top: 4px;
 }
 
-// Utility classes
+// ===========================
+// Utility Classes
+// ===========================
 .upload-container {
   padding: 20px;
 }
@@ -158,21 +557,48 @@ p {
   width: 100%;
 }
 
-// Scrollbar styling
+// ===========================
+// Scrollbar Styling
+// ===========================
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--wh-neutral-5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--wh-neutral-40);
   border-radius: 4px;
 
   &:hover {
-    background: #555;
+    background: var(--wh-neutral-50);
   }
+}
+
+// ===========================
+// Animations
+// ===========================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+// ===========================
+// Transitions
+// ===========================
+.transition-all {
+  transition: all 0.2s ease;
 }

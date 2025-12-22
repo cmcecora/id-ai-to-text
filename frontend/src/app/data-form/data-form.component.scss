@@ -1,19 +1,24 @@
+// ===========================
+// Data Form - Whelp Design System
+// ===========================
+
 .data-form {
-  padding: 20px;
+  padding: 24px 32px 32px;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
+// ===========================
+// Form Status (Waiting/Processing)
+// ===========================
 .form-status {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  flex: 1;
+  padding: 60px 20px;
   text-align: center;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin-bottom: 20px;
 }
 
 .status-processing,
@@ -21,229 +26,393 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+}
+
+.loading-spinner {
+  margin-bottom: 20px;
+
+  ::ng-deep .mat-progress-spinner circle {
+    stroke: var(--wh-blue-50);
+  }
+}
+
+.waiting-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--wh-neutral-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
 
   mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: #666;
-  }
-
-  p {
-    margin: 0;
-    color: #666;
-    font-weight: 500;
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--subtext);
   }
 }
 
-.form-sections {
+.status-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 8px 0;
+}
+
+.status-subtitle {
+  font-size: 14px;
+  color: var(--subtext);
+  margin: 0;
+}
+
+// ===========================
+// Form Content
+// ===========================
+.form-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
 }
 
-.section-content {
-  padding: 16px 0;
+.form-section {
+  margin-bottom: 24px;
+}
 
-  h3 {
-    margin: 0 0 16px 0;
-    color: #333;
-    font-size: 18px;
-    font-weight: 500;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 8px;
-  }
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--subtext);
+  margin: 0 0 16px 0;
 }
 
 .section-divider {
-  margin: 8px 0;
+  height: 1px;
+  background: var(--wh-neutral-20);
+  margin-bottom: 24px;
 }
 
-.form-row {
-  display: flex;
+// ===========================
+// Form Grid Layouts
+// ===========================
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
 
-  .full-width {
-    flex: 1;
+  &.three-col {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
-  .middle-initial {
-    width: 120px;
-  }
-
-  .sex-field {
-    flex: 1;
-  }
-
-  .city-field {
-    flex: 2;
-  }
-
-  .state-field {
-    width: 120px;
-  }
-
-  .zip-field {
-    width: 140px;
+  &.address-grid {
+    grid-template-columns: 2fr 1.5fr 1fr;
   }
 }
 
-::ng-deep .mat-form-field-appearance-outline {
-  .mat-form-field-outline {
-    color: #e0e0e0;
+.form-field {
+  margin-bottom: 0;
+
+  &.full-width {
+    margin-bottom: 16px;
+  }
+}
+
+// ===========================
+// Form Labels
+// ===========================
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+// ===========================
+// Input Wrapper
+// ===========================
+.input-wrapper,
+.select-wrapper {
+  position: relative;
+}
+
+// ===========================
+// Input Styles (Whelp Design)
+// ===========================
+.wh-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 44px;
+  border: 1px solid var(--wh-neutral-30);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text);
+  background: var(--wh-white);
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--wh-blue-50);
+    box-shadow: 0 0 0 3px rgba(15, 130, 230, 0.15);
   }
 
-  .mat-form-field-outline-thick {
-    color: #3f51b5;
+  &::placeholder {
+    color: var(--subtext);
   }
 
-  &.mat-form-field-invalid {
-    .mat-form-field-outline-thick {
-      color: #f44336;
+  &.readonly {
+    background: var(--wh-neutral-5);
+    color: var(--text);
+    cursor: default;
+
+    &:focus {
+      border-color: var(--wh-neutral-30);
+      box-shadow: none;
     }
   }
 
-  &.mat-form-field-disabled {
-    .mat-form-field-outline {
-      color: #e0e0e0;
-      opacity: 0.6;
-    }
+  &.text-center {
+    text-align: center;
+    padding-right: 16px;
+  }
+}
 
-    .mat-input-element {
-      color: #666;
+.field-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--subtext);
+  pointer-events: none;
+}
+
+// ===========================
+// Select Styles
+// ===========================
+.wh-select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 1px solid var(--wh-neutral-30);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text);
+  background: var(--wh-white);
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--wh-blue-50);
+    box-shadow: 0 0 0 3px rgba(15, 130, 230, 0.15);
+  }
+
+  &.readonly,
+  &:disabled {
+    background: var(--wh-neutral-5);
+    color: var(--text);
+    cursor: default;
+
+    &:focus {
+      border-color: var(--wh-neutral-30);
+      box-shadow: none;
     }
   }
 }
 
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--subtext);
+  pointer-events: none;
+}
+
+// ===========================
+// Date Picker Toggle
+// ===========================
+.date-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  ::ng-deep .mat-datepicker-toggle-default-icon {
+    color: var(--subtext);
+  }
+
+  ::ng-deep button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+// ===========================
+// Field Error
+// ===========================
+.field-error {
+  display: block;
+  font-size: 12px;
+  color: var(--wh-red-50);
+  margin-top: 6px;
+}
+
+// ===========================
+// Validation Status
+// ===========================
+.validation-status {
+  margin-bottom: 20px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.success {
+    background: var(--wh-green-0);
+    color: var(--wh-green-50);
+  }
+
+  &.error {
+    background: rgba(234, 67, 67, 0.1);
+    color: var(--wh-red-50);
+  }
+}
+
+// ===========================
+// Action Buttons
+// ===========================
 .action-buttons {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-
-  .save-btn {
-    flex: 1;
-    min-height: 48px;
-
-    mat-progress-spinner {
-      margin-right: 8px;
-    }
-
-    mat-icon {
-      margin-right: 8px;
-    }
-  }
-
-  .edit-btn {
-    flex: 1;
-    min-height: 48px;
-
-    mat-icon {
-      margin-right: 8px;
-    }
-  }
-
-  .clear-btn {
-    min-width: 120px;
-
-    mat-icon {
-      margin-right: 8px;
-    }
-  }
+  margin-top: auto;
+  padding-top: 24px;
 }
 
-.validation-status {
-  display: flex;
+// ===========================
+// Buttons (Whelp Design)
+// ===========================
+.btn {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  margin-top: 16px;
-  padding: 12px 16px;
+  padding: 12px 24px;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+  min-height: 48px;
 
-  &.status-valid {
-    background-color: #e8f5e9;
-    border: 1px solid #4caf50;
-    color: #2e7d32;
-
-    mat-icon {
-      color: #4caf50;
-    }
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 
-  &.status-invalid {
-    background-color: #ffebee;
-    border: 1px solid #f44336;
-    color: #c62828;
-
-    mat-icon {
-      color: #f44336;
-    }
-  }
-
-  span {
-    font-size: 14px;
-    font-weight: 500;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
-// Form field icons styling
-::ng-deep .mat-form-field-appearance-outline {
-  .mat-form-field-suffix {
-    mat-icon {
-      color: #666;
-    }
+.btn-primary {
+  background: var(--wh-blue-50);
+  color: var(--wh-white);
+  flex: 1;
+
+  &:hover:not(:disabled) {
+    background: var(--wh-blue-60);
+  }
+
+  ::ng-deep .mat-progress-spinner circle {
+    stroke: var(--wh-white);
   }
 }
 
-// Disabled state styling
-form[readonly] {
-  opacity: 0.8;
-}
+.btn-black {
+  background: var(--wh-black);
+  color: var(--wh-white);
+  flex: 1;
 
-// Loading state for form fields
-::ng-deep .mat-form-field-disabled {
-  .mat-input-element,
-  .mat-select-value {
-    color: #333;
-    font-weight: 500;
+  &:hover:not(:disabled) {
+    background: var(--wh-neutral-90);
   }
 }
 
-// Date picker styling
+.btn-outline-subtle {
+  background: transparent;
+  border: 1px solid var(--wh-neutral-30);
+  color: var(--subtext);
+
+  &:hover:not(:disabled) {
+    background: var(--wh-neutral-5);
+    border-color: var(--wh-neutral-40);
+  }
+}
+
+// ===========================
+// Material Datepicker Overrides
+// ===========================
 ::ng-deep .mat-datepicker-content {
+  border-radius: 12px;
+  box-shadow: var(--shadow-elevated);
+
+  .mat-calendar-body-selected {
+    background-color: var(--wh-blue-50);
+  }
+
   .mat-calendar-body-today:not(.mat-calendar-body-selected) {
-    border-color: #3f51b5;
+    border-color: var(--wh-blue-50);
   }
 }
 
-// Select field styling
-::ng-deep .mat-select-disabled {
-  .mat-select-value {
-    color: #333;
-    font-weight: 500;
-  }
-}
-
-// Responsive adjustments
+// ===========================
+// Responsive Adjustments
+// ===========================
 @media (max-width: 768px) {
   .data-form {
-    padding: 12px;
+    padding: 20px 24px 24px;
   }
 
-  .form-row {
-    flex-direction: column;
+  .form-grid {
+    grid-template-columns: 1fr;
     gap: 12px;
 
-    .middle-initial,
-    .sex-field,
-    .city-field,
-    .state-field,
-    .zip-field {
-      width: 100%;
+    &.three-col {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    &.address-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -259,28 +428,34 @@ form[readonly] {
 }
 
 @media (max-width: 480px) {
-  .section-content {
-    padding: 12px 0;
+  .data-form {
+    padding: 16px 20px 20px;
+  }
 
-    h3 {
-      font-size: 16px;
-    }
+  .form-grid.three-col {
+    grid-template-columns: 1fr;
   }
 
   .form-status {
-    padding: 20px 12px;
+    padding: 40px 16px;
+  }
 
-    .status-processing,
-    .status-waiting {
-      mat-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
-      }
+  .waiting-icon {
+    width: 64px;
+    height: 64px;
 
-      p {
-        font-size: 14px;
-      }
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
     }
+  }
+
+  .status-title {
+    font-size: 15px;
+  }
+
+  .status-subtitle {
+    font-size: 13px;
   }
 }

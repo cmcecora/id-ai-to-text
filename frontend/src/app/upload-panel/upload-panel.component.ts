@@ -15,6 +15,7 @@ export class UploadPanelComponent implements OnInit {
   isUploading = false;
   uploadSuccess = false;
   fileSizeExceeded = false;
+  isDragOver = false;
 
   // Accepted file types
   acceptedTypes = ['.jpg', '.jpeg', '.png', '.pdf', '.heic'];
@@ -25,6 +26,69 @@ export class UploadPanelComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    if (this.disabled || this.isUploading) {
+      return;
+    }
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFile(files[0]);
+    }
+  }
+
+  private handleFile(file: File): void {
+    // Validate file type
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!this.acceptedTypes.includes(fileExtension)) {
+      this.snackBar.open('Invalid file type. Please upload JPG, PNG, PDF, or HEIC files.', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+
+    // Validate file size
+    if (file.size > this.maxFileSize) {
+      this.fileSizeExceeded = true;
+      this.selectedFile = file;
+      this.snackBar.open('File size exceeds 10MB limit.', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+
+    this.fileSizeExceeded = false;
+    this.selectedFile = file;
+    this.generatePreview(file);
+
+    // Auto-upload after a short delay
+    setTimeout(() => {
+      if (this.selectedFile && !this.fileSizeExceeded && !this.disabled) {
+        this.uploadFile();
+      }
+    }, 500);
   }
 
   onFileSelected(event: any): void {

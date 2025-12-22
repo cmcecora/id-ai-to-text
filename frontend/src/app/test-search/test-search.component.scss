@@ -1,0 +1,634 @@
+// Test Search Component Styles
+// Following Whelp Design System Style Guide
+
+.search-page {
+  min-height: 100vh;
+  background-color: var(--main);
+}
+
+.page-wrapper {
+  padding: 60px 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+// ===========================
+// Header Section
+// ===========================
+.search-header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+
+    @media (max-width: 768px) {
+      font-size: 28px;
+    }
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--subtext);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+// ===========================
+// Search Container
+// ===========================
+.search-container {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--wh-steel-40);
+  pointer-events: none;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  transition: color 0.2s ease;
+}
+
+.search-input {
+  width: 100%;
+  padding: 16px 48px 16px 48px;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  border: 2px solid var(--wh-neutral-30);
+  border-radius: 12px;
+  background: var(--wh-white);
+  color: var(--text);
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: var(--wh-steel-40);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--wh-blue-50);
+    box-shadow: 0 0 0 4px rgba(15, 130, 230, 0.1);
+
+    & + .search-icon {
+      color: var(--wh-blue-50);
+    }
+  }
+}
+
+.clear-btn {
+  position: absolute;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  background: var(--wh-neutral-30);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: var(--wh-white);
+  }
+
+  &:hover {
+    background: var(--wh-steel-50);
+  }
+}
+
+// ===========================
+// Autocomplete Dropdown
+// ===========================
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--wh-white);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 100;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+// ===========================
+// Dropdown Sections
+// ===========================
+.dropdown-section {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--wh-neutral-20);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.dropdown-section-header {
+  padding: 0 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdown-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wh-steel-50);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-section-action {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--wh-blue-50);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+
+  &:hover {
+    color: var(--wh-blue-60);
+  }
+}
+
+// ===========================
+// Autocomplete Items
+// ===========================
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover,
+  &.highlighted {
+    background: var(--wh-neutral-5);
+  }
+
+  &.selected {
+    background: var(--wh-blue-0);
+  }
+}
+
+// Item Icon
+.item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  // Icon Color Variants
+  &.blood {
+    background: var(--wh-red-5);
+    color: var(--wh-red-50);
+  }
+
+  &.imaging {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-50);
+  }
+
+  &.cardiac {
+    background: var(--wh-purple-5);
+    color: var(--wh-purple-50);
+  }
+
+  &.hormone {
+    background: var(--wh-orange-5);
+    color: var(--wh-orange-50);
+  }
+
+  &.genetic {
+    background: var(--wh-green-5);
+    color: var(--wh-green-50);
+  }
+
+  &.allergy {
+    background: var(--wh-yellow-0);
+    color: var(--wh-yellow-40);
+  }
+
+  &.recent {
+    background: var(--wh-neutral-10);
+    color: var(--wh-steel-50);
+  }
+}
+
+// Item Content
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+
+  ::ng-deep mark {
+    background: var(--wh-yellow-10);
+    color: var(--text);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+}
+
+.item-description {
+  font-size: 12px;
+  color: var(--subtext);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Item Meta
+.item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.item-category {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.blood {
+    background: var(--wh-red-5);
+    color: var(--wh-red-50);
+  }
+
+  &.imaging {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-60);
+  }
+
+  &.cardiac {
+    background: var(--wh-purple-5);
+    color: var(--wh-purple-60);
+  }
+
+  &.hormone {
+    background: var(--wh-orange-5);
+    color: var(--wh-orange-50);
+  }
+
+  &.genetic {
+    background: var(--wh-green-5);
+    color: var(--wh-green-50);
+  }
+
+  &.allergy {
+    background: var(--wh-yellow-0);
+    color: var(--wh-yellow-40);
+  }
+}
+
+.item-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wh-green-50);
+}
+
+// ===========================
+// Quick Categories
+// ===========================
+.quick-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--wh-neutral-5);
+  border: 1px solid var(--wh-neutral-20);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: var(--wh-white);
+    border-color: var(--wh-blue-40);
+    color: var(--wh-blue-50);
+  }
+}
+
+// ===========================
+// Loading State
+// ===========================
+.loading-state {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+// ===========================
+// No Results State
+// ===========================
+.no-results {
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.no-results-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  background: var(--wh-neutral-10);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: var(--wh-steel-40);
+  }
+}
+
+.no-results-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.no-results-text {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+// ===========================
+// Footer Info
+// ===========================
+.dropdown-footer {
+  padding: 12px 20px;
+  background: var(--wh-neutral-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.keyboard-hints {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.keyboard-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--subtext);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--wh-white);
+  border: 1px solid var(--wh-neutral-30);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--wh-steel-60);
+}
+
+.results-count {
+  font-size: 12px;
+  color: var(--subtext);
+}
+
+// ===========================
+// Popular Tests Section
+// ===========================
+.popular-tests {
+  margin-top: 48px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.see-all {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wh-blue-50);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: var(--wh-blue-60);
+  }
+}
+
+// Test Cards Grid
+.tests-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.test-card {
+  background: var(--wh-white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.test-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  &.blood {
+    background: var(--wh-red-5);
+    color: var(--wh-red-50);
+  }
+
+  &.cardiac {
+    background: var(--wh-purple-5);
+    color: var(--wh-purple-50);
+  }
+
+  &.hormone {
+    background: var(--wh-orange-5);
+    color: var(--wh-orange-50);
+  }
+}
+
+.test-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.test-card-desc {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.test-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--wh-green-50);
+}
+
+.test-card-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--wh-blue-10);
+  color: var(--wh-blue-60);
+}
+
+// ===========================
+// Responsive Adjustments
+// ===========================
+@media (max-width: 480px) {
+  .quick-categories {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .category-chip {
+    flex-shrink: 0;
+  }
+}

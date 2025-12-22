@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Medical Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="font-family: 'Poppins', sans-serif; background-color: #fefbf6; min-height: 100vh; padding: 40px 24px;">
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 48px;">
+            <h1 class="text-3xl md:text-4xl font-semibold tracking-tight" style="color: #000000; margin-bottom: 12px;">Book Your Medical Test</h1>
+            <p style="color: #555f68; font-size: 16px; line-height: 1.6;">Schedule your appointment in just a few simple steps</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center gap-0 mb-12 px-4 overflow-x-auto">
+            <!-- Step 1 - Active -->
+            <div class="flex items-center flex-shrink-0">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #0f82e6; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 600; font-size: 14px;">1</span>
+                </div>
+                <span class="hidden sm:block ml-3 font-medium text-sm" style="color: #0f82e6;">Select Test</span>
+            </div>
+
+            <div class="w-8 sm:w-16 h-0.5 mx-2 sm:mx-4 flex-shrink-0" style="background: #0f82e6;"></div>
+
+            <!-- Step 2 - Active -->
+            <div class="flex items-center flex-shrink-0">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #0f82e6; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 600; font-size: 14px;">2</span>
+                </div>
+                <span class="hidden sm:block ml-3 font-medium text-sm" style="color: #0f82e6;">Choose Date</span>
+            </div>
+
+            <div class="w-8 sm:w-16 h-0.5 mx-2 sm:mx-4 flex-shrink-0" style="background: #ebebeb;"></div>
+
+            <!-- Step 3 - Inactive -->
+            <div class="flex items-center flex-shrink-0">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #ebebeb; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: #555f68; font-weight: 600; font-size: 14px;">3</span>
+                </div>
+                <span class="hidden sm:block ml-3 font-medium text-sm" style="color: #555f68;">Your Details</span>
+            </div>
+
+            <div class="w-8 sm:w-16 h-0.5 mx-2 sm:mx-4 flex-shrink-0" style="background: #ebebeb;"></div>
+
+            <!-- Step 4 - Inactive -->
+            <div class="flex items-center flex-shrink-0">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #ebebeb; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: #555f68; font-weight: 600; font-size: 14px;">4</span>
+                </div>
+                <span class="hidden sm:block ml-3 font-medium text-sm" style="color: #555f68;">Confirm</span>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background: white; border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); padding: 32px; md:padding: 48px;">
+
+            <!-- Step 2: Choose Date & Time -->
+            <div>
+                <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-2" style="color: #000000;">Choose Date & Time</h2>
+                <p style="color: #555f68; font-size: 14px; margin-bottom: 32px;">Select your preferred appointment slot</p>
+
+                <!-- Selected Test Summary -->
+                <div style="background: #f9f1fd; border-radius: 12px; padding: 16px 20px; margin-bottom: 32px;" class="flex items-center gap-4">
+                    <div style="width: 48px; height: 48px; background: #ecd1fa; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="heart-pulse" style="color: #7112a1; width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p style="font-weight: 500; color: #000000; font-size: 14px;">Complete Blood Count (CBC)</p>
+                        <p style="color: #555f68; font-size: 12px;">Results in 24 hours</p>
+                    </div>
+                    <button style="color: #0f82e6; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer;" class="hover:underline">Change</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Calendar Section -->
+                    <div>
+                        <h3 style="font-weight: 600; color: #000000; font-size: 16px; margin-bottom: 16px;">Select Date</h3>
+                        <div style="background: #fefbf6; border-radius: 16px; padding: 20px; border: 1px solid #ebebeb;">
+                            <!-- Month Header -->
+                            <div class="flex items-center justify-between mb-4">
+                                <button style="width: 36px; height: 36px; border-radius: 50%; background: white; border: 1px solid #ebebeb; display: flex; align-items: center; justify-content: center; cursor: pointer;" class="hover:border-gray-300 transition-all">
+                                    <i data-lucide="chevron-left" style="width: 18px; height: 18px; color: #000000;"></i>
+                                </button>
+                                <span style="font-weight: 600; color: #000000; font-size: 16px;">December 2024</span>
+                                <button style="width: 36px; height: 36px; border-radius: 50%; background: white; border: 1px solid #ebebeb; display: flex; align-items: center; justify-content: center; cursor: pointer;" class="hover:border-gray-300 transition-all">
+                                    <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #000000;"></i>
+                                </button>
+                            </div>
+
+                            <!-- Days of Week -->
+                            <div class="grid grid-cols-7 gap-1 mb-2">
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Sun</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Mon</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Tue</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Wed</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Thu</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Fri</span>
+                                <span style="text-align: center; font-size: 12px; color: #555f68; font-weight: 500;">Sat</span>
+                            </div>
+
+                            <!-- Calendar Days -->
+                            <div class="grid grid-cols-7 gap-1">
+                                <!-- Week 1 -->
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">1</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">2</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">3</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">4</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">5</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">6</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">7</button>
+
+                                <!-- Week 2 -->
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">8</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">9</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">10</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">11</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">12</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">13</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">14</button>
+
+                                <!-- Week 3 -->
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">15</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">16</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">17</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">18</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">19</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">20</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">21</button>
+
+                                <!-- Week 4 - Today highlighted -->
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #0f82e6; background: none; border: 2px solid #0f82e6; margin: auto; font-weight: 600;">22</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: white; background: #0f82e6; border: none; margin: auto; font-weight: 500; cursor: pointer;" class="hover:bg-blue-600 transition-all">23</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">24</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #bfbfbf; background: none; border: none; margin: auto;">25</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">26</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">27</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">28</button>
+
+                                <!-- Week 5 -->
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">29</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">30</button>
+                                <button style="width: 36px; height: 36px; border-radius: 8px; font-size: 14px; color: #000000; background: none; border: none; margin: auto; cursor: pointer;" class="hover:bg-gray-100 transition-all">31</button>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex items-center gap-6 mt-4">
+                            <div class="flex items-center gap-2">
+                                <div style="width: 12px; height: 12px; border-radius: 4px; border: 2px solid #0f82e6;"></div>
+                                <span style="font-size: 12px; color: #555f68;">Today</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div style="width: 12px; height: 12px; border-radius: 4px; background: #0f82e6;"></div>
+                                <span style="font-size: 12px; color: #555f68;">Selected</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div style="width: 12px; height: 12px; border-radius: 4px; background: #bfbfbf;"></div>
+                                <span style="font-size: 12px; color: #555f68;">Unavailable</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Slots Section -->
+                    <div>
+                        <h3 style="font-weight: 600; color: #000000; font-size: 16px; margin-bottom: 16px;">Available Time Slots</h3>
+                        <p style="font-size: 12px; color: #555f68; margin-bottom: 16px;">Monday, December 23, 2024</p>
+
+                        <div class="space-y-3">
+                            <!-- Morning -->
+                            <div>
+                                <p style="font-size: 12px; color: #555f68; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="sun" style="width: 14px; height: 14px;"></i>
+                                    Morning
+                                </p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">8:00 AM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">8:30 AM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: #0f82e6; border: 1px solid #0f82e6; color: white;">9:00 AM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">9:30 AM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: #f5f5f5; border: 1px solid #ebebeb; color: #bfbfbf;" disabled>10:00 AM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">10:30 AM</button>
+                                </div>
+                            </div>
+
+                            <!-- Afternoon -->
+                            <div style="margin-top: 20px;">
+                                <p style="font-size: 12px; color: #555f68; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="cloud-sun" style="width: 14px; height: 14px;"></i>
+                                    Afternoon
+                                </p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">12:00 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">12:30 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">1:00 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: #f5f5f5; border: 1px solid #ebebeb; color: #bfbfbf;" disabled>1:30 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">2:00 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">2:30 PM</button>
+                                </div>
+                            </div>
+
+                            <!-- Evening -->
+                            <div style="margin-top: 20px;">
+                                <p style="font-size: 12px; color: #555f68; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="moon" style="width: 14px; height: 14px;"></i>
+                                    Evening
+                                </p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">4:00 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">4:30 PM</button>
+                                    <button style="padding: 12px 8px; border-radius: 8px; font-size: 13px; font-weight: 500; background: white; border: 1px solid #ebebeb; color: #000000; cursor: pointer;" class="hover:border-blue-500 hover:bg-blue-50 transition-all">5:00 PM</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Summary -->
+                        <div style="background: #e5faf0; border-radius: 12px; padding: 16px; margin-top: 24px;" class="flex items-center gap-3">
+                            <div style="width: 40px; height: 40px; background: #a4efcb; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="check" style="color: #1b985b; width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight: 500; color: #000000; font-size: 14px;">Selected Slot</p>
+                                <p style="color: #1b985b; font-size: 13px;">Dec 23, 2024 at 9:00 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Selection -->
+                <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #ebebeb;">
+                    <h3 style="font-weight: 600; color: #000000; font-size: 16px; margin-bottom: 16px;">Select Location</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Location 1 - Selected -->
+                        <div style="background: white; border: 2px solid #0f82e6; border-radius: 12px; padding: 20px; cursor: pointer;" class="relative">
+                            <div style="position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; background: #0f82e6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="check" style="color: white; width: 12px; height: 12px;"></i>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div style="width: 44px; height: 44px; background: #c1e0fb; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="building-2" style="color: #0f82e6; width: 22px; height: 22px;"></i>
+                                </div>
+                                <div>
+                                    <p style="font-weight: 600; color: #000000; font-size: 14px; margin-bottom: 4px;">Downtown Medical Center</p>
+                                    <p style="color: #555f68; font-size: 12px; line-height: 1.5;">123 Healthcare Ave, Suite 200<br>New York, NY 10001</p>
+                                    <p style="color: #1b985b; font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                        0.5 miles away
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location 2 -->
+                        <div style="background: white; border: 1px solid #ebebeb; border-radius: 12px; padding: 20px; cursor: pointer;" class="hover:border-gray-300 transition-all">
+                            <div class="flex items-start gap-3">
+                                <div style="width: 44px; height: 44px; background: #f5f5f5; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="building-2" style="color: #555f68; width: 22px; height: 22px;"></i>
+                                </div>
+                                <div>
+                                    <p style="font-weight: 600; color: #000000; font-size: 14px; margin-bottom: 4px;">Westside Diagnostics</p>
+                                    <p style="color: #555f68; font-size: 12px; line-height: 1.5;">456 Wellness Blvd, Floor 3<br>New York, NY 10023</p>
+                                    <p style="color: #555f68; font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                        2.1 miles away
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10 pt-8" style="border-top: 1px solid #ebebeb;">
+                    <button style="padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; background: transparent; border: 1px solid #000000; color: #000000; cursor: pointer; display: flex; align-items: center; gap: 8px;" class="hover:bg-black/5 transition-all w-full sm:w-auto justify-center">
+                        <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+                        Back
+                    </button>
+                    <button style="padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 500; background: #0f82e6; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px;" class="hover:bg-blue-600 transition-all w-full sm:w-auto justify-center">
+                        Continue to Details
+                        <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); padding: 24px; margin-top: 24px;" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div style="width: 48px; height: 48px; background: #f4e3fc; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="headphones" style="color: #7112a1; width: 24px; height: 24px;"></i>
+            </div>
+            <div class="flex-1">
+                <p style="font-weight: 500; color: #000000; font-size: 14px;">Need help scheduling?</p>
+                <p style="color: #555f68; font-size: 13px;">Our support team is available 24/7 to assist you with booking.</p>
+            </div>
+            <button style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; background: transparent; border: 1px solid #000000; color: #000000; cursor: pointer; white-space: nowrap;" class="hover:bg-black/5 transition-all">
+                Contact Support
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

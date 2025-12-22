@@ -1,55 +1,79 @@
 <div class="upload-page-container">
-  <!-- Processing Progress Bar -->
+  <!-- Processing Progress Overlay -->
   <div *ngIf="isProcessing" class="processing-overlay">
     <div class="progress-container">
-      <mat-progress-spinner
-        mode="determinate"
-        [value]="processingProgress"
-        diameter="80"
-        strokeWidth="4"
-      ></mat-progress-spinner>
-      <p>{{ Math.round(processingProgress) }}% - Processing document...</p>
+      <div class="progress-spinner">
+        <svg class="spinner-svg" viewBox="0 0 80 80">
+          <circle class="spinner-track" cx="40" cy="40" r="36" />
+          <circle
+            class="spinner-progress"
+            cx="40" cy="40" r="36"
+            [style.stroke-dashoffset]="226 - (226 * processingProgress / 100)"
+          />
+        </svg>
+        <span class="progress-value">{{ Math.round(processingProgress) }}%</span>
+      </div>
+      <p class="progress-text">Processing document...</p>
+      <p class="progress-subtext">Extracting information using AI</p>
     </div>
   </div>
 
-  <!-- Two Column Flexbox Layout -->
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>ID Document Upload</h1>
+    <p class="header-subtitle">
+      Upload your identity document and we'll automatically extract all the information using advanced AI technology.
+    </p>
+  </div>
+
+  <!-- Two Column Layout -->
   <div class="two-column-layout">
     <!-- Left Panel: Upload -->
     <div class="column left-column">
-      <mat-card class="upload-card">
-        <mat-card-header>
-          <mat-card-title>Upload ID Photo</mat-card-title>
-          <mat-card-subtitle>
-            {{ isProcessing ? 'Processing...' : 'Select an ID photo to begin' }}
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
+      <div class="wh-card upload-card">
+        <div class="card-header">
+          <div class="icon-container icon-lg icon-blue">
+            <mat-icon>cloud_upload</mat-icon>
+          </div>
+          <div class="header-text">
+            <h2>Upload ID Photo</h2>
+            <p class="card-subtitle">
+              {{ isProcessing ? 'Processing...' : 'Select an ID photo to begin' }}
+            </p>
+          </div>
+        </div>
+        <div class="card-content">
           <app-upload-panel
             (fileProcessed)="onFileProcessed($event)"
             [disabled]="isProcessing">
           </app-upload-panel>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
 
     <!-- Right Panel: Form -->
     <div class="column right-column">
-      <mat-card class="form-card">
-        <mat-card-header>
-          <mat-card-title>Extracted Information</mat-card-title>
-          <mat-card-subtitle>
-            {{ ocrData ? 'Review and edit extracted data' : 'Waiting for ID photo upload...' }}
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
+      <div class="wh-card form-card">
+        <div class="card-header">
+          <div class="icon-container icon-lg icon-green">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="header-text">
+            <h2>Extracted Information</h2>
+            <p class="card-subtitle">
+              {{ ocrData ? 'Review and edit extracted data' : 'Waiting for ID photo upload...' }}
+            </p>
+          </div>
+        </div>
+        <div class="card-content">
           <app-data-form
             [ocrData]="ocrData"
             [isProcessing]="isProcessing"
             (formSave)="onDataFormSave($event)"
             (formEdit)="onDataFormEdit()">
           </app-data-form>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   </div>
 </div>

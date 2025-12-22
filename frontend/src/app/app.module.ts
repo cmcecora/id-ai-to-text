@@ -23,13 +23,17 @@ import { AppComponent } from './app.component';
 import { UploadPageComponent } from './upload-page/upload-page.component';
 import { UploadPanelComponent } from './upload-panel/upload-panel.component';
 import { DataFormComponent } from './data-form/data-form.component';
+import { MedicalBookingComponent } from './medical-booking/medical-booking.component';
+import { TestSearchComponent } from './test-search/test-search.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     UploadPageComponent,
     UploadPanelComponent,
-    DataFormComponent
+    DataFormComponent,
+    MedicalBookingComponent,
+    TestSearchComponent
   ],
   imports: [
     BrowserModule,

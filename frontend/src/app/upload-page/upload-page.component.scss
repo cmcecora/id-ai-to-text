@@ -1,36 +1,69 @@
+// ===========================
+// Upload Page - Whelp Design System
+// ===========================
+
 .upload-page-container {
-  padding: 32px;
-  min-height: calc(100vh - 64px); // Account for header height
+  padding: 32px 24px 80px;
+  min-height: 100vh;
   position: relative;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: var(--main);
 }
 
-// Two-column flexbox layout
+// ===========================
+// Page Header
+// ===========================
+.page-header {
+  text-align: center;
+  margin-bottom: 48px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+
+  h1 {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .header-subtitle {
+    font-size: 16px;
+    color: var(--subtext);
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+
+// ===========================
+// Two Column Layout
+// ===========================
 .two-column-layout {
-  display: flex;
-  gap: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
   flex: 1;
-  min-height: 0;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  align-items: start;
+}
 
-  .column {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
+// ===========================
+// Card Styles (Whelp Design)
+// ===========================
+.wh-card {
+  background: var(--wh-white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
 
-  .left-column {
-    max-width: 500px;
-  }
-
-  .right-column {
-    flex: 1.2;
-    max-width: none;
+  &:hover {
+    box-shadow: var(--shadow-floating);
   }
 }
 
@@ -39,114 +72,252 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 600px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  border-radius: 12px !important;
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
-  background: white;
+}
 
-  &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--wh-neutral-20);
+
+  .header-text {
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin: 0 0 4px 0;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: var(--subtext);
+      margin: 0;
+    }
   }
 }
 
-::ng-deep .mat-card-content {
+.card-content {
   flex: 1;
   overflow: auto;
 }
 
-// Processing overlay
+// ===========================
+// Icon Containers
+// ===========================
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.icon-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &.icon-blue {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-50);
+  }
+
+  &.icon-green {
+    background: var(--wh-green-10);
+    color: var(--wh-green-50);
+  }
+
+  &.icon-purple {
+    background: var(--wh-purple-10);
+    color: var(--wh-purple-80);
+  }
+}
+
+// ===========================
+// Processing Overlay
+// ===========================
 .processing-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
 
   .progress-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 40px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 48px;
+    background: var(--wh-white);
+    border-radius: 24px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+    max-width: 320px;
+    text-align: center;
+  }
 
-    mat-progress-spinner {
-      ::ng-deep circle {
-        stroke: #3f51b5;
-      }
-    }
+  .progress-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+  }
 
-    p {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 500;
-      color: #333;
-      text-align: center;
-    }
+  .spinner-svg {
+    width: 80px;
+    height: 80px;
+    animation: spin 1.5s linear infinite;
+  }
+
+  .spinner-track {
+    fill: none;
+    stroke: var(--wh-neutral-20);
+    stroke-width: 4;
+  }
+
+  .spinner-progress {
+    fill: none;
+    stroke: var(--wh-blue-50);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 226;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  .progress-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--wh-blue-50);
+  }
+
+  .progress-text {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .progress-subtext {
+    margin: 0;
+    font-size: 14px;
+    color: var(--subtext);
   }
 }
 
-// Responsive adjustments
-@media (max-width: 968px) {
-  .upload-page-container {
-    padding: 16px;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
+// ===========================
+// Responsive Adjustments
+// ===========================
+@media (max-width: 1024px) {
   .two-column-layout {
-    flex-direction: column;
-    gap: 24px;
-
-    .left-column,
-    .right-column {
-      max-width: 100% !important;
-    }
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
 
-  .upload-card,
-  .form-card {
-    min-height: 400px;
+  .page-header {
+    h1 {
+      font-size: 36px;
+    }
   }
 }
 
 @media (max-width: 768px) {
   .upload-page-container {
-    padding: 12px;
+    padding: 24px 16px 60px;
   }
 
-  .two-column-layout {
-    gap: 20px;
+  .page-header {
+    margin-bottom: 32px;
+
+    h1 {
+      font-size: 28px;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+    }
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    gap: 12px;
+
+    .header-text {
+      h2 {
+        font-size: 16px;
+      }
+
+      .card-subtitle {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .icon-container.icon-lg {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
   }
 
   .processing-overlay {
     .progress-container {
-      padding: 30px 20px;
-      margin: 20px;
-      width: calc(100% - 40px);
-      max-width: 300px;
-
-      p {
-        font-size: 14px;
-      }
+      padding: 32px 24px;
+      margin: 16px;
+      border-radius: 16px;
     }
   }
 }
-// Card subtitle styling
-::ng-deep .mat-card-subtitle {
-  color: #666;
-  font-size: 14px;
-  margin-top: 4px;
+
+@media (max-width: 480px) {
+  .page-header {
+    h1 {
+      font-size: 24px;
+    }
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+  }
 }
 
-// Disabled state during processing
+// ===========================
+// Disabled State During Processing
+// ===========================
 .upload-page-container.processing {
   pointer-events: none;
 

@@ -252,9 +252,6 @@ export class ApiService {
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
-    } else if (error.name === 'TimeoutError') {
-      // Timeout error
-      errorMessage = 'Request timed out. Please try again.';
     } else {
       // Server-side error
       if (error.status === 0) {

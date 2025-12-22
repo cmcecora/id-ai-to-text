@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whelp - Elevate Your Customer Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navbar-height: 80px;
+            --navbar-height-sm: 64px;
+            --wh-red-0: #fdf1f1;
+            --wh-red-5: #fce3e3;
+            --wh-red-10: #fad1d1;
+            --wh-red-20: #f8bfbf;
+            --wh-red-30: #f39595;
+            --wh-red-40: #ef6c6c;
+            --wh-red-50: #ea4343;
+            --wh-red-60: #e61919;
+            --wh-red-70: #bc1515;
+            --wh-red-80: #931010;
+            --wh-red-90: #6a0c0c;
+            --wh-red-100: #530909;
+            --wh-orange-0: #fdf3ed;
+            --wh-orange-5: #fae4d6;
+            --wh-orange-10: #f8d6bf;
+            --wh-orange-20: #f5c4a3;
+            --wh-orange-30: #efa06c;
+            --wh-orange-40: #e9803a;
+            --wh-orange-50: #cf6017;
+            --wh-orange-60: #bc5815;
+            --wh-orange-70: #974711;
+            --wh-orange-80: #73360d;
+            --wh-orange-90: #532709;
+            --wh-orange-100: #452008;
+            --wh-yellow-0: #fdf4e2;
+            --wh-yellow-5: #fbe7c1;
+            --wh-yellow-10: #f9d99f;
+            --wh-yellow-20: #f6c974;
+            --wh-yellow-30: #f0a314;
+            --wh-yellow-40: #ce8b0d;
+            --wh-yellow-50: #b1770b;
+            --wh-yellow-60: #9e6a0a;
+            --wh-yellow-70: #815708;
+            --wh-yellow-80: #604006;
+            --wh-yellow-90: #483005;
+            --wh-yellow-100: #3a2704;
+            --wh-green-0: #e5faf0;
+            --wh-green-5: #c7f5df;
+            --wh-green-10: #a4efcb;
+            --wh-green-20: #70e6ad;
+            --wh-green-30: #22c375;
+            --wh-green-40: #1fad68;
+            --wh-green-50: #1b985b;
+            --wh-green-60: #188651;
+            --wh-green-70: #147144;
+            --wh-green-80: #0f5232;
+            --wh-green-90: #0b3d25;
+            --wh-green-100: #08301d;
+            --wh-blue-0: #ecf5fe;
+            --wh-blue-5: #d9ecfd;
+            --wh-blue-10: #c1e0fb;
+            --wh-blue-20: #a4d1f9;
+            --wh-blue-30: #66b2f5;
+            --wh-blue-40: #3a9df2;
+            --wh-blue-50: #0f82e6;
+            --wh-blue-60: #0d77d3;
+            --wh-blue-70: #0b61ad;
+            --wh-blue-80: #084981;
+            --wh-blue-90: #063660;
+            --wh-blue-100: #052b4d;
+            --wh-purple-0: #f9f1fd;
+            --wh-purple-5: #f4e3fc;
+            --wh-purple-10: #ecd1fa;
+            --wh-purple-20: #e5bff8;
+            --wh-purple-30: #d495f3;
+            --wh-purple-40: #c775f0;
+            --wh-purple-50: #b64ceb;
+            --wh-purple-60: #af3ae9;
+            --wh-purple-70: #9117cf;
+            --wh-purple-80: #7112a1;
+            --wh-purple-90: #540d77;
+            --wh-purple-100: #410a5c;
+            --wh-pink-0: #fdf1f6;
+            --wh-pink-5: #fce3ec;
+            --wh-pink-10: #fad1df;
+            --wh-pink-20: #f8bfd3;
+            --wh-pink-30: #f391b3;
+            --wh-pink-40: #ee6897;
+            --wh-pink-50: #e93a77;
+            --wh-pink-60: #e1195f;
+            --wh-pink-70: #b8144e;
+            --wh-pink-80: #8e103c;
+            --wh-pink-90: #6a0c2d;
+            --wh-pink-100: #530909;
+            --wh-steel-0: #f4f5f6;
+            --wh-steel-5: #e9ebed;
+            --wh-steel-10: #dbdee1;
+            --wh-steel-20: #cacfd3;
+            --wh-steel-30: #a8b0b8;
+            --wh-steel-40: #949fa8;
+            --wh-steel-50: #788591;
+            --wh-steel-60: #6a7681;
+            --wh-steel-70: #555f68;
+            --wh-steel-80: #40484f;
+            --wh-steel-90: #30363b;
+            --wh-steel-100: #25292d;
+            --wh-neutral-0: #fafafa;
+            --wh-neutral-5: #f5f5f5;
+            --wh-neutral-10: #f0f0f0;
+            --wh-neutral-20: #ebebeb;
+            --wh-neutral-30: #dbdbdb;
+            --wh-neutral-40: #bfbfbf;
+            --wh-neutral-50: #8a8a8a;
+            --wh-neutral-60: #5c5c5c;
+            --wh-neutral-70: #404040;
+            --wh-neutral-80: #1f1f1f;
+            --wh-neutral-90: #1c1c1c;
+            --wh-neutral-100: #141414;
+            --wh-black: #000;
+            --wh-white: #fff;
+            --main: #fefbf6;
+            --footer-bg: #f5f4ef;
+            --purple-bg: var(--wh-purple-5);
+            --text: var(--wh-black);
+            --subtext: var(--wh-steel-70);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            font-family: "Poppins", sans-serif;
+            background-color: var(--main);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: var(--main);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-text {
+            background: transparent;
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--wh-blue-50);
+            color: var(--wh-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--wh-blue-60);
+        }
+
+        .btn-black {
+            background: var(--wh-black);
+            color: var(--wh-white);
+        }
+
+        .btn-black:hover {
+            background: var(--wh-neutral-90);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--wh-black);
+            color: var(--wh-black);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0,0,0,0.04);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding-top: calc(var(--navbar-height) + 60px);
+            padding-bottom: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .hero-text p {
+            font-size: 16px;
+            color: var(--subtext);
+            margin-bottom: 32px;
+            max-width: 480px;
+        }
+
+        .hero-form {
+            display: flex;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .hero-form input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1px solid var(--wh-neutral-30);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--wh-white);
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image-main {
+            width: 100%;
+            border-radius: 16px;
+        }
+
+        .hero-badge {
+            position: absolute;
+            background: var(--wh-white);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+
+        .hero-badge-1 {
+            top: 20px;
+            right: -20px;
+        }
+
+        .hero-badge-2 {
+            bottom: 60px;
+            right: -30px;
+        }
+
+        .hero-blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--wh-purple-10) 0%, var(--wh-orange-10) 100%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: var(--subtext);
+            margin-bottom: 32px;
+        }
+
+        /* CRM Section */
+        .crm-section {
+            background: var(--wh-purple-0);
+            border-radius: 24px;
+            padding: 60px;
+            margin: 40px 0;
+        }
+
+        .crm-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .crm-text h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .crm-text p {
+            color: var(--subtext);
+            margin-bottom: 24px;
+        }
+
+        .learn-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: var(--wh-black);
+            border: 1px solid var(--wh-black);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .crm-visual {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .crm-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--wh-neutral-20);
+        }
+
+        .crm-item:last-child {
+            border-bottom: none;
+        }
+
+        .crm-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--wh-purple-20);
+        }
+
+        .crm-item-content {
+            flex: 1;
+        }
+
+        .crm-item-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .crm-item-email {
+            font-size: 12px;
+            color: var(--subtext);
+        }
+
+        .crm-item-time {
+            font-size: 12px;
+            color: var(--subtext);
+        }
+
+        /* Inbox Section */
+        .inbox-section {
+            padding: 80px 0;
+        }
+
+        .inbox-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .inbox-visual {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--wh-neutral-20);
+            margin-bottom: 16px;
+        }
+
+        .inbox-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5c4a3, #e9803a);
+        }
+
+        .inbox-name {
+            font-weight: 600;
+        }
+
+        .inbox-status {
+            font-size: 12px;
+            color: var(--wh-green-50);
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .chat-bubble.received {
+            background: var(--wh-neutral-5);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble.sent {
+            background: var(--wh-blue-50);
+            color: var(--wh-white);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Analytics Section */
+        .analytics-section {
+            padding: 80px 0;
+        }
+
+        .analytics-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .analytics-visual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .analytics-card {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .analytics-card-title {
+            font-size: 12px;
+            color: var(--subtext);
+            margin-bottom: 8px;
+        }
+
+        .analytics-card-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .analytics-chart {
+            height: 60px;
+            background: linear-gradient(to right, var(--wh-blue-20), var(--wh-blue-40));
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        /* Testimonial Section */
+        .testimonial-section {
+            background: var(--wh-neutral-5);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .testimonial-quote {
+            font-size: 24px;
+            font-weight: 500;
+            max-width: 800px;
+            margin: 0 auto 32px;
+            line-height: 1.5;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d495f3, #9117cf);
+        }
+
+        .testimonial-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .testimonial-title {
+            font-size: 12px;
+            color: var(--subtext);
+        }
+
+        /* Communication Section */
+        .communication-section {
+            padding: 80px 0;
+        }
+
+        .communication-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .communication-visual {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+        }
+
+        .comm-header {
+            font-size: 12px;
+            color: var(--subtext);
+            margin-bottom: 16px;
+        }
+
+        .comm-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--wh-neutral-20);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .comm-option-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .comm-option-icon.sms {
+            background: var(--wh-blue-10);
+            color: var(--wh-blue-50);
+        }
+
+        .comm-option-icon.whatsapp {
+            background: var(--wh-green-10);
+            color: var(--wh-green-50);
+        }
+
+        .comm-option-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Chatbot Section */
+        .chatbot-section {
+            padding: 80px 0;
+        }
+
+        .chatbot-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .chatbot-visual {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .chatbot-card {
+            background: var(--wh-white);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .chatbot-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            background: var(--wh-purple-10);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-label {
+            font-size: 12px;
+            color: var(--subtext);
+        }
+
+        /* Why Whelp Section */
+        .why-section {
+            background: linear-gradient(135deg, #7112a1 0%, #540d77 100%);
+            padding: 80px 0;
+            color: var(--wh-white);
+        }
+
+        .why-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .why-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            text-align: center;
+        }
+
+        .why-stat-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .why-stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* Industry Section */
+        .industry-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .industry-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .industry-subtitle {
+            color: var(--subtext);
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .industry-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .industry-card {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .industry-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: var(--wh-purple-5);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .industry-card-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .industry-card-subtitle {
+            font-size: 12px;
+            color: var(--subtext);
+            margin-bottom: 16px;
+        }
+
+        .industry-link {
+            font-size: 14px;
+            color: var(--wh-blue-50);
+            font-weight: 500;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 60px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--wh-white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--wh-blue-10);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--subtext);
+            line-height: 1.6;
+        }
+
+        /* Integrations Section */
+        .integrations-section {
+            background: var(--wh-green-0);
+            border-radius: 24px;
+            padding: 60px;
+            margin: 40px 0;
+        }
+
+        .integrations-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .integrations-text h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .integrations-text p {
+            color: var(--subtext);
+            margin-bottom: 24px;
+            max-width: 400px;
+        }
+
+        .integrations-logos {
+            display: flex;
+            gap: 16px;
+        }
+
+        .integration-logo {
+            width: 48px;
+            height: 48px;
+            background: var(--wh-white);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: var(--wh-neutral-5);
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-subtitle {
+            color: var(--subtext);
+            margin-bottom: 32px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--footer-bg);
+            padding: 60px 0 40px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-column h4 {
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 8px;
+        }
+
+        .footer-column a {
+            font-size: 14px;
+            color: var(--subtext);
+        }
+
+        .footer-column a:hover {
+            color: var(--text);
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .mb-8 {
+            margin-bottom: 32px;
+        }
+
+        /* Person image placeholder */
+        .hero-person {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, var(--wh-orange-10) 0%, var(--wh-purple-10) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .hero-person::before {
+            content: "";
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: var(--wh-orange-20);
+            border-radius: 50%;
+            top: 20%;
+            left: 30%;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: var(--wh-white);
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+
+        .floating-card.top-right {
+            top: 20px;
+            right: 20px;
+        }
+
+        .floating-card.bottom-right {
+            bottom: 40px;
+            right: 20px;
+        }
+
+        .floating-card.bottom-left {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-dot.green {
+            background: var(--wh-green-40);
+        }
+
+        .status-dot.yellow {
+            background: var(--wh-yellow-40);
+        }
+
+        /* Channel icons in floating cards */
+        .channel-icons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .channel-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .channel-icon.phone { background: var(--wh-blue-10); color: var(--wh-blue-50); }
+        .channel-icon.email { background: var(--wh-purple-10); color: var(--wh-purple-50); }
+        .channel-icon.chat { background: var(--wh-green-10); color: var(--wh-green-50); }
+
+        /* Arrow icon */
+        .arrow-icon {
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        /* Navigation arrow buttons */
+        .nav-arrow {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--wh-white);
+            border: 1px solid var(--wh-neutral-20);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .industry-nav {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" class="logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 8h6v6H8V8zm10 0h6v6h-6V8zM8 18h6v6H8v-6zm10 0h6v6h-6v-6z" fill="currentColor"/>
+                </svg>
+                Whelp
+            </a>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Product <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4"/></svg></a>
+                <a href="#" class="nav-link">Resources <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4"/></svg></a>
+                <a href="#" class="nav-link">Pricing</a>
+                <a href="#" class="nav-link">Company <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4"/></svg></a>
+                <a href="#" class="nav-link">Request demo</a>
+            </div>
+            <div class="nav-actions">
+                <a href="#" class="btn btn-text">Sign in</a>
+                <a href="#" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Elevate Your Customer Support with Our Omnichannel Solution</h1>
+                    <p>Connect with customers on Live Chat, Web, WhatsApp, E-mail, and Social Media to achieve a 360 unified customer view and AI powered rich Insights.</p>
+                    <div class="hero-form">
+                        <input type="email" placeholder="Enter your email">
+                        <button class="btn btn-primary">Get Started</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-person">
+                        <div class="floating-card top-right">
+                            <strong>Welcome, sarah</strong>
+                            <div style="color: var(--subtext); margin-top: 4px;">How can I help?</div>
+                        </div>
+                        <div class="floating-card bottom-right">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="status-dot green"></span>
+                                <span>Try Omnichannel</span>
+                            </div>
+                            <div class="channel-icons">
+                                <span class="channel-icon phone">&#128222;</span>
+                                <span class="channel-icon email">&#9993;</span>
+                                <span class="channel-icon chat">&#128172;</span>
+                            </div>
+                        </div>
+                        <div class="floating-card bottom-left">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #f5c4a3, #e9803a); border-radius: 50%;"></div>
+                                <div>
+                                    <div style="font-weight: 500;">Eric Ally</div>
+                                    <div style="color: var(--subtext); font-size: 11px;">Product Designer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-blob"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CRM Section -->
+    <section class="section">
+        <div class="container">
+            <div class="crm-section">
+                <div class="crm-content">
+                    <div class="crm-text">
+                        <h2>Streamline Your Workflow with a CRM Solution</h2>
+                        <p>Our CRM simplifies the process of managing and responding to customer inquiries and orders, by consolidating all of their interactions in one place.</p>
+                        <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                        <div style="margin-top: 16px; font-size: 12px; color: var(--subtext);">Backed by Y Combinator</div>
+                    </div>
+                    <div class="crm-visual">
+                        <div style="display: flex; gap: 24px; margin-bottom: 16px; font-size: 12px;">
+                            <span>&#128222; Voice</span>
+                            <span>&#9993; E-mail</span>
+                            <span>&#128172; Live-chat</span>
+                        </div>
+                        <div class="crm-item">
+                            <div class="crm-avatar" style="background: linear-gradient(135deg, #a4efcb, #22c375);"></div>
+                            <div class="crm-item-content">
+                                <div class="crm-item-name">Emma Rosenberg</div>
+                                <div class="crm-item-email">Conversation #42</div>
+                            </div>
+                            <div class="crm-item-time">2 weeks ago</div>
+                        </div>
+                        <div class="crm-item">
+                            <div class="crm-avatar" style="background: linear-gradient(135deg, #c1e0fb, #3a9df2);"></div>
+                            <div class="crm-item-content">
+                                <div class="crm-item-name">John Brown</div>
+                                <div class="crm-item-email">emmarosenberg@... 42%</div>
+                            </div>
+                            <div class="crm-item-time">3 weeks ago</div>
+                        </div>
+                        <div class="crm-item">
+                            <div class="crm-avatar" style="background: linear-gradient(135deg, #f4e3fc, #c775f0);"></div>
+                            <div class="crm-item-content">
+                                <div class="crm-item-name">Michael Smith</div>
+                                <div class="crm-item-email">m.smith@company.co</div>
+                            </div>
+                            <div class="crm-item-time">1 month ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inbox Section -->
+    <section class="inbox-section">
+        <div class="container">
+            <div class="inbox-content">
+                <div class="inbox-visual">
+                    <div class="inbox-header">
+                        <div class="inbox-avatar"></div>
+                        <div>
+                            <div class="inbox-name">John Brown</div>
+                            <div class="inbox-status">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-bubble received">Hi! I sent a message from your site couple days ago</div>
+                    <div class="chat-bubble received">Can you check all your emails and review the status?</div>
+                    <div class="chat-bubble sent">You can check all your orders in your personal cabinet, thanks!</div>
+                </div>
+                <div class="inbox-text">
+                    <h2 class="section-title">Consolidate Your Customer Conversations in One Inbox</h2>
+                    <p class="section-subtitle">A single inbox allows you to combine all of your phone, email, chat, and messaging into one feed, streamlining communication to drive efficiency and customer satisfaction.</p>
+                    <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section class="analytics-section">
+        <div class="container">
+            <div class="analytics-content">
+                <div class="analytics-text">
+                    <h2 class="section-title">Analyze Your Company's Performance with Advanced Reporting</h2>
+                    <p class="section-subtitle">Advanced reporting provides insights into your customer support team's efficiency and customer satisfaction, helping you optimize your business operations.</p>
+                    <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                </div>
+                <div class="analytics-visual">
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Tickets handling time &#128337;</div>
+                        <div class="analytics-card-value">5:24, <span style="font-size: 16px; color: var(--wh-green-50);">07 Oct</span></div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Count of conversations &#128172;</div>
+                        <div class="analytics-card-value">252</div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                            <span style="display: flex; align-items: center; gap: 4px; font-size: 12px;"><span class="status-dot" style="background: var(--wh-blue-40);"></span> Active</span>
+                            <span style="display: flex; align-items: center; gap: 4px; font-size: 12px;"><span class="status-dot" style="background: var(--wh-purple-40);"></span> Resolved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial Section -->
+    <section class="testimonial-section">
+        <div class="container">
+            <p class="testimonial-quote">"WhatsApp blended with Whelp interface is the ideal tool to reach your audience and promote your product and service."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar"></div>
+                <div style="text-align: left;">
+                    <div class="testimonial-name">Marcus Malcolm</div>
+                    <div class="testimonial-title">Co-Founder at Whelp Inc</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Communication Section -->
+    <section class="communication-section">
+        <div class="container">
+            <div class="communication-content">
+                <div class="communication-visual">
+                    <div class="comm-header">Send message</div>
+                    <div class="comm-option">
+                        <div class="comm-option-icon sms">&#128172;</div>
+                        <div class="comm-option-text">SMS message</div>
+                    </div>
+                    <div class="comm-option" style="border-color: var(--wh-green-40);">
+                        <div class="comm-option-icon whatsapp">&#128172;</div>
+                        <div class="comm-option-text">Whatsapp message</div>
+                    </div>
+                </div>
+                <div class="communication-text">
+                    <h2 class="section-title">Customize Your Communication Efforts</h2>
+                    <p class="section-subtitle">Our platform gives you control over all facets of your communication campaigns, sending bulk messages via WhatsApp, Telegram, Email, and SMS.</p>
+                    <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chatbot Section -->
+    <section class="chatbot-section">
+        <div class="container">
+            <div class="chatbot-content">
+                <div class="chatbot-text">
+                    <h2 class="section-title">Design Unique Chatbots with Drag and Drop</h2>
+                    <p class="section-subtitle">The chatbot builder on this platform makes it easy for you to design and deploy a chatbot that can provide immediate, relevant, quick responses to their inquiries and concerns.</p>
+                    <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                </div>
+                <div class="chatbot-visual">
+                    <div class="chatbot-card">
+                        <div class="chatbot-icon">&#128172;</div>
+                        <div class="chatbot-label">Text</div>
+                    </div>
+                    <div class="chatbot-card">
+                        <div class="chatbot-icon">&#128172;</div>
+                        <div class="chatbot-label">Bot</div>
+                    </div>
+                    <div class="chatbot-card">
+                        <div class="chatbot-icon" style="background: var(--wh-orange-10);">&#128172;</div>
+                        <div class="chatbot-label">Quick replies</div>
+                    </div>
+                    <div class="chatbot-card">
+                        <div class="chatbot-icon" style="background: var(--wh-blue-10);">&#128172;</div>
+                        <div class="chatbot-label">Smart delay</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Whelp Section -->
+    <section class="why-section">
+        <div class="container">
+            <h2 class="why-title">Why Whelp?</h2>
+            <div class="why-stats">
+                <div class="why-stat">
+                    <div class="why-stat-value">68%</div>
+                    <div class="why-stat-label">Automation for businesses at least</div>
+                </div>
+                <div class="why-stat">
+                    <div class="why-stat-value">2.7%</div>
+                    <div class="why-stat-label">Increase in usage of WhatsApp</div>
+                </div>
+                <div class="why-stat">
+                    <div class="why-stat-value">4M+</div>
+                    <div class="why-stat-label">Conversations have been powered</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Industry Section -->
+    <section class="industry-section">
+        <div class="container">
+            <h2 class="industry-title">Industry-Specific Solutions</h2>
+            <p class="industry-subtitle">Explore our tailored support offerings across diverse sectors, from hospitality to healthcare, and discover dedicated teams ready to meet your industry needs.</p>
+            <div class="industry-cards">
+                <div class="industry-card">
+                    <div class="industry-icon">&#127968;</div>
+                    <div class="industry-card-title">Retail</div>
+                    <div class="industry-card-subtitle">Hospitality Support Excellence</div>
+                    <a href="#" class="industry-link">EXPLORE &#8594;</a>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">&#127891;</div>
+                    <div class="industry-card-title">Education</div>
+                    <div class="industry-card-subtitle">Innovative EdTech Support</div>
+                    <a href="#" class="industry-link">EXPLORE &#8594;</a>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">&#128187;</div>
+                    <div class="industry-card-title">SaaS/e-commerce</div>
+                    <div class="industry-card-subtitle">Streamlined HR Support</div>
+                    <a href="#" class="industry-link">EXPLORE &#8594;</a>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">&#128757;</div>
+                    <div class="industry-card-title">Travel</div>
+                    <div class="industry-card-subtitle">Telecom Centric Support</div>
+                    <a href="#" class="industry-link">EXPLORE &#8594;</a>
+                </div>
+            </div>
+            <div class="industry-nav">
+                <button class="nav-arrow">&#8592;</button>
+                <button class="nav-arrow">&#8594;</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <h3 class="feature-title">Security first</h3>
+                    <p class="feature-description">Advanced encryption and security measures protect customer data across all channels, ensuring compliance and peace of mind.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128101;</div>
+                    <h3 class="feature-title">Team collaboration</h3>
+                    <p class="feature-description">Real-time collaboration tools enable team members to seamlessly work together, sharing context for faster resolution.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128172;</div>
+                    <h3 class="feature-title">Omnichannel support</h3>
+                    <p class="feature-description">Connect with customers through various channels including email, chat, social media, and phone from a unified platform.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#129302;</div>
+                    <h3 class="feature-title">AI-powered automation</h3>
+                    <p class="feature-description">Intelligent automation handles up to 60% of customer inquiries, routing complex issues to the right agents.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <h3 class="feature-title">Analytics and reporting</h3>
+                    <p class="feature-description">Comprehensive analytics and dashboards help businesses track and optimize customer interactions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128268;</div>
+                    <h3 class="feature-title">Integration capabilities</h3>
+                    <p class="feature-description">Seamlessly integrate with a wide range of other tools and platforms using our robust API and existing workflows.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integrations Section -->
+    <section class="section">
+        <div class="container">
+            <div class="integrations-section">
+                <div class="integrations-content">
+                    <div class="integrations-text">
+                        <h2>Explore integrations</h2>
+                        <p>Our integrations make it easy to work with the applications you already love.</p>
+                        <a href="#" class="learn-more">Learn more <span class="arrow-icon">&#8594;</span></a>
+                    </div>
+                    <div class="integrations-logos">
+                        <div class="integration-logo" style="background: #4285F4; color: white;">G</div>
+                        <div class="integration-logo" style="background: #1DA1F2; color: white;">&#128172;</div>
+                        <div class="integration-logo" style="background: #25D366; color: white;">W</div>
+                        <div class="integration-logo" style="background: #7289DA; color: white;">D</div>
+                        <div class="integration-logo" style="background: #FF6600; color: white;">H</div>
+                        <div class="integration-logo" style="background: #0088CC; color: white;">T</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Get started now!</h2>
+            <p class="cta-subtitle">Sign up free to improve your customer support with our tools and services.</p>
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-black">Get Started</a>
+                <a href="#" class="btn btn-outline">View pricing</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                            <path d="M8 8h6v6H8V8zm10 0h6v6h-6V8zM8 18h6v6H8v-6zm10 0h6v6h-6v-6z" fill="currentColor"/>
+                        </svg>
+                        Whelp
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4>Products</h4>
+                    <ul>
+                        <li><a href="#">Inbox</a></li>
+                        <li><a href="#">Chat</a></li>
+                        <li><a href="#">Reporting</a></li>
+                        <li><a href="#">Chatbots</a></li>
+                        <li><a href="#">Outbound</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Help center</a></li>
+                        <li><a href="#">API docs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Privacy policy</a></li>
+                        <li><a href="#">Terms of service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Compare</h4>
+                    <ul>
+                        <li><a href="#">Zendesk</a></li>
+                        <li><a href="#">Freshdesk</a></li>
+                        <li><a href="#">Intercom</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

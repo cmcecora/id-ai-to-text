@@ -1,0 +1,171 @@
+<div class="search-page">
+  <div class="page-wrapper">
+    <div class="container">
+      <!-- Header -->
+      <div class="search-header" @fadeIn>
+        <h1>Find Your Medical Test</h1>
+        <p>Search from over 500+ diagnostic tests and health screenings near you</p>
+      </div>
+
+      <!-- Search Container -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input
+            type="text"
+            class="search-input"
+            #searchInput
+            [(ngModel)]="searchQuery"
+            (focus)="onSearchFocus()"
+            (input)="onSearchInput()"
+            (keydown)="onKeyDown($event)"
+            placeholder="Search tests, panels, or conditions..."
+            autocomplete="off"
+          >
+          <button
+            class="clear-btn"
+            *ngIf="searchQuery"
+            (click)="clearSearch()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Autocomplete Dropdown -->
+        <div
+          class="autocomplete-dropdown"
+          *ngIf="isDropdownOpen"
+          @dropdownAnimation
+        >
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="isLoading">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span class="loading-text">Searching tests...</span>
+          </div>
+
+          <!-- Quick Categories (shown when empty) -->
+          <div class="dropdown-section" *ngIf="!searchQuery && !isLoading">
+            <div class="dropdown-section-header">
+              <span class="dropdown-section-title">Browse Categories</span>
+            </div>
+            <div class="quick-categories">
+              <div
+                class="category-chip"
+                *ngFor="let cat of categories"
+                (click)="selectCategory(cat)"
+              >
+                <mat-icon>{{cat.icon}}</mat-icon>
+                {{cat.name}}
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Searches -->
+          <div class="dropdown-section" *ngIf="!searchQuery && !isLoading && recentSearches.length > 0">
+            <div class="dropdown-section-header">
+              <span class="dropdown-section-title">Recent Searches</span>
+              <button class="dropdown-section-action" (click)="clearRecentSearches()">Clear all</button>
+            </div>
+            <div
+              class="autocomplete-item"
+              *ngFor="let recent of recentSearches"
+              (click)="selectRecentSearch(recent)"
+            >
+              <div class="item-icon recent">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="item-content">
+                <div class="item-name">{{recent.name}}</div>
+                <div class="item-description">Searched {{recent.searchedAgo}}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Results -->
+          <div class="dropdown-section" *ngIf="searchQuery && !isLoading && searchResults.length > 0">
+            <div class="dropdown-section-header">
+              <span class="dropdown-section-title">Test Results</span>
+            </div>
+            <div
+              class="autocomplete-item"
+              *ngFor="let test of searchResults; let i = index"
+              [class.highlighted]="i === highlightedIndex"
+              (click)="selectTest(test)"
+            >
+              <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                <mat-icon>{{test.icon}}</mat-icon>
+              </div>
+              <div class="item-content">
+                <div class="item-name" [innerHTML]="highlightMatch(test.name)"></div>
+                <div class="item-description">{{test.description}}</div>
+              </div>
+              <div class="item-meta">
+                <span class="item-category" [ngClass]="getCategoryClass(test.category)">{{test.category}}</span>
+                <span class="item-price">${{test.price}}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results State -->
+          <div class="no-results" *ngIf="searchQuery && !isLoading && searchResults.length === 0">
+            <div class="no-results-icon">
+              <mat-icon>search_off</mat-icon>
+            </div>
+            <div class="no-results-title">No tests found</div>
+            <div class="no-results-text">Try adjusting your search or browse categories above</div>
+          </div>
+
+          <!-- Dropdown Footer -->
+          <div class="dropdown-footer" *ngIf="!isLoading">
+            <div class="keyboard-hints">
+              <div class="keyboard-hint">
+                <span class="kbd">↑</span>
+                <span class="kbd">↓</span>
+                <span>Navigate</span>
+              </div>
+              <div class="keyboard-hint">
+                <span class="kbd">Enter</span>
+                <span>Select</span>
+              </div>
+              <div class="keyboard-hint">
+                <span class="kbd">Esc</span>
+                <span>Close</span>
+              </div>
+            </div>
+            <span class="results-count" *ngIf="searchQuery && searchResults.length > 0">
+              {{searchResults.length}} results
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Tests Section -->
+      <div class="popular-tests" @fadeIn>
+        <div class="section-header">
+          <h2 class="section-title">Popular Tests</h2>
+          <a class="see-all" routerLink="/book-test">
+            See all tests
+            <mat-icon>arrow_forward</mat-icon>
+          </a>
+        </div>
+        <div class="tests-grid">
+          <div
+            class="test-card"
+            *ngFor="let test of popularTests"
+            (click)="onPopularTestClick(test)"
+          >
+            <div class="test-card-icon" [ngClass]="getIconClass(test.category)">
+              <mat-icon>{{test.icon}}</mat-icon>
+            </div>
+            <div class="test-card-name">{{test.name}}</div>
+            <div class="test-card-desc">{{test.description}}</div>
+            <div class="test-card-footer">
+              <span class="test-card-price">${{test.price}}</span>
+              <span class="test-card-badge" *ngIf="getBadgeText(test)">{{getBadgeText(test)}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(task-manager list-tasks:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebSearch",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

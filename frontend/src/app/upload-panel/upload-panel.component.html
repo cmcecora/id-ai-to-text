@@ -1,31 +1,30 @@
 <div class="upload-panel">
-  <!-- Readonly text field to display selected filename -->
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Choose ID Photo</mat-label>
-    <input
-      matInput
-      type="text"
-      [value]="selectedFile?.name || ''"
-      placeholder="Select a file to upload"
-      readonly
-    />
-    <!-- Button suffix triggers hidden file input -->
+  <!-- Drop Zone -->
+  <div
+    class="dropzone"
+    [class.dragover]="isDragOver"
+    [class.has-file]="selectedFile"
+    (click)="fileInput.click()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <div class="dropzone-icon">
+      <mat-icon>add_photo_alternate</mat-icon>
+    </div>
+    <p class="dropzone-title">Drag & drop your ID photo here</p>
+    <p class="dropzone-subtitle">or click to browse files</p>
     <button
-      mat-icon-button
-      matSuffix
       type="button"
-      (click)="fileInput.click()"
+      class="btn btn-primary choose-file-btn"
+      (click)="$event.stopPropagation(); fileInput.click()"
       [disabled]="isUploading || disabled"
-      aria-label="Select file"
     >
-      <mat-icon>cloud_upload</mat-icon>
+      Choose File
     </button>
-    <mat-hint>
-      Accepted formats: {{ acceptedTypes.join(', ').toUpperCase() }} • Max size: 10MB
-    </mat-hint>
-  </mat-form-field>
+  </div>
 
-  <!-- Hidden native file input (matInput does not support type=file) -->
+  <!-- Hidden native file input -->
   <input
     #fileInput
     id="file-input"
@@ -35,88 +34,122 @@
     hidden
   />
 
+  <!-- File Format Info -->
+  <div class="file-format-info">
+    <mat-icon>info_outline</mat-icon>
+    <span>Accepted formats: {{ acceptedTypes.join(', ').toUpperCase() }} &bull; Max size: 10MB</span>
+  </div>
+
   <!-- File Preview -->
   <div *ngIf="selectedFile" class="file-preview">
-    <div class="preview-container">
-      <img
-        *ngIf="previewUrl && selectedFile?.type !== 'application/pdf'"
-        [src]="previewUrl"
-        alt="ID photo preview"
-        class="preview-image"
-      />
+    <div class="preview-wrapper">
+      <div class="preview-image-container">
+        <img
+          *ngIf="previewUrl && selectedFile?.type !== 'application/pdf'"
+          [src]="previewUrl"
+          alt="ID photo preview"
+          class="preview-image"
+        />
 
-      <div *ngIf="selectedFile?.type === 'application/pdf'" class="pdf-preview">
-        <mat-icon>picture_as_pdf</mat-icon>
-        <p>PDF Document</p>
+        <div *ngIf="selectedFile?.type === 'application/pdf'" class="pdf-preview">
+          <mat-icon>picture_as_pdf</mat-icon>
+        </div>
       </div>
-    </div>
 
-    <!-- File Info -->
-    <div class="file-info">
-      <p><strong>{{ selectedFile.name }}</strong></p>
-      <p>{{ formatFileSize(selectedFile.size) }}</p>
+      <div class="preview-info">
+        <p class="file-name">{{ selectedFile.name }}</p>
+        <p class="file-size">{{ formatFileSize(selectedFile.size) }}</p>
 
-      <div *ngIf="fileSizeExceeded" class="error-message">
-        <mat-icon color="warn">warning</mat-icon>
-        <span>File size exceeds 10MB limit</span>
+        <div *ngIf="!fileSizeExceeded" class="status-badge success">
+          <mat-icon>check_circle</mat-icon>
+          <span>Ready to process</span>
+        </div>
+
+        <div *ngIf="fileSizeExceeded" class="status-badge error">
+          <mat-icon>error</mat-icon>
+          <span>File size exceeds 10MB limit</span>
+        </div>
       </div>
+
+      <button
+        type="button"
+        class="remove-file-btn"
+        (click)="clearFile()"
+        [disabled]="isUploading"
+        aria-label="Remove file"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
   </div>
 
   <!-- Success Message -->
-  <div *ngIf="uploadSuccess && !isUploading" class="success-message">
-    <mat-icon color="primary">check_circle</mat-icon>
+  <div *ngIf="uploadSuccess && !isUploading" class="status-message success">
+    <mat-icon>check_circle</mat-icon>
     <span>ID photo uploaded and processed successfully!</span>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="isUploading" class="loading-container">
-    <mat-progress-spinner
-      mode="indeterminate"
-      diameter="40"
-    ></mat-progress-spinner>
+    <div class="loading-spinner">
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="40"
+        strokeWidth="3"
+      ></mat-progress-spinner>
+    </div>
     <p>Extracting text from ID photo...</p>
   </div>
 
   <!-- Action Buttons -->
   <div class="action-buttons">
     <button
-      mat-raised-button
-      color="primary"
+      type="button"
+      class="btn btn-primary upload-btn"
       (click)="uploadFile()"
-      [disabled]="!selectedFile || isUploading || fileSizeExceeded"
-      class="upload-btn"
+      [disabled]="!selectedFile || isUploading || fileSizeExceeded || disabled"
     >
-      <mat-icon>upload</mat-icon>
+      <mat-icon>document_scanner</mat-icon>
       Extract Text
     </button>
 
     <button
-      mat-button
+      type="button"
+      class="btn btn-outline clear-btn"
       (click)="clearFile()"
-      [disabled]="isUploading"
-      class="clear-btn"
+      [disabled]="isUploading || !selectedFile"
     >
-      <mat-icon>clear</mat-icon>
-      Choose Different File
+      <mat-icon>refresh</mat-icon>
+      Clear
     </button>
   </div>
 
-  <!-- Upload Instructions -->
-  <div class="instructions">
-    <mat-card class="info-card">
-      <mat-card-header>
-        <mat-card-title>Instructions</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul>
-          <li>Select an identity document (ID card, driver's license, passport)</li>
-          <li>Accepted formats: JPG, PNG, PDF, HEIC</li>
-          <li>Maximum file size: 10MB</li>
-          <li>HEIC files will be converted to JPEG by the server</li>
-          <li>Ensure the document is clear and all text is readable</li>
-        </ul>
-      </mat-card-content>
-    </mat-card>
+  <!-- Divider -->
+  <div class="section-divider"></div>
+
+  <!-- Instructions Card -->
+  <div class="tips-card">
+    <div class="tips-header">
+      <mat-icon>lightbulb</mat-icon>
+      <h3>Tips for best results</h3>
+    </div>
+    <ul class="tips-list">
+      <li>
+        <mat-icon>check</mat-icon>
+        <span>Ensure the document is well-lit and in focus</span>
+      </li>
+      <li>
+        <mat-icon>check</mat-icon>
+        <span>All text should be clearly readable</span>
+      </li>
+      <li>
+        <mat-icon>check</mat-icon>
+        <span>Avoid glare and shadows on the document</span>
+      </li>
+      <li>
+        <mat-icon>check</mat-icon>
+        <span>Include all four corners of the ID</span>
+      </li>
+    </ul>
   </div>
 </div>

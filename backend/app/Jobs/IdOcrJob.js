@@ -143,7 +143,7 @@ Do NOT include any explanatory text, markdown formatting, or code blocks.
 Return ONLY the raw JSON object.`;
 
             const requestBody = {
-                model: 'claude-3-opus-20240229',
+                model: 'claude-sonnet-4-5-20250929',
                 max_tokens: 2048,
                 messages: [
                     {
@@ -172,7 +172,7 @@ Return ONLY the raw JSON object.`;
                     'x-api-key': this.anthropicApiKey,
                     'anthropic-version': '2023-06-01'
                 },
-                timeout: 60000 // 60 seconds timeout (increased for Opus)
+                timeout: 120000 // 120 seconds timeout for large images
             });
 
             console.log('✅ Anthropic API response received');
@@ -281,20 +281,34 @@ Return ONLY the raw JSON object.`;
             // Get file stats for size
             const stats = await fs.stat(this.filePath);
 
-            // Create document in MongoDB
-            const document = await IdentityDocument.create({
-                jobId: this.jobId,
-                userId: this.userId,
-                filePath: this.filePath,
-                originalFileName: originalFileName,
-                fileSize: stats.size,
-                mimeType: this.getMimeType(this.filePath),
-                status: 'completed',
-                extractedData: extractedData,
-                confidenceScores: extractedData.confidence || {},
-                overallConfidence: confidence,
-                processedAt: new Date()
-            });
+            // Use findOneAndUpdate with upsert to avoid duplicate key errors
+            // This will update if document exists, or create if it doesn't
+            const document = await IdentityDocument.findOneAndUpdate(
+                { jobId: this.jobId }, // Find by jobId
+                {
+                    $set: {
+                        userId: this.userId,
+                        filePath: this.filePath,
+                        originalFileName: originalFileName,
+                        fileSize: stats.size,
+                        mimeType: this.getMimeType(this.filePath),
+                        status: 'completed',
+                        extractedData: extractedData,
+                        confidenceScores: extractedData.confidence || {},
+                        overallConfidence: confidence,
+                        processedAt: new Date(),
+                        updatedAt: new Date()
+                    },
+                    $setOnInsert: {
+                        createdAt: new Date()
+                    }
+                },
+                {
+                    upsert: true, // Create if doesn't exist
+                    new: true, // Return the updated document
+                    runValidators: true // Run schema validators
+                }
+            );
 
             console.log('✅ Document saved to MongoDB:', {
                 jobId: this.jobId,
