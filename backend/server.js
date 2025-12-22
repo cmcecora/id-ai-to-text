@@ -16,6 +16,10 @@ const IdOcrJob = require('./app/Jobs/IdOcrJob');
 // Import database connection
 const database = require('./config/database');
 
+// Import auth configuration
+const { createAuth } = require('./auth');
+const { toNodeHandler } = require('better-auth/node');
+
 // Load environment variables
 require('dotenv').config();
 
@@ -83,6 +87,9 @@ const upload = multer({
 // Initialize controllers
 const idUploadController = new IdUploadController();
 
+// Auth instance (initialized after DB connection)
+let auth = null;
+
 // Routes (simulating Laravel routes/api.php)
 app.get('/api/health', (req, res) => {
   res.json({
@@ -90,6 +97,14 @@ app.get('/api/health', (req, res) => {
     message: 'ID OCR API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Better Auth routes - handles /api/auth/*
+app.all('/api/auth/*', (req, res, next) => {
+  if (!auth) {
+    return res.status(503).json({ error: 'Auth not initialized' });
+  }
+  return toNodeHandler(auth)(req, res);
 });
 
 // POST /api/id/upload - Main upload endpoint
@@ -232,6 +247,11 @@ const startServer = async () => {
     // Connect to MongoDB
     console.log('Connecting to MongoDB...');
     await database.connect();
+
+    // Initialize Better Auth after DB connection
+    console.log('Initializing Better Auth...');
+    auth = createAuth();
+    console.log('✅ Better Auth initialized');
 
     // Create database indexes
     console.log('Creating MongoDB indexes...');
