@@ -190,7 +190,7 @@
                     [class.selected]="isTestSelected(test)"
                     (click)="selectFilteredTest(test)"
                   >
-                    <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                    <div class="item-icon" [ngClass]="test.icon === 'image' ? 'imaging' : getIconClass(test.category)">
                       <mat-icon>{{test.icon}}</mat-icon>
                     </div>
                     <div class="item-content">
@@ -246,7 +246,7 @@
                       <mat-icon *ngIf="isTestSelected(test)">check</mat-icon>
                     </div>
                   </div>
-                  <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                  <div class="item-icon" [ngClass]="test.icon === 'image' ? 'imaging' : getIconClass(test.category)">
                     <mat-icon>{{test.icon}}</mat-icon>
                   </div>
                   <div class="item-content">
@@ -312,7 +312,7 @@
             [class.selected]="isTestSelected(test)"
             (click)="selectTest(test)"
           >
-            <div class="test-icon icon-container icon-lg icon-purple">
+            <div class="test-icon icon-container icon-lg" [ngClass]="'icon-' + (test.icon === 'image' ? 'blue' : getIconClass(test.category))">
               <mat-icon>{{test.icon}}</mat-icon>
             </div>
             <div class="test-info">

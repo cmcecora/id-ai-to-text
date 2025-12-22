@@ -1025,11 +1025,13 @@ export class MedicalBookingComponent implements OnInit {
     if (this.canProceed() && this.currentStep < this.totalSteps && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'forward';
+      this.scrollToTop(); // Scroll before step change
 
       // Small delay to allow animation to register
       setTimeout(() => {
         this.currentStep++;
         this.isAnimating = false;
+        this.scrollToTop(); // Scroll again after content renders
 
         // Pre-fill patient form when entering Step 4 if OCR data exists
         if (this.currentStep === 4 && this.ocrData && !this.uploadSkipped) {
@@ -1048,10 +1050,12 @@ export class MedicalBookingComponent implements OnInit {
     if (this.currentStep > 1 && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'backward';
+      this.scrollToTop(); // Scroll before step change
 
       setTimeout(() => {
         this.currentStep--;
         this.isAnimating = false;
+        this.scrollToTop(); // Scroll again after content renders
       }, 50);
     }
   }
@@ -1060,11 +1064,29 @@ export class MedicalBookingComponent implements OnInit {
     if (step < this.currentStep && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'backward';
+      this.scrollToTop(); // Scroll before step change
 
       setTimeout(() => {
         this.currentStep = step;
         this.isAnimating = false;
+        this.scrollToTop(); // Scroll again after content renders
       }, 50);
+    }
+  }
+
+  private scrollToTop(): void {
+    // Scroll instantly to top so content renders at top position
+    const bookingContainer = document.querySelector('.booking-container');
+    if (bookingContainer) {
+      bookingContainer.scrollTop = 0;
+    }
+    // Also scroll window to top
+    window.scrollTo(0, 0);
+
+    // Also scroll the step content container if it exists
+    const stepContent = document.querySelector('.step-content');
+    if (stepContent) {
+      stepContent.scrollTop = 0;
     }
   }
 

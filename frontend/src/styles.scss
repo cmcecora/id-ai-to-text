@@ -363,6 +363,92 @@ p {
     background: var(--wh-orange-10);
     color: var(--wh-orange-50);
   }
+
+  &.icon-red {
+    background: var(--wh-red-10);
+    color: var(--wh-red-50);
+  }
+
+  // Category-specific icon colors
+  &.icon-blood {
+    background: var(--wh-red-10);
+    color: var(--wh-red-50);
+  }
+
+  &.icon-imaging {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-50);
+  }
+
+  &.icon-cardiac {
+    background: var(--wh-purple-10);
+    color: var(--wh-purple-50);
+  }
+
+  &.icon-hormone {
+    background: var(--wh-orange-10);
+    color: var(--wh-orange-50);
+  }
+
+  &.icon-genetic {
+    background: var(--wh-green-10);
+    color: var(--wh-green-50);
+  }
+
+  &.icon-allergy {
+    background: var(--wh-yellow-10);
+    color: var(--wh-yellow-60);
+  }
+
+  &.icon-nervous {
+    background: var(--wh-purple-10);
+    color: var(--wh-purple-50);
+  }
+
+  &.icon-respiratory {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-50);
+  }
+
+  &.icon-digestive {
+    background: var(--wh-orange-10);
+    color: var(--wh-orange-50);
+  }
+
+  &.icon-excretory {
+    background: var(--wh-blue-10);
+    color: var(--wh-blue-60);
+  }
+
+  &.icon-womens {
+    background: rgba(236, 72, 153, 0.1);
+    color: rgb(236, 72, 153);
+  }
+
+  &.icon-mens {
+    background: rgba(59, 130, 246, 0.1);
+    color: rgb(59, 130, 246);
+  }
+
+  &.icon-immune {
+    background: var(--wh-green-10);
+    color: var(--wh-green-50);
+  }
+
+  &.icon-muscular {
+    background: var(--wh-red-10);
+    color: var(--wh-red-50);
+  }
+
+  &.icon-skeletal {
+    background: var(--wh-neutral-10);
+    color: var(--text);
+  }
+
+  &.icon-integumentary {
+    background: rgba(168, 85, 247, 0.1);
+    color: rgb(168, 85, 247);
+  }
 }
 
 // ===========================
