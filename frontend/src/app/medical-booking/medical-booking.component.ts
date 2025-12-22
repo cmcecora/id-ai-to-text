@@ -123,6 +123,39 @@ interface CalendarDay {
       transition(':leave', [
         animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-8px)' }))
       ])
+    ]),
+
+    // Collapse animation for date-time section
+    trigger('collapseAnimation', [
+      state('expanded', style({
+        height: '*',
+        opacity: 1,
+        overflow: 'visible'
+      })),
+      state('collapsed', style({
+        height: '0px',
+        opacity: 0,
+        overflow: 'hidden'
+      })),
+      transition('expanded => collapsed', [
+        style({ overflow: 'hidden' }),
+        animate('350ms cubic-bezier(0.4, 0, 0.2, 1)')
+      ]),
+      transition('collapsed => expanded', [
+        animate('350ms cubic-bezier(0.4, 0, 0.2, 1)'),
+        style({ overflow: 'visible' })
+      ])
+    ]),
+
+    // Slide in animation for collapsed info bar
+    trigger('slideInBar', [
+      transition(':enter', [
+        style({ opacity: 0, height: '0px', transform: 'translateY(-10px)' }),
+        animate('350ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 1, height: '*', transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('250ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 0, height: '0px', transform: 'translateY(-10px)' }))
+      ])
     ])
   ]
 })
@@ -172,6 +205,7 @@ export class MedicalBookingComponent implements OnInit {
   selectedDate: Date | null = null;
   selectedTime: string | null = null;
   selectedLocation: Location | null = null;
+  isDateTimeCollapsed = false;
 
   calendarDays: CalendarDay[] = [];
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -366,12 +400,16 @@ export class MedicalBookingComponent implements OnInit {
     this.patientForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
+      dob: ['', Validators.required],
+      sex: ['', Validators.required],
+      addressStreet: ['', Validators.required],
+      addressCity: ['', Validators.required],
+      addressState: ['', Validators.required],
+      addressZip: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^\(\d{3}\) \d{3}-\d{4}$/)]],
-      dob: ['', Validators.required],
       insuranceProvider: [''],
-      memberId: [''],
-      notes: ['']
+      memberId: ['']
     });
   }
 
@@ -482,10 +520,18 @@ export class MedicalBookingComponent implements OnInit {
 
   selectTime(time: string): void {
     this.selectedTime = time;
-    // Scroll to location section after a short delay to allow *ngIf to render
+    // Collapse date-time section and scroll to location after animation
     setTimeout(() => {
-      this.scrollToLocationSection();
+      this.isDateTimeCollapsed = true;
+      // Scroll to location section after collapse animation completes
+      setTimeout(() => {
+        this.scrollToLocationSection();
+      }, 400);
     }, 100);
+  }
+
+  expandDateTime(): void {
+    this.isDateTimeCollapsed = false;
   }
 
   private scrollToLocationSection(): void {
@@ -695,6 +741,7 @@ export class MedicalBookingComponent implements OnInit {
       this.selectedDate = null;
       this.selectedTime = null;
       this.selectedLocation = this.locations[0];
+      this.isDateTimeCollapsed = false;
       this.patientForm.reset();
       this.bookingConfirmed = false;
       this.confirmationNumber = '';
@@ -707,9 +754,6 @@ export class MedicalBookingComponent implements OnInit {
       this.testHighlightedIndex = -1;
 
       // Reset ID upload state
-      if (this.uploadedImageUrl) {
-        URL.revokeObjectURL(this.uploadedImageUrl);
-      }
       this.ocrData = null;
       this.isProcessingOcr = false;
       this.ocrProgress = 0;
@@ -757,9 +801,20 @@ export class MedicalBookingComponent implements OnInit {
    * Handle file upload from upload-panel component
    */
   onFileProcessed(file: File): void {
-    // Create a preview URL for the uploaded image
-    this.uploadedImageUrl = URL.createObjectURL(file);
+    // Create a persistent data URL for the uploaded image
+    this.createImagePreview(file);
     this.processDocument(file);
+  }
+
+  /**
+   * Convert file to base64 data URL for persistent preview
+   */
+  private createImagePreview(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      this.uploadedImageUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   /**
@@ -855,10 +910,6 @@ export class MedicalBookingComponent implements OnInit {
    * Clear current upload and allow new upload
    */
   clearUpload(): void {
-    // Revoke the object URL to free memory
-    if (this.uploadedImageUrl) {
-      URL.revokeObjectURL(this.uploadedImageUrl);
-    }
     this.ocrData = null;
     this.ocrError = null;
     this.currentJobId = null;
@@ -886,6 +937,21 @@ export class MedicalBookingComponent implements OnInit {
     if (this.ocrData.dob) {
       // Parse date string to Date object for the datepicker
       formUpdates['dob'] = new Date(this.ocrData.dob);
+    }
+    if (this.ocrData.sex) {
+      formUpdates['sex'] = this.ocrData.sex;
+    }
+    if (this.ocrData.addressStreet) {
+      formUpdates['addressStreet'] = this.ocrData.addressStreet;
+    }
+    if (this.ocrData.addressCity) {
+      formUpdates['addressCity'] = this.ocrData.addressCity;
+    }
+    if (this.ocrData.addressState) {
+      formUpdates['addressState'] = this.ocrData.addressState;
+    }
+    if (this.ocrData.addressZip) {
+      formUpdates['addressZip'] = this.ocrData.addressZip;
     }
 
     // Patch form with extracted values

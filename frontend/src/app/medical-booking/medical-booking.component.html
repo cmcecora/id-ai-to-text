@@ -184,149 +184,165 @@
         <h2>Choose Date & Time</h2>
         <p class="step-description">Select your preferred appointment slot</p>
 
-        <!-- Selected Test Summary -->
-        <div class="selected-test-summary" *ngIf="selectedTest">
-          <div class="summary-icon icon-container icon-lg icon-purple">
-            <mat-icon>{{selectedTest.icon}}</mat-icon>
+        <!-- Collapsed Date/Time Info Bar -->
+        <div
+          class="datetime-collapsed-bar"
+          *ngIf="isDateTimeCollapsed && selectedDate && selectedTime"
+          @slideInBar
+          (click)="expandDateTime()"
+        >
+          <div class="collapsed-bar-content">
+            <div class="collapsed-bar-icon icon-container icon-md icon-blue">
+              <mat-icon>event</mat-icon>
+            </div>
+            <div class="collapsed-bar-info">
+              <span class="collapsed-bar-label">Appointment</span>
+              <span class="collapsed-bar-value">{{shortFormattedDate}} at {{selectedTime}}</span>
+            </div>
+            <div class="collapsed-bar-edit">
+              <mat-icon>edit</mat-icon>
+              <span>Change</span>
+            </div>
           </div>
-          <div class="summary-info">
-            <p class="summary-name">{{selectedTest.name}}</p>
-            <p class="summary-time">Results in {{selectedTest.resultsTime}}</p>
-          </div>
-          <button class="change-btn" (click)="goToStep(1)">Change</button>
         </div>
 
-        <div class="date-time-grid">
-          <!-- Calendar Section -->
-          <div class="calendar-section">
-            <h3>Select Date</h3>
-            <div class="calendar-container">
-              <!-- Month Header -->
-              <div class="calendar-header">
-                <button class="nav-arrow" (click)="previousMonth()">
-                  <mat-icon>chevron_left</mat-icon>
-                </button>
-                <span class="month-name">{{currentMonthName}}</span>
-                <button class="nav-arrow" (click)="nextMonth()">
-                  <mat-icon>chevron_right</mat-icon>
-                </button>
-              </div>
+        <!-- Expandable Date/Time Grid -->
+        <div
+          class="date-time-collapsible"
+          [@collapseAnimation]="isDateTimeCollapsed ? 'collapsed' : 'expanded'"
+        >
+          <div class="date-time-grid">
+            <!-- Calendar Section -->
+            <div class="calendar-section">
+              <h3>Select Date</h3>
+              <div class="calendar-container">
+                <!-- Month Header -->
+                <div class="calendar-header">
+                  <button class="nav-arrow" (click)="previousMonth()">
+                    <mat-icon>chevron_left</mat-icon>
+                  </button>
+                  <span class="month-name">{{currentMonthName}}</span>
+                  <button class="nav-arrow" (click)="nextMonth()">
+                    <mat-icon>chevron_right</mat-icon>
+                  </button>
+                </div>
 
-              <!-- Week Days -->
-              <div class="weekdays">
-                <span *ngFor="let day of weekDays">{{day}}</span>
-              </div>
+                <!-- Week Days -->
+                <div class="weekdays">
+                  <span *ngFor="let day of weekDays">{{day}}</span>
+                </div>
 
-              <!-- Calendar Days -->
-              <div class="calendar-days">
-                <button
-                  *ngFor="let day of calendarDays"
-                  class="calendar-day"
-                  [class.empty]="day.date === 0"
-                  [class.unavailable]="!day.available && day.date !== 0"
-                  [class.today]="day.isToday"
-                  [class.selected]="day.isSelected"
-                  [disabled]="!day.available || day.date === 0"
-                  (click)="selectDate(day)"
-                >
-                  {{day.date || ''}}
-                </button>
-              </div>
-            </div>
-
-            <!-- Legend -->
-            <div class="calendar-legend">
-              <div class="legend-item">
-                <div class="legend-dot today"></div>
-                <span>Today</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot selected"></div>
-                <span>Selected</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot unavailable"></div>
-                <span>Unavailable</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Time Slots Section -->
-          <div class="time-section">
-            <h3>Available Time Slots</h3>
-            <p class="selected-date-text" *ngIf="selectedDate">{{formattedSelectedDate}}</p>
-            <p class="selected-date-text" *ngIf="!selectedDate">Select a date and time for your appointment</p>
-
-            <div class="time-slots-container">
-              <!-- Morning -->
-              <div class="time-period">
-                <p class="period-label">
-                  <mat-icon>wb_sunny</mat-icon>
-                  Morning
-                </p>
-                <div class="slots-grid">
+                <!-- Calendar Days -->
+                <div class="calendar-days">
                   <button
-                    *ngFor="let slot of morningSlots"
-                    class="time-slot"
-                    [class.selected]="selectedTime === slot.time"
-                    [class.unavailable]="!slot.available"
-                    [disabled]="!slot.available"
-                    (click)="selectTime(slot.time)"
+                    *ngFor="let day of calendarDays"
+                    class="calendar-day"
+                    [class.empty]="day.date === 0"
+                    [class.unavailable]="!day.available && day.date !== 0"
+                    [class.today]="day.isToday"
+                    [class.selected]="day.isSelected"
+                    [disabled]="!day.available || day.date === 0"
+                    (click)="selectDate(day)"
                   >
-                    {{slot.time}}
+                    {{day.date || ''}}
                   </button>
                 </div>
               </div>
 
-              <!-- Afternoon -->
-              <div class="time-period">
-                <p class="period-label">
-                  <mat-icon>wb_cloudy</mat-icon>
-                  Afternoon
-                </p>
-                <div class="slots-grid">
-                  <button
-                    *ngFor="let slot of afternoonSlots"
-                    class="time-slot"
-                    [class.selected]="selectedTime === slot.time"
-                    [class.unavailable]="!slot.available"
-                    [disabled]="!slot.available"
-                    (click)="selectTime(slot.time)"
-                  >
-                    {{slot.time}}
-                  </button>
+              <!-- Legend -->
+              <div class="calendar-legend">
+                <div class="legend-item">
+                  <div class="legend-dot today"></div>
+                  <span>Today</span>
                 </div>
-              </div>
-
-              <!-- Evening -->
-              <div class="time-period">
-                <p class="period-label">
-                  <mat-icon>nights_stay</mat-icon>
-                  Evening
-                </p>
-                <div class="slots-grid">
-                  <button
-                    *ngFor="let slot of eveningSlots"
-                    class="time-slot"
-                    [class.selected]="selectedTime === slot.time"
-                    [class.unavailable]="!slot.available"
-                    [disabled]="!slot.available"
-                    (click)="selectTime(slot.time)"
-                  >
-                    {{slot.time}}
-                  </button>
+                <div class="legend-item">
+                  <div class="legend-dot selected"></div>
+                  <span>Selected</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-dot unavailable"></div>
+                  <span>Unavailable</span>
                 </div>
               </div>
             </div>
 
-            <!-- Selected Summary -->
-            <div class="selection-summary" *ngIf="selectedDate && selectedTime">
-              <div class="summary-check icon-container icon-md icon-green">
-                <mat-icon>check</mat-icon>
+            <!-- Time Slots Section -->
+            <div class="time-section">
+              <h3>Available Time Slots</h3>
+              <p class="selected-date-text" *ngIf="selectedDate">{{formattedSelectedDate}}</p>
+              <p class="selected-date-text" *ngIf="!selectedDate">Select a date and time for your appointment</p>
+
+              <div class="time-slots-container">
+                <!-- Morning -->
+                <div class="time-period">
+                  <p class="period-label">
+                    <mat-icon>wb_sunny</mat-icon>
+                    Morning
+                  </p>
+                  <div class="slots-grid">
+                    <button
+                      *ngFor="let slot of morningSlots"
+                      class="time-slot"
+                      [class.selected]="selectedTime === slot.time"
+                      [class.unavailable]="!slot.available"
+                      [disabled]="!slot.available"
+                      (click)="selectTime(slot.time)"
+                    >
+                      {{slot.time}}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Afternoon -->
+                <div class="time-period">
+                  <p class="period-label">
+                    <mat-icon>wb_cloudy</mat-icon>
+                    Afternoon
+                  </p>
+                  <div class="slots-grid">
+                    <button
+                      *ngFor="let slot of afternoonSlots"
+                      class="time-slot"
+                      [class.selected]="selectedTime === slot.time"
+                      [class.unavailable]="!slot.available"
+                      [disabled]="!slot.available"
+                      (click)="selectTime(slot.time)"
+                    >
+                      {{slot.time}}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Evening -->
+                <div class="time-period">
+                  <p class="period-label">
+                    <mat-icon>nights_stay</mat-icon>
+                    Evening
+                  </p>
+                  <div class="slots-grid">
+                    <button
+                      *ngFor="let slot of eveningSlots"
+                      class="time-slot"
+                      [class.selected]="selectedTime === slot.time"
+                      [class.unavailable]="!slot.available"
+                      [disabled]="!slot.available"
+                      (click)="selectTime(slot.time)"
+                    >
+                      {{slot.time}}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div class="summary-text">
-                <p class="summary-label">Selected Slot</p>
-                <p class="summary-value">{{shortFormattedDate}} at {{selectedTime}}</p>
+
+              <!-- Selected Summary -->
+              <div class="selection-summary" *ngIf="selectedDate && selectedTime && !isDateTimeCollapsed">
+                <div class="summary-check icon-container icon-md icon-green">
+                  <mat-icon>check</mat-icon>
+                </div>
+                <div class="summary-text">
+                  <p class="summary-label">Selected Slot</p>
+                  <p class="summary-value">{{shortFormattedDate}} at {{selectedTime}}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -377,19 +393,6 @@
           Speed up your check-in by uploading a photo of your ID. We'll automatically fill in your information.
           <strong>This step is optional</strong> - you can skip and enter details manually.
         </p>
-
-        <!-- Appointment Summary (from previous steps) -->
-        <div class="appointment-summary compact">
-          <div class="summary-item">
-            <div class="summary-icon icon-container icon-lg icon-purple">
-              <mat-icon>{{selectedTest?.icon}}</mat-icon>
-            </div>
-            <div class="summary-details">
-              <p class="summary-title">{{selectedTest?.name}}</p>
-              <p class="summary-subtitle">{{shortFormattedDate}} at {{selectedTime}}</p>
-            </div>
-          </div>
-        </div>
 
         <!-- Processing Overlay -->
         <div *ngIf="isProcessingOcr" class="ocr-processing-overlay">
@@ -585,23 +588,71 @@
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>First Name</mat-label>
-                <input matInput formControlName="firstName" placeholder="Enter your first name">
+                <input matInput formControlName="firstName" placeholder="Enter your first name" autocomplete="given-name" name="firstName">
                 <mat-error *ngIf="patientForm.get('firstName')?.hasError('required')">First name is required</mat-error>
                 <mat-error *ngIf="patientForm.get('firstName')?.hasError('minlength')">Minimum 2 characters</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Last Name</mat-label>
-                <input matInput formControlName="lastName" placeholder="Enter your last name">
+                <input matInput formControlName="lastName" placeholder="Enter your last name" autocomplete="family-name" name="lastName">
                 <mat-error *ngIf="patientForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
                 <mat-error *ngIf="patientForm.get('lastName')?.hasError('minlength')">Minimum 2 characters</mat-error>
               </mat-form-field>
             </div>
 
             <div class="form-row">
+              <mat-form-field appearance="outline" class="date-field">
+                <mat-label>Date of Birth</mat-label>
+                <input matInput [matDatepicker]="dobPicker" formControlName="dob" placeholder="MM/DD/YYYY" autocomplete="bday" name="dob">
+                <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+                <mat-datepicker #dobPicker></mat-datepicker>
+                <mat-error *ngIf="patientForm.get('dob')?.hasError('required')">Date of birth is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Sex</mat-label>
+                <mat-select formControlName="sex" name="sex">
+                  <mat-option value="">Select</mat-option>
+                  <mat-option value="M">Male</mat-option>
+                  <mat-option value="F">Female</mat-option>
+                </mat-select>
+                <mat-error *ngIf="patientForm.get('sex')?.hasError('required')">Sex is required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Street Address</mat-label>
+                <input matInput formControlName="addressStreet" placeholder="Enter your street address" autocomplete="street-address" name="addressStreet">
+                <mat-error *ngIf="patientForm.get('addressStreet')?.hasError('required')">Address is required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row three-col">
+              <mat-form-field appearance="outline">
+                <mat-label>City</mat-label>
+                <input matInput formControlName="addressCity" placeholder="City" autocomplete="address-level2" name="addressCity">
+                <mat-error *ngIf="patientForm.get('addressCity')?.hasError('required')">City is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="state-field">
+                <mat-label>State</mat-label>
+                <input matInput formControlName="addressState" placeholder="State" maxlength="2" autocomplete="address-level1" name="addressState">
+                <mat-error *ngIf="patientForm.get('addressState')?.hasError('required')">State is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="zip-field">
+                <mat-label>ZIP Code</mat-label>
+                <input matInput formControlName="addressZip" placeholder="ZIP" autocomplete="postal-code" name="addressZip">
+                <mat-error *ngIf="patientForm.get('addressZip')?.hasError('required')">ZIP is required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Email Address</mat-label>
-                <input matInput formControlName="email" type="email" placeholder="Enter your email">
+                <input matInput formControlName="email" type="email" placeholder="Enter your email" autocomplete="email" name="email">
                 <mat-icon matPrefix>email</mat-icon>
                 <mat-error *ngIf="patientForm.get('email')?.hasError('required')">Email is required</mat-error>
                 <mat-error *ngIf="patientForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
@@ -609,20 +660,10 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phone" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event)">
+                <input matInput formControlName="phone" type="tel" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event)" autocomplete="tel" name="phone">
                 <mat-icon matPrefix>phone</mat-icon>
                 <mat-error *ngIf="patientForm.get('phone')?.hasError('required')">Phone number is required</mat-error>
                 <mat-error *ngIf="patientForm.get('phone')?.hasError('pattern')">Format: (555) 123-4567</mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="form-row single">
-              <mat-form-field appearance="outline" class="date-field">
-                <mat-label>Date of Birth</mat-label>
-                <input matInput [matDatepicker]="dobPicker" formControlName="dob" placeholder="MM/DD/YYYY">
-                <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-                <mat-datepicker #dobPicker></mat-datepicker>
-                <mat-error *ngIf="patientForm.get('dob')?.hasError('required')">Date of birth is required</mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -650,14 +691,6 @@
                 <input matInput formControlName="memberId" placeholder="Enter member ID">
               </mat-form-field>
             </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="section-title">Additional Notes <span class="optional">(Optional)</span></h3>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Notes for the lab</mat-label>
-              <textarea matInput formControlName="notes" rows="3" placeholder="Any special requirements or medical conditions we should know about"></textarea>
-            </mat-form-field>
           </div>
         </form>
       </div>
