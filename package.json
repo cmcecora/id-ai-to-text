@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@vapi-ai/web": "^2.5.2",
     "better-auth": "^1.4.7"
   }
 }

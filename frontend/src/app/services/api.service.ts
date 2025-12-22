@@ -59,8 +59,7 @@ export interface DocumentData {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_BASE_URL = 'http://localhost:3220/api';
-  private readonly API_TOKEN = 'demo-token'; // In production, get from auth service
+  private readonly API_BASE_URL = 'http://localhost:8010/api';
 
   constructor(private http: HttpClient) { }
 
@@ -72,9 +71,7 @@ export class ApiService {
     formData.append('document', file);
 
     return this.http.post<UploadResponse>(`${this.API_BASE_URL}/id/upload`, formData, {
-      headers: {
-        'Authorization': `Bearer ${this.API_TOKEN}`
-      }
+      withCredentials: true  // Send session cookies for Better-Auth
     }).pipe(
       timeout(30000), // 30 second timeout for upload
       retry(1), // Retry once on failure
@@ -87,9 +84,7 @@ export class ApiService {
    */
   getJobStatus(jobId: string): Observable<JobStatus> {
     return this.http.get<any>(`${this.API_BASE_URL}/id/upload/${jobId}/status`, {
-      headers: {
-        'Authorization': `Bearer ${this.API_TOKEN}`
-      }
+      withCredentials: true
     }).pipe(
       map(response => response.data), // Unwrap data property from backend response
       catchError(this.handleError)
@@ -101,9 +96,7 @@ export class ApiService {
    */
   getJobResults(jobId: string): Observable<JobResults> {
     return this.http.get<any>(`${this.API_BASE_URL}/id/upload/${jobId}`, {
-      headers: {
-        'Authorization': `Bearer ${this.API_TOKEN}`
-      }
+      withCredentials: true
     }).pipe(
       map(response => response.data), // Unwrap data property from backend response
       catchError(this.handleError)
@@ -218,9 +211,7 @@ export class ApiService {
       job_id: jobId,
       ...data
     }, {
-      headers: {
-        'Authorization': `Bearer ${this.API_TOKEN}`
-      }
+      withCredentials: true
     }).pipe(
       catchError(this.handleError)
     );
@@ -256,9 +247,7 @@ export class ApiService {
 
       // Upload and process insurance card
       this.http.post<any>(`${this.API_BASE_URL}/id/upload`, formData, {
-        headers: {
-          'Authorization': `Bearer ${this.API_TOKEN}`
-        }
+        withCredentials: true
       }).pipe(
         timeout(30000),
         retry(1),

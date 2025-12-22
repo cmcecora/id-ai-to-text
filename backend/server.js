@@ -19,6 +19,7 @@ const database = require('./config/database');
 // Import auth configuration
 const { createAuth } = require('./auth');
 const { toNodeHandler } = require('better-auth/node');
+const { requireAuth } = require('./middleware/authMiddleware');
 
 // Load environment variables
 require('dotenv').config();
@@ -28,7 +29,13 @@ const PORT = process.env.PORT || 8010;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:4200',  // Angular dev server
+    'http://localhost:4350',  // Alternative frontend port
+  ],
+  credentials: true,  // Required for Better-Auth cookies
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -90,6 +97,17 @@ const idUploadController = new IdUploadController();
 // Auth instance (initialized after DB connection)
 let auth = null;
 
+// Lazy auth middleware - waits for auth to be initialized
+const lazyRequireAuth = () => (req, res, next) => {
+  if (!auth) {
+    return res.status(503).json({
+      success: false,
+      error: 'Authentication service not initialized. Please try again.'
+    });
+  }
+  return requireAuth(auth)(req, res, next);
+};
+
 // Routes (simulating Laravel routes/api.php)
 app.get('/api/health', (req, res) => {
   res.json({
@@ -109,67 +127,26 @@ app.all('/api/auth/*', (req, res, next) => {
 
 // POST /api/id/upload - Main upload endpoint
 app.post('/api/id/upload',
-  // Simulating Laravel auth:api middleware
-  (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthenticated. Please provide a valid API token.'
-      });
-    }
-    // In real Laravel, this would validate the JWT/Passport token
-    next();
-  },
+  lazyRequireAuth(),
   upload.single('document'),
   idUploadController.upload.bind(idUploadController)
 );
 
 // GET /api/id/upload/{jobId} - Get OCR job status
 app.get('/api/id/upload/:jobId/status',
-  // Simulating Laravel auth:api middleware
-  (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthenticated. Please provide a valid API token.'
-      });
-    }
-    next();
-  },
+  lazyRequireAuth(),
   idUploadController.getStatus.bind(idUploadController)
 );
 
 // GET /api/id/upload/{jobId} - Get OCR results
 app.get('/api/id/upload/:jobId',
-  // Simulating Laravel auth:api middleware
-  (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthenticated. Please provide a valid API token.'
-      });
-    }
-    next();
-  },
+  lazyRequireAuth(),
   idUploadController.getResults.bind(idUploadController)
 );
 
 // POST /api/id/documents - Save/update document data
 app.post('/api/id/documents',
-  // Simulating Laravel auth:api middleware
-  (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthenticated. Please provide a valid API token.'
-      });
-    }
-    next();
-  },
+  lazyRequireAuth(),
   idUploadController.saveDocumentData.bind(idUploadController)
 );
 
