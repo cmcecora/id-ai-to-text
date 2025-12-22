@@ -87,10 +87,21 @@
         <h2>Select Your Test</h2>
         <p class="step-description">Choose the medical test you'd like to schedule</p>
 
-        <!-- Search Input -->
+        <!-- Search Input with Tags -->
         <div class="test-search-container">
-          <div class="test-search-wrapper">
+          <div class="test-search-wrapper" [class.has-tags]="selectedTests.length > 0">
             <mat-icon class="search-icon">search</mat-icon>
+            
+            <!-- Selected Test Tags -->
+            <div class="selected-tags" *ngIf="selectedTests.length > 0">
+              <div class="test-tag" *ngFor="let test of selectedTests">
+                <span class="tag-name">{{test.name}}</span>
+                <button class="tag-remove" (click)="removeSelectedTest(test, $event)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            
             <input
               type="text"
               class="test-search-input"
@@ -99,7 +110,7 @@
               (focus)="onTestSearchFocus()"
               (input)="onTestSearchInput()"
               (keydown)="onTestSearchKeyDown($event)"
-              placeholder="Search tests, panels, or conditions..."
+              [placeholder]="selectedTests.length > 0 ? 'Add more tests...' : 'Search tests, panels, or conditions...'"
               autocomplete="off"
             >
             <button
@@ -166,6 +177,36 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Most Popular Exams -->
+              <div class="dropdown-section popular-exams-section">
+                <div class="dropdown-section-header">
+                  <span class="dropdown-section-title">Most Popular Exams</span>
+                </div>
+                <div class="popular-tests-list">
+                  <div
+                    class="autocomplete-item"
+                    *ngFor="let test of popularTests"
+                    [class.selected]="isTestSelected(test)"
+                    (click)="selectFilteredTest(test)"
+                  >
+                    <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                      <mat-icon>{{test.icon}}</mat-icon>
+                    </div>
+                    <div class="item-content">
+                      <div class="item-name">{{test.name}}</div>
+                      <div class="item-description">{{test.description}}</div>
+                    </div>
+                    <div class="item-meta">
+                      <span class="item-category" [ngClass]="getCategoryClass(test.category)">{{test.category}}</span>
+                      <span class="item-price">${{test.price}}</span>
+                    </div>
+                    <div class="item-check" *ngIf="isTestSelected(test)">
+                      <mat-icon>check_circle</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Tests View (Category Results or Search Results) -->
@@ -197,8 +238,14 @@
                   class="autocomplete-item"
                   *ngFor="let test of filteredTests; let i = index"
                   [class.highlighted]="i === testHighlightedIndex"
+                  [class.selected]="isTestSelected(test)"
                   (click)="selectFilteredTest(test)"
                 >
+                  <div class="item-checkbox">
+                    <div class="checkbox-box" [class.checked]="isTestSelected(test)">
+                      <mat-icon *ngIf="isTestSelected(test)">check</mat-icon>
+                    </div>
+                  </div>
                   <div class="item-icon" [ngClass]="getIconClass(test.category)">
                     <mat-icon>{{test.icon}}</mat-icon>
                   </div>
@@ -229,7 +276,7 @@
 
             <!-- Dropdown Footer -->
             <div class="dropdown-footer" *ngIf="!isTestSearchLoading">
-              <div class="keyboard-hints">
+              <div class="keyboard-hints" *ngIf="selectedTests.length === 0">
                 <div class="keyboard-hint">
                   <span class="kbd">↑</span>
                   <span class="kbd">↓</span>
@@ -244,7 +291,14 @@
                   <span>Close</span>
                 </div>
               </div>
-              <span class="results-count" *ngIf="filteredTests.length > 0">
+              
+              <!-- Selection Summary -->
+              <div class="selection-summary-bar" *ngIf="selectedTests.length > 0">
+                <span class="selected-count">{{selectedTests.length}} test{{selectedTests.length > 1 ? 's' : ''}} selected</span>
+                <span class="selected-total">${{getSelectedTotal()}}</span>
+              </div>
+              
+              <span class="results-count" *ngIf="filteredTests.length > 0 && selectedTests.length === 0">
                 {{filteredTests.length}} results
               </span>
             </div>
@@ -255,7 +309,7 @@
           <div
             class="test-card"
             *ngFor="let test of medicalTests"
-            [class.selected]="selectedTest?.id === test.id"
+            [class.selected]="isTestSelected(test)"
             (click)="selectTest(test)"
           >
             <div class="test-icon icon-container icon-lg icon-purple">
@@ -272,7 +326,7 @@
                 <span class="test-price">${{test.price}}</span>
               </div>
             </div>
-            <div class="selected-check" *ngIf="selectedTest?.id === test.id">
+            <div class="selected-check" *ngIf="isTestSelected(test)">
               <mat-icon>check</mat-icon>
             </div>
           </div>
@@ -765,13 +819,17 @@
 
         <!-- Appointment Summary -->
         <div class="appointment-summary">
-          <div class="summary-item">
+          <div class="summary-item tests-summary" *ngIf="selectedTests.length > 0">
             <div class="summary-icon icon-container icon-lg icon-purple">
-              <mat-icon>{{selectedTest?.icon}}</mat-icon>
+              <mat-icon>{{selectedTests[0]?.icon}}</mat-icon>
             </div>
             <div class="summary-details">
-              <p class="summary-title">{{selectedTest?.name}}</p>
+              <p class="summary-title" *ngIf="selectedTests.length === 1">{{selectedTests[0]?.name}}</p>
+              <p class="summary-title" *ngIf="selectedTests.length > 1">{{selectedTests.length}} Tests Selected</p>
               <p class="summary-subtitle">{{shortFormattedDate}} at {{selectedTime}}</p>
+              <div class="tests-tags" *ngIf="selectedTests.length > 1">
+                <span class="mini-tag" *ngFor="let test of selectedTests">{{test.name}}</span>
+              </div>
             </div>
           </div>
           <div class="summary-item">
@@ -919,19 +977,35 @@
         <div class="order-summary-card">
           <div class="order-summary-header">
             <span class="order-summary-title">Order Summary</span>
+            <span class="order-summary-count" *ngIf="selectedTests.length > 1">{{selectedTests.length}} tests</span>
           </div>
           <div class="order-summary-content">
-            <div class="order-item">
+            <!-- Itemized Tests List -->
+            <div class="order-item" *ngFor="let test of selectedTests; let isLast = last">
               <div class="order-item-info">
-                <span class="order-item-name">{{selectedTest?.name}}</span>
-                <span class="order-item-details">{{shortFormattedDate}} at {{selectedTime}}</span>
+                <span class="order-item-name">{{test.name}}</span>
+                <span class="order-item-details">
+                  <mat-icon>schedule</mat-icon>
+                  Results in {{test.resultsTime}}
+                </span>
               </div>
-              <span class="order-item-price">${{selectedTest?.price}}</span>
+              <span class="order-item-price">${{test.price}}</span>
             </div>
+            
+            <!-- Appointment Details -->
+            <div class="order-appointment-info">
+              <mat-icon>event</mat-icon>
+              <span>{{shortFormattedDate}} at {{selectedTime}}</span>
+            </div>
+            <div class="order-appointment-info">
+              <mat-icon>place</mat-icon>
+              <span>{{selectedLocation?.name}}</span>
+            </div>
+            
             <div class="order-divider"></div>
             <div class="order-total">
               <span>Total</span>
-              <span class="total-amount">${{selectedTest?.price}}</span>
+              <span class="total-amount">${{getSelectedTotal()}}</span>
             </div>
           </div>
         </div>
@@ -1262,13 +1336,19 @@
           <p class="confirmation-message">Your appointment has been successfully scheduled. A confirmation email has been sent to {{patientForm.get('email')?.value}}.</p>
 
           <div class="confirmation-details">
-            <div class="detail-card">
+            <div class="detail-card tests-detail" *ngIf="selectedTests.length > 0">
               <div class="detail-icon icon-container icon-lg icon-purple">
-                <mat-icon>{{selectedTest?.icon}}</mat-icon>
+                <mat-icon>{{selectedTests[0]?.icon}}</mat-icon>
               </div>
               <div class="detail-info">
-                <p class="detail-label">Test</p>
-                <p class="detail-value">{{selectedTest?.name}}</p>
+                <p class="detail-label">Test{{selectedTests.length > 1 ? 's' : ''}}</p>
+                <p class="detail-value" *ngIf="selectedTests.length === 1">{{selectedTests[0]?.name}}</p>
+                <div class="detail-tests-list" *ngIf="selectedTests.length > 1">
+                  <p class="detail-test-item" *ngFor="let test of selectedTests">
+                    {{test.name}} - ${{test.price}}
+                  </p>
+                  <p class="detail-total"><strong>Total: ${{getSelectedTotal()}}</strong></p>
+                </div>
               </div>
             </div>
 
@@ -1346,7 +1426,7 @@
           (click)="nextStep()"
           [disabled]="!canProceed()"
         >
-          {{currentStep === 5 ? 'Pay $' + selectedTest?.price : 'Continue'}}
+          {{currentStep === 5 ? 'Pay $' + getSelectedTotal() : 'Continue'}}
           <mat-icon>{{currentStep === 5 ? 'lock' : 'arrow_forward'}}</mat-icon>
         </button>
       </div>

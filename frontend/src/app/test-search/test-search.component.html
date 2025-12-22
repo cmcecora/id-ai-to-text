@@ -9,8 +9,19 @@
 
       <!-- Search Container -->
       <div class="search-container">
-        <div class="search-input-wrapper">
+        <div class="search-input-wrapper" [class.has-tags]="selectedTests.length > 0">
           <mat-icon class="search-icon">search</mat-icon>
+          
+          <!-- Selected Test Tags -->
+          <div class="selected-tags" *ngIf="selectedTests.length > 0">
+            <div class="test-tag" *ngFor="let test of selectedTests">
+              <span class="tag-name">{{test.name}}</span>
+              <button class="tag-remove" (click)="removeSelectedTest(test, $event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          
           <input
             type="text"
             class="search-input"
@@ -19,7 +30,7 @@
             (focus)="onSearchFocus()"
             (input)="onSearchInput()"
             (keydown)="onKeyDown($event)"
-            placeholder="Search tests, panels, or conditions..."
+            [placeholder]="selectedTests.length > 0 ? 'Add more tests...' : 'Search tests, panels, or conditions...'"
             autocomplete="off"
           >
           <button
@@ -90,8 +101,14 @@
               class="autocomplete-item"
               *ngFor="let test of searchResults; let i = index"
               [class.highlighted]="i === highlightedIndex"
+              [class.selected]="isTestSelected(test)"
               (click)="selectTest(test)"
             >
+              <div class="item-checkbox">
+                <div class="checkbox-box" [class.checked]="isTestSelected(test)">
+                  <mat-icon *ngIf="isTestSelected(test)">check</mat-icon>
+                </div>
+              </div>
               <div class="item-icon" [ngClass]="getIconClass(test.category)">
                 <mat-icon>{{test.icon}}</mat-icon>
               </div>
@@ -117,7 +134,7 @@
 
           <!-- Dropdown Footer -->
           <div class="dropdown-footer" *ngIf="!isLoading">
-            <div class="keyboard-hints">
+            <div class="keyboard-hints" *ngIf="selectedTests.length === 0">
               <div class="keyboard-hint">
                 <span class="kbd">↑</span>
                 <span class="kbd">↓</span>
@@ -132,9 +149,25 @@
                 <span>Close</span>
               </div>
             </div>
-            <span class="results-count" *ngIf="searchQuery && searchResults.length > 0">
+            
+            <!-- Selected Tests Summary -->
+            <div class="selection-summary-bar" *ngIf="selectedTests.length > 0">
+              <span class="selected-count">{{selectedTests.length}} test{{selectedTests.length > 1 ? 's' : ''}} selected</span>
+              <span class="selected-total">${{getSelectedTotal()}}</span>
+            </div>
+            
+            <span class="results-count" *ngIf="searchQuery && searchResults.length > 0 && selectedTests.length === 0">
               {{searchResults.length}} results
             </span>
+            
+            <button 
+              class="proceed-btn" 
+              *ngIf="selectedTests.length > 0"
+              (click)="proceedToBooking()"
+            >
+              Continue to Booking
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
           </div>
         </div>
       </div>

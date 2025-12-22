@@ -301,29 +301,99 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--wh-white);
+  border: 1px solid var(--wh-neutral-30);
+  border-radius: 10px;
+  padding: 8px 40px;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--wh-blue-50);
+    box-shadow: 0 0 0 3px rgba(15, 130, 230, 0.1);
+  }
+
+  &.has-tags {
+    padding-left: 10px;
+  }
 
   .search-icon {
     position: absolute;
-    left: 14px;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--wh-steel-40);
     pointer-events: none;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
     transition: color 0.2s ease;
   }
 }
 
+// Selected Test Tags in Search Input
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.test-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--wh-blue-10);
+  border: 1px solid var(--wh-blue-30);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--wh-blue-60);
+  max-width: 180px;
+
+  .tag-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .tag-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 10px;
+      width: 10px;
+      height: 10px;
+      color: var(--wh-blue-50);
+    }
+
+    &:hover {
+      background: var(--wh-blue-20);
+    }
+  }
+}
+
 .test-search-input {
-  width: 100%;
-  padding: 12px 40px 12px 40px;
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 0;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
-  border: 1px solid var(--wh-neutral-30);
-  border-radius: 10px;
-  background: var(--wh-white);
+  border: none;
+  background: transparent;
   color: var(--text);
-  transition: all 0.2s ease;
 
   &::placeholder {
     color: var(--wh-steel-40);
@@ -331,13 +401,6 @@
 
   &:focus {
     outline: none;
-    border-color: var(--wh-blue-50);
-    box-shadow: 0 0 0 3px rgba(15, 130, 230, 0.1);
-  }
-
-  &:focus ~ .search-icon,
-  &:focus + .search-icon {
-    color: var(--wh-blue-50);
   }
 }
 
@@ -534,28 +597,44 @@
 .quick-categories {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 16px 12px;
+  max-height: 140px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--wh-neutral-30);
+    border-radius: 2px;
+  }
 }
 
 .category-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 4px;
+  padding: 6px 10px;
   background: var(--wh-neutral-5);
   border: 1px solid var(--wh-neutral-20);
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 
   mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
     color: var(--wh-blue-50);
   }
 
@@ -624,6 +703,56 @@
     &.allergy {
       background: var(--wh-yellow-10);
       color: var(--wh-yellow-60);
+    }
+
+    &.nervous {
+      background: var(--wh-purple-10);
+      color: var(--wh-purple-50);
+    }
+
+    &.respiratory {
+      background: var(--wh-blue-10);
+      color: var(--wh-blue-50);
+    }
+
+    &.digestive {
+      background: var(--wh-orange-10);
+      color: var(--wh-orange-50);
+    }
+
+    &.excretory {
+      background: var(--wh-blue-10);
+      color: var(--wh-blue-60);
+    }
+
+    &.womens {
+      background: rgba(236, 72, 153, 0.1);
+      color: rgb(236, 72, 153);
+    }
+
+    &.mens {
+      background: rgba(59, 130, 246, 0.1);
+      color: rgb(59, 130, 246);
+    }
+
+    &.immune {
+      background: var(--wh-green-10);
+      color: var(--wh-green-50);
+    }
+
+    &.muscular {
+      background: var(--wh-red-10);
+      color: var(--wh-red-50);
+    }
+
+    &.skeletal {
+      background: var(--wh-neutral-10);
+      color: var(--text);
+    }
+
+    &.integumentary {
+      background: rgba(168, 85, 247, 0.1);
+      color: rgb(168, 85, 247);
     }
 
     &.recent {
@@ -704,12 +833,103 @@
       background: var(--wh-yellow-10);
       color: var(--wh-yellow-60);
     }
+
+    &.nervous {
+      background: var(--wh-purple-10);
+      color: var(--wh-purple-50);
+    }
+
+    &.respiratory {
+      background: var(--wh-blue-10);
+      color: var(--wh-blue-50);
+    }
+
+    &.digestive {
+      background: var(--wh-orange-10);
+      color: var(--wh-orange-50);
+    }
+
+    &.excretory {
+      background: var(--wh-blue-10);
+      color: var(--wh-blue-60);
+    }
+
+    &.womens {
+      background: rgba(236, 72, 153, 0.1);
+      color: rgb(236, 72, 153);
+    }
+
+    &.mens {
+      background: rgba(59, 130, 246, 0.1);
+      color: rgb(59, 130, 246);
+    }
+
+    &.immune {
+      background: var(--wh-green-10);
+      color: var(--wh-green-50);
+    }
+
+    &.muscular {
+      background: var(--wh-red-10);
+      color: var(--wh-red-50);
+    }
+
+    &.skeletal {
+      background: var(--wh-neutral-10);
+      color: var(--text);
+    }
+
+    &.integumentary {
+      background: rgba(168, 85, 247, 0.1);
+      color: rgb(168, 85, 247);
+    }
   }
 
   .item-price {
     font-size: 14px;
     font-weight: 600;
     color: var(--wh-green-50);
+  }
+
+  // Check icon for selected items
+  .item-check {
+    flex-shrink: 0;
+    margin-left: 8px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: var(--wh-green-50);
+    }
+  }
+
+  // Selected state
+  &.selected {
+    background: var(--wh-green-0);
+  }
+}
+
+// Popular Exams Section
+.popular-exams-section {
+  border-top: 1px solid var(--wh-neutral-10);
+}
+
+.popular-tests-list {
+  max-height: 300px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--wh-neutral-30);
+    border-radius: 3px;
   }
 }
 
@@ -784,6 +1004,58 @@
 .results-count {
   font-size: 12px;
   color: var(--subtext);
+}
+
+// Checkbox in autocomplete items
+.item-checkbox {
+  flex-shrink: 0;
+
+  .checkbox-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--wh-neutral-30);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: var(--wh-white);
+
+    mat-icon {
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+      color: white;
+    }
+
+    &.checked {
+      background: var(--wh-blue-50);
+      border-color: var(--wh-blue-50);
+    }
+  }
+}
+
+.autocomplete-item.selected {
+  background: var(--wh-blue-0);
+}
+
+// Selection Summary Bar in Dropdown
+.selection-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .selected-count {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .selected-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wh-green-50);
+  }
 }
 
 .tests-grid {
@@ -1780,6 +2052,26 @@
       }
     }
   }
+
+  // Tests summary with tags
+  .tests-summary {
+    .tests-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+
+      .mini-tag {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--wh-purple-60);
+        background: var(--wh-purple-10);
+        padding: 3px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+    }
+  }
 }
 
 .patient-form {
@@ -1991,6 +2283,33 @@
       font-size: 12px;
       color: var(--subtext);
       margin: 4px 0 0;
+    }
+  }
+
+  // Tests detail card with multiple tests
+  &.tests-detail {
+    .detail-tests-list {
+      margin-top: 6px;
+
+      .detail-test-item {
+        font-size: 13px;
+        color: var(--text);
+        margin: 4px 0;
+        padding: 4px 0;
+        border-bottom: 1px dashed var(--wh-neutral-20);
+
+        &:last-of-type {
+          border-bottom: none;
+        }
+      }
+
+      .detail-total {
+        font-size: 14px;
+        color: var(--wh-green-50);
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--wh-neutral-30);
+      }
     }
   }
 }
@@ -3120,6 +3439,9 @@
 }
 
 .order-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--wh-neutral-20);
 }
@@ -3162,6 +3484,53 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
+}
+
+// Multiple order items
+.order-item + .order-item {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--wh-neutral-20);
+}
+
+.order-item-details {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    color: var(--subtext);
+  }
+}
+
+// Appointment info in order summary
+.order-appointment-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 12px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--wh-blue-50);
+  }
+}
+
+// Order summary count badge
+.order-summary-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--wh-blue-50);
+  background: var(--wh-blue-10);
+  padding: 4px 10px;
+  border-radius: 12px;
 }
 
 .order-divider {

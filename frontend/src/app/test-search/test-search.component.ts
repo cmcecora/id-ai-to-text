@@ -47,6 +47,9 @@ export class TestSearchComponent implements OnInit {
   isLoading = false;
   highlightedIndex = -1;
 
+  // Multi-select: Array of selected tests
+  selectedTests: MedicalTest[] = [];
+
   // All medical tests
   medicalTests: MedicalTest[] = [
     { id: 'cbc', name: 'Complete Blood Count (CBC)', description: 'Comprehensive blood cell analysis', category: 'blood', price: 29, resultsTime: '24 hours', icon: 'favorite' },
@@ -184,10 +187,44 @@ export class TestSearchComponent implements OnInit {
   }
 
   selectTest(test: MedicalTest): void {
+    // Toggle selection - add if not selected, remove if already selected
+    const existingIndex = this.selectedTests.findIndex(t => t.id === test.id);
+    if (existingIndex >= 0) {
+      this.selectedTests.splice(existingIndex, 1);
+    } else {
+      this.selectedTests.push(test);
+    }
+    // Keep dropdown open for multi-select, clear search query
+    this.searchQuery = '';
+    this.searchResults = [];
+    this.searchInputRef?.nativeElement.focus();
+  }
+
+  removeSelectedTest(test: MedicalTest, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const index = this.selectedTests.findIndex(t => t.id === test.id);
+    if (index >= 0) {
+      this.selectedTests.splice(index, 1);
+    }
+  }
+
+  isTestSelected(test: MedicalTest): boolean {
+    return this.selectedTests.some(t => t.id === test.id);
+  }
+
+  getSelectedTotal(): number {
+    return this.selectedTests.reduce((sum, test) => sum + test.price, 0);
+  }
+
+  proceedToBooking(): void {
+    if (this.selectedTests.length === 0) return;
     this.isDropdownOpen = false;
-    // Navigate to booking page with pre-selected test
+    // Navigate to booking page with all selected test IDs
+    const testIds = this.selectedTests.map(t => t.id).join(',');
     this.router.navigate(['/book-test'], {
-      queryParams: { testId: test.id }
+      queryParams: { testIds: testIds }
     });
   }
 

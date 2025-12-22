@@ -212,7 +212,17 @@ export class MedicalBookingComponent implements OnInit {
     { id: 'imaging', name: 'Imaging', icon: 'image' },
     { id: 'cardiac', name: 'Cardiac', icon: 'favorite' },
     { id: 'hormone', name: 'Hormones', icon: 'monitor_heart' },
-    { id: 'genetic', name: 'Genetic', icon: 'biotech' }
+    { id: 'genetic', name: 'Genetic', icon: 'biotech' },
+    { id: 'nervous', name: 'Nervous System', icon: 'psychology' },
+    { id: 'respiratory', name: 'Respiratory', icon: 'air' },
+    { id: 'digestive', name: 'Digestive', icon: 'restaurant' },
+    { id: 'excretory', name: 'Excretory', icon: 'water' },
+    { id: 'womens', name: "Women's Health", icon: 'female' },
+    { id: 'mens', name: "Men's Health", icon: 'male' },
+    { id: 'immune', name: 'Immune System', icon: 'shield' },
+    { id: 'muscular', name: 'Muscular', icon: 'fitness_center' },
+    { id: 'skeletal', name: 'Skeletal', icon: 'accessibility' },
+    { id: 'integumentary', name: 'Integumentary', icon: 'spa' }
   ];
 
   // Recent searches
@@ -221,7 +231,8 @@ export class MedicalBookingComponent implements OnInit {
     { name: 'Lipid Panel', searchedAgo: '1 week ago' }
   ];
 
-  selectedTest: MedicalTest | null = null;
+  // Multi-select: Array of selected tests
+  selectedTests: MedicalTest[] = [];
   medicalTests: MedicalTest[] = [
     { id: 'cbc', name: 'Complete Blood Count (CBC)', description: 'Comprehensive blood cell analysis', category: 'blood', resultsTime: '24 hours', price: 29, icon: 'favorite' },
     { id: 'cmp', name: 'Complete Metabolic Panel (CMP)', description: '14 blood tests for metabolism', category: 'blood', resultsTime: '24 hours', price: 45, icon: 'science' },
@@ -244,8 +255,100 @@ export class MedicalBookingComponent implements OnInit {
     { id: 'psa', name: 'Prostate Specific Antigen (PSA)', description: 'Prostate health screening', category: 'blood', resultsTime: '24 hours', price: 45, icon: 'science' },
     { id: 'liver', name: 'Liver Function Panel', description: 'Hepatic health assessment', category: 'blood', resultsTime: '24 hours', price: 42, icon: 'science' },
     { id: 'glucose', name: 'Blood Glucose Test', description: 'Fasting blood sugar level', category: 'blood', resultsTime: '12 hours', price: 25, icon: 'water_drop' },
-    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', resultsTime: '24 hours', price: 50, icon: 'biotech' }
+    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', resultsTime: '24 hours', price: 50, icon: 'biotech' },
+
+    // Nervous System Tests
+    { id: 'b12-neuro', name: 'Vitamin B12 Level', description: 'Neurological health marker', category: 'nervous', resultsTime: '24 hours', price: 45, icon: 'psychology' },
+    { id: 'nse', name: 'Neuron-Specific Enolase (NSE)', description: 'Neural tissue marker', category: 'nervous', resultsTime: '48 hours', price: 125, icon: 'psychology' },
+    { id: 'anti-neuro', name: 'Anti-Neuronal Antibodies', description: 'Autoimmune neurological screening', category: 'nervous', resultsTime: '5-7 days', price: 275, icon: 'psychology' },
+    { id: 'brain-mri', name: 'Brain MRI with Contrast', description: 'Detailed brain imaging study', category: 'nervous', resultsTime: '24-48 hours', price: 550, icon: 'image' },
+    { id: 'ct-head', name: 'CT Scan Head', description: 'Rapid brain imaging', category: 'nervous', resultsTime: '2-4 hours', price: 325, icon: 'image' },
+    { id: 'emg-ncs', name: 'EMG/Nerve Conduction Study', description: 'Nerve and muscle function test', category: 'nervous', resultsTime: '24 hours', price: 450, icon: 'image' },
+
+    // Respiratory Tests
+    { id: 'abg', name: 'Arterial Blood Gas (ABG)', description: 'Oxygen and CO2 levels', category: 'respiratory', resultsTime: '1 hour', price: 85, icon: 'air' },
+    { id: 'a1at', name: 'Alpha-1 Antitrypsin', description: 'Lung disease risk marker', category: 'respiratory', resultsTime: '48 hours', price: 145, icon: 'air' },
+    { id: 'resp-panel', name: 'Respiratory Pathogen Panel', description: 'Viral and bacterial detection', category: 'respiratory', resultsTime: '24 hours', price: 195, icon: 'air' },
+    { id: 'chest-ct', name: 'Chest CT Scan', description: 'Detailed lung imaging', category: 'respiratory', resultsTime: '24 hours', price: 425, icon: 'image' },
+    { id: 'pft', name: 'Pulmonary Function Test', description: 'Lung capacity measurement', category: 'respiratory', resultsTime: '1 hour', price: 175, icon: 'image' },
+    { id: 'bronch', name: 'Virtual Bronchoscopy', description: '3D airway visualization', category: 'respiratory', resultsTime: '24 hours', price: 550, icon: 'image' },
+
+    // Digestive Tests
+    { id: 'liver-enzymes', name: 'Comprehensive Liver Enzymes', description: 'ALT, AST, ALP, GGT panel', category: 'digestive', resultsTime: '24 hours', price: 65, icon: 'restaurant' },
+    { id: 'celiac', name: 'Celiac Disease Panel', description: 'Gluten sensitivity screening', category: 'digestive', resultsTime: '48 hours', price: 145, icon: 'restaurant' },
+    { id: 'h-pylori', name: 'H. Pylori Antibodies', description: 'Stomach infection test', category: 'digestive', resultsTime: '24 hours', price: 75, icon: 'restaurant' },
+    { id: 'abd-us', name: 'Abdominal Ultrasound', description: 'Liver, gallbladder, pancreas imaging', category: 'digestive', resultsTime: '24 hours', price: 225, icon: 'image' },
+    { id: 'upper-gi', name: 'Upper GI Series', description: 'Esophagus and stomach X-ray', category: 'digestive', resultsTime: '24 hours', price: 285, icon: 'image' },
+    { id: 'mrcp', name: 'MRCP (Bile Duct MRI)', description: 'Biliary system imaging', category: 'digestive', resultsTime: '24-48 hours', price: 475, icon: 'image' },
+
+    // Excretory Tests
+    { id: 'bun-creat', name: 'BUN/Creatinine Ratio', description: 'Kidney function assessment', category: 'excretory', resultsTime: '24 hours', price: 35, icon: 'water' },
+    { id: 'ua-micro', name: 'Urinalysis with Microscopy', description: 'Comprehensive urine analysis', category: 'excretory', resultsTime: '24 hours', price: 45, icon: 'water' },
+    { id: 'kidney-panel', name: 'Renal Function Panel', description: 'Complete kidney assessment', category: 'excretory', resultsTime: '24 hours', price: 85, icon: 'water' },
+    { id: 'kidney-us', name: 'Kidney Ultrasound', description: 'Renal imaging study', category: 'excretory', resultsTime: '24 hours', price: 195, icon: 'image' },
+    { id: 'ct-urogram', name: 'CT Urogram', description: 'Urinary tract imaging', category: 'excretory', resultsTime: '24 hours', price: 425, icon: 'image' },
+    { id: 'vcug', name: 'Voiding Cystourethrogram', description: 'Bladder function imaging', category: 'excretory', resultsTime: '24 hours', price: 325, icon: 'image' },
+
+    // Women's Health Tests
+    { id: 'estro-prog', name: 'Estrogen/Progesterone Panel', description: 'Female hormone levels', category: 'womens', resultsTime: '48 hours', price: 95, icon: 'female' },
+    { id: 'prenatal', name: 'Prenatal Panel', description: 'Comprehensive pregnancy screening', category: 'womens', resultsTime: '24-48 hours', price: 175, icon: 'female' },
+    { id: 'pap', name: 'PAP Smear', description: 'Cervical cancer screening', category: 'womens', resultsTime: '5-7 days', price: 85, icon: 'female' },
+    { id: 'mammo', name: 'Digital Mammogram', description: 'Breast cancer screening', category: 'womens', resultsTime: '24-48 hours', price: 225, icon: 'image' },
+    { id: 'pelvic-us', name: 'Pelvic Ultrasound', description: 'Uterus and ovary imaging', category: 'womens', resultsTime: '24 hours', price: 275, icon: 'image' },
+    { id: 'dexa-w', name: 'DEXA Bone Density Scan', description: 'Osteoporosis screening', category: 'womens', resultsTime: '24 hours', price: 195, icon: 'image' },
+
+    // Men's Health Tests
+    { id: 'test-panel', name: 'Testosterone Panel', description: 'Free and total testosterone', category: 'mens', resultsTime: '48 hours', price: 125, icon: 'male' },
+    { id: 'psa-screen', name: 'PSA Screening', description: 'Prostate cancer marker', category: 'mens', resultsTime: '24 hours', price: 55, icon: 'male' },
+    { id: 'phi', name: 'Prostate Health Index (PHI)', description: 'Advanced prostate screening', category: 'mens', resultsTime: '48 hours', price: 195, icon: 'male' },
+    { id: 'prostate-mri', name: 'Prostate MRI', description: 'Detailed prostate imaging', category: 'mens', resultsTime: '24-48 hours', price: 525, icon: 'image' },
+    { id: 'testicular-us', name: 'Testicular Ultrasound', description: 'Testicular health imaging', category: 'mens', resultsTime: '24 hours', price: 225, icon: 'image' },
+    { id: 'pelvic-ct-m', name: 'Pelvic CT Scan', description: 'Male pelvic imaging', category: 'mens', resultsTime: '24 hours', price: 375, icon: 'image' },
+
+    // Immune System Tests
+    { id: 'immune-panel', name: 'Complete Immune Panel', description: 'Comprehensive immunity assessment', category: 'immune', resultsTime: '48 hours', price: 225, icon: 'shield' },
+    { id: 'ana', name: 'ANA Screen', description: 'Autoimmune disease screening', category: 'immune', resultsTime: '48 hours', price: 95, icon: 'shield' },
+    { id: 'igg-panel', name: 'Immunoglobulin Panel', description: 'IgA, IgG, IgM levels', category: 'immune', resultsTime: '48 hours', price: 145, icon: 'shield' },
+    { id: 'lymph-us', name: 'Lymph Node Ultrasound', description: 'Lymphatic system imaging', category: 'immune', resultsTime: '24 hours', price: 195, icon: 'image' },
+    { id: 'pet-scan', name: 'PET Scan', description: 'Metabolic activity imaging', category: 'immune', resultsTime: '24-48 hours', price: 1250, icon: 'image' },
+    { id: 'spleen-us', name: 'Spleen Ultrasound', description: 'Splenic imaging study', category: 'immune', resultsTime: '24 hours', price: 175, icon: 'image' },
+
+    // Muscular Tests
+    { id: 'ck-cpk', name: 'CK/CPK Test', description: 'Muscle damage marker', category: 'muscular', resultsTime: '24 hours', price: 45, icon: 'fitness_center' },
+    { id: 'myoglobin', name: 'Myoglobin Level', description: 'Muscle injury marker', category: 'muscular', resultsTime: '24 hours', price: 65, icon: 'fitness_center' },
+    { id: 'ldh', name: 'Lactate Dehydrogenase (LDH)', description: 'Tissue damage indicator', category: 'muscular', resultsTime: '24 hours', price: 55, icon: 'fitness_center' },
+    { id: 'muscle-mri', name: 'Muscle MRI', description: 'Soft tissue imaging', category: 'muscular', resultsTime: '24-48 hours', price: 475, icon: 'image' },
+    { id: 'emg', name: 'Electromyography (EMG)', description: 'Muscle electrical activity', category: 'muscular', resultsTime: '24 hours', price: 325, icon: 'image' },
+    { id: 'msk-us', name: 'Musculoskeletal Ultrasound', description: 'Muscle and tendon imaging', category: 'muscular', resultsTime: '24 hours', price: 225, icon: 'image' },
+
+    // Skeletal Tests
+    { id: 'calcium', name: 'Calcium/Phosphorus Panel', description: 'Bone mineral levels', category: 'skeletal', resultsTime: '24 hours', price: 45, icon: 'accessibility' },
+    { id: 'vitd-bone', name: 'Vitamin D Panel', description: 'Bone health vitamin', category: 'skeletal', resultsTime: '48 hours', price: 65, icon: 'accessibility' },
+    { id: 'bone-markers', name: 'Bone Turnover Markers', description: 'Bone metabolism assessment', category: 'skeletal', resultsTime: '48 hours', price: 145, icon: 'accessibility' },
+    { id: 'dexa', name: 'Bone Density DEXA Scan', description: 'Osteoporosis screening', category: 'skeletal', resultsTime: '24 hours', price: 195, icon: 'image' },
+    { id: 'skeletal-xray', name: 'Skeletal X-Ray Survey', description: 'Full bone X-ray series', category: 'skeletal', resultsTime: '24 hours', price: 275, icon: 'image' },
+    { id: 'bone-scan', name: 'Nuclear Bone Scan', description: 'Bone metabolism imaging', category: 'skeletal', resultsTime: '24-48 hours', price: 525, icon: 'image' },
+
+    // Integumentary Tests
+    { id: 'ige-panel', name: 'Allergy IgE Panel', description: 'Comprehensive allergy test', category: 'integumentary', resultsTime: '5-7 days', price: 225, icon: 'spa' },
+    { id: 'autoimmune-skin', name: 'Autoimmune Skin Panel', description: 'Skin autoantibody screen', category: 'integumentary', resultsTime: '5-7 days', price: 275, icon: 'spa' },
+    { id: 'vit-panel', name: 'Vitamin Deficiency Panel', description: 'Skin health vitamins', category: 'integumentary', resultsTime: '48 hours', price: 125, icon: 'spa' },
+    { id: 'derm-photo', name: 'Dermoscopy Imaging', description: 'Skin lesion analysis', category: 'integumentary', resultsTime: '24 hours', price: 145, icon: 'image' },
+    { id: 'skin-biopsy', name: 'Skin Biopsy Analysis', description: 'Tissue pathology imaging', category: 'integumentary', resultsTime: '5-7 days', price: 325, icon: 'image' },
+    { id: 'wound-assess', name: 'Wound Assessment Imaging', description: 'Wound healing evaluation', category: 'integumentary', resultsTime: '24 hours', price: 175, icon: 'image' }
   ];
+
+  // Most Popular Exams (top 20)
+  get popularTests(): MedicalTest[] {
+    const popularIds = [
+      'cbc', 'cmp', 'lipid', 'a1c', 'tsh', 'vitd', 'glucose', 'liver',
+      'xray', 'thyroid-full', 'metabolic', 'ecg', 'ua-micro', 'mammo',
+      'psa-screen', 'abg', 'ana', 'dexa', 'pelvic-us', 'kidney-panel'
+    ];
+    return popularIds
+      .map(id => this.medicalTests.find(t => t.id === id))
+      .filter((t): t is MedicalTest => t !== undefined);
+  }
 
   // Step 2: Date/Time Selection
   currentMonth: Date = new Date();
@@ -421,12 +524,21 @@ export class MedicalBookingComponent implements OnInit {
     this.initPaymentForm();
     this.selectedLocation = this.locations[0];
 
-    // Handle pre-selected test from search page
+    // Handle pre-selected tests from search page
     this.route.queryParams.subscribe(params => {
-      if (params['testId']) {
+      // Support both single testId and multiple testIds
+      if (params['testIds']) {
+        const testIds = params['testIds'].split(',');
+        this.selectedTests = this.medicalTests.filter(t => testIds.includes(t.id));
+        if (this.selectedTests.length > 0) {
+          // Skip to step 2 if tests were pre-selected
+          this.currentStep = 2;
+          this.animationDirection = 'initial';
+        }
+      } else if (params['testId']) {
         const test = this.medicalTests.find(t => t.id === params['testId']);
         if (test) {
-          this.selectedTest = test;
+          this.selectedTests = [test];
           // Skip to step 2 if test was pre-selected
           this.currentStep = 2;
           this.animationDirection = 'initial';
@@ -625,7 +737,31 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   selectTest(test: MedicalTest): void {
-    this.selectedTest = test;
+    // Toggle selection - add if not selected, remove if already selected
+    const existingIndex = this.selectedTests.findIndex(t => t.id === test.id);
+    if (existingIndex >= 0) {
+      this.selectedTests.splice(existingIndex, 1);
+    } else {
+      this.selectedTests.push(test);
+    }
+  }
+
+  removeSelectedTest(test: MedicalTest, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const index = this.selectedTests.findIndex(t => t.id === test.id);
+    if (index >= 0) {
+      this.selectedTests.splice(index, 1);
+    }
+  }
+
+  isTestSelected(test: MedicalTest): boolean {
+    return this.selectedTests.some(t => t.id === test.id);
+  }
+
+  getSelectedTotal(): number {
+    return this.selectedTests.reduce((sum, test) => sum + test.price, 0);
   }
 
   // ===========================
@@ -634,10 +770,10 @@ export class MedicalBookingComponent implements OnInit {
 
   onTestSearchFocus(): void {
     this.isTestDropdownOpen = true;
-    if (this.testSearchQuery && this.testSearchQuery !== this.selectedTest?.name) {
+    if (this.testSearchQuery) {
       this.filterTests();
       this.dropdownView = 'tests';
-    } else if (!this.testSearchQuery) {
+    } else {
       this.dropdownView = 'categories';
       this.selectedCategory = null;
     }
@@ -772,22 +908,41 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   selectFilteredTest(test: MedicalTest): void {
-    this.selectedTest = test;
-    this.testSearchQuery = test.name; // Display test name in search input
+    // Toggle selection - add if not selected, remove if already selected
+    const existingIndex = this.selectedTests.findIndex(t => t.id === test.id);
+    if (existingIndex >= 0) {
+      this.selectedTests.splice(existingIndex, 1);
+    } else {
+      this.selectedTests.push(test);
+      // Add to recent searches when selecting a test
+      this.addToRecentSearches(test);
+    }
+
+    // Clear search query but keep dropdown open for multi-select
+    this.testSearchQuery = '';
     this.filteredTests = [];
-    this.isTestDropdownOpen = false;
     this.testHighlightedIndex = -1;
     this.isTestSearchLoading = false;
-    this.dropdownView = 'categories'; // Reset dropdown view for next time
-    this.selectedCategory = null;
+    this.testSearchInputRef?.nativeElement.focus();
+  }
 
-    // Scroll the selected test card into view
-    setTimeout(() => {
-      const selectedCard = document.querySelector('.test-card.selected');
-      if (selectedCard) {
-        selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 100);
+  addToRecentSearches(test: MedicalTest): void {
+    // Remove if already exists in recent searches
+    const existingIndex = this.recentSearches.findIndex(r => r.name === test.name);
+    if (existingIndex >= 0) {
+      this.recentSearches.splice(existingIndex, 1);
+    }
+
+    // Add to beginning of list
+    this.recentSearches.unshift({
+      name: test.name,
+      searchedAgo: 'Just now'
+    });
+
+    // Keep only max 3 recent searches
+    if (this.recentSearches.length > 3) {
+      this.recentSearches = this.recentSearches.slice(0, 3);
+    }
   }
 
   highlightSearchMatch(text: string): string {
@@ -807,7 +962,17 @@ export class MedicalBookingComponent implements OnInit {
       cardiac: 'cardiac',
       hormone: 'hormone',
       genetic: 'genetic',
-      allergy: 'allergy'
+      allergy: 'allergy',
+      nervous: 'nervous',
+      respiratory: 'respiratory',
+      digestive: 'digestive',
+      excretory: 'excretory',
+      womens: 'womens',
+      mens: 'mens',
+      immune: 'immune',
+      muscular: 'muscular',
+      skeletal: 'skeletal',
+      integumentary: 'integumentary'
     };
     return classMap[category] || 'blood';
   }
@@ -820,7 +985,7 @@ export class MedicalBookingComponent implements OnInit {
   canProceed(): boolean {
     switch (this.currentStep) {
       case 1:
-        return this.selectedTest !== null;
+        return this.selectedTests.length > 0;
       case 2:
         return this.selectedDate !== null && this.selectedTime !== null && this.selectedLocation !== null;
       case 3:
@@ -920,7 +1085,7 @@ export class MedicalBookingComponent implements OnInit {
 
     setTimeout(() => {
       this.currentStep = 1;
-      this.selectedTest = null;
+      this.selectedTests = [];
       this.selectedDate = null;
       this.selectedTime = null;
       this.selectedLocation = this.locations[0];
