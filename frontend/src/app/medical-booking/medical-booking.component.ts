@@ -137,6 +137,22 @@ interface CalendarDay {
       ])
     ]),
 
+    // Dropdown content transition animation
+    trigger('dropdownContentAnimation', [
+      transition('categories => tests', [
+        style({ opacity: 1 }),
+        animate('150ms ease-out', style({ opacity: 0, transform: 'translateX(-20px)' })),
+      ]),
+      transition('tests => categories', [
+        style({ opacity: 1 }),
+        animate('150ms ease-out', style({ opacity: 0, transform: 'translateX(20px)' })),
+      ]),
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(20px)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ]),
+
     // Collapse animation for date-time section
     trigger('collapseAnimation', [
       state('expanded', style({
@@ -186,6 +202,9 @@ export class MedicalBookingComponent implements OnInit {
   isTestSearchLoading = false;
   filteredTests: MedicalTest[] = [];
   testHighlightedIndex = -1;
+  dropdownView: 'categories' | 'tests' = 'categories';
+  selectedCategory: TestCategory | null = null;
+  isDropdownAnimating = false;
 
   // Categories for quick browse
   testCategories: TestCategory[] = [
@@ -615,8 +634,12 @@ export class MedicalBookingComponent implements OnInit {
 
   onTestSearchFocus(): void {
     this.isTestDropdownOpen = true;
-    if (this.testSearchQuery) {
+    if (this.testSearchQuery && this.testSearchQuery !== this.selectedTest?.name) {
       this.filterTests();
+      this.dropdownView = 'tests';
+    } else if (!this.testSearchQuery) {
+      this.dropdownView = 'categories';
+      this.selectedCategory = null;
     }
   }
 
@@ -628,6 +651,9 @@ export class MedicalBookingComponent implements OnInit {
 
     if (query.length > 0) {
       this.isTestSearchLoading = true;
+      this.dropdownView = 'tests';
+      this.selectedCategory = null;
+
       // Simulate API delay for better UX
       setTimeout(() => {
         this.filteredTests = this.medicalTests.filter(test =>
@@ -641,6 +667,8 @@ export class MedicalBookingComponent implements OnInit {
     } else {
       this.filteredTests = [];
       this.isTestSearchLoading = false;
+      this.dropdownView = 'categories';
+      this.selectedCategory = null;
     }
   }
 
@@ -689,16 +717,49 @@ export class MedicalBookingComponent implements OnInit {
   clearTestSearch(): void {
     this.testSearchQuery = '';
     this.filteredTests = [];
-    this.isTestDropdownOpen = false;
+    this.isTestDropdownOpen = true; // Keep dropdown open after clearing
     this.testHighlightedIndex = -1;
     this.isTestSearchLoading = false;
+    this.dropdownView = 'categories';
+    this.selectedCategory = null;
     this.testSearchInputRef?.nativeElement.focus();
   }
 
   selectTestCategory(category: TestCategory): void {
-    this.testSearchQuery = category.name;
-    this.filteredTests = this.medicalTests.filter(t => t.category === category.id);
-    this.isTestSearchLoading = false;
+    if (this.isDropdownAnimating) return;
+
+    this.isDropdownAnimating = true;
+    this.selectedCategory = category;
+
+    // Start fade out animation, then switch content
+    setTimeout(() => {
+      this.filteredTests = this.medicalTests.filter(t => t.category === category.id);
+      this.dropdownView = 'tests';
+      this.isTestSearchLoading = false;
+      this.testHighlightedIndex = -1;
+
+      // Animation complete
+      setTimeout(() => {
+        this.isDropdownAnimating = false;
+      }, 200);
+    }, 150);
+  }
+
+  goBackToCategories(): void {
+    if (this.isDropdownAnimating) return;
+
+    this.isDropdownAnimating = true;
+
+    setTimeout(() => {
+      this.dropdownView = 'categories';
+      this.selectedCategory = null;
+      this.filteredTests = [];
+      this.testSearchQuery = '';
+
+      setTimeout(() => {
+        this.isDropdownAnimating = false;
+      }, 200);
+    }, 150);
   }
 
   selectRecentSearch(recent: RecentSearch): void {
@@ -712,11 +773,21 @@ export class MedicalBookingComponent implements OnInit {
 
   selectFilteredTest(test: MedicalTest): void {
     this.selectedTest = test;
-    this.testSearchQuery = '';
+    this.testSearchQuery = test.name; // Display test name in search input
     this.filteredTests = [];
     this.isTestDropdownOpen = false;
     this.testHighlightedIndex = -1;
     this.isTestSearchLoading = false;
+    this.dropdownView = 'categories'; // Reset dropdown view for next time
+    this.selectedCategory = null;
+
+    // Scroll the selected test card into view
+    setTimeout(() => {
+      const selectedCard = document.querySelector('.test-card.selected');
+      if (selectedCard) {
+        selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   }
 
   highlightSearchMatch(text: string): string {
@@ -865,6 +936,9 @@ export class MedicalBookingComponent implements OnInit {
       this.isTestDropdownOpen = false;
       this.testHighlightedIndex = -1;
       this.isTestSearchLoading = false;
+      this.dropdownView = 'categories';
+      this.selectedCategory = null;
+      this.isDropdownAnimating = false;
 
       // Reset ID upload state
       this.ocrData = null;

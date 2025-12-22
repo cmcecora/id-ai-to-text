@@ -249,6 +249,18 @@ p {
   padding: 10px 20px;
 }
 
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+  gap: 6px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
 // ===========================
 // Whelp Card Styles
 // ===========================

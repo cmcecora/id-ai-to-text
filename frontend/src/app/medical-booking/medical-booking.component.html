@@ -123,76 +123,108 @@
               <span class="loading-text">Searching tests...</span>
             </div>
 
-            <!-- Quick Categories (shown when empty) -->
-            <div class="dropdown-section" *ngIf="!testSearchQuery && !isTestSearchLoading">
-              <div class="dropdown-section-header">
-                <span class="dropdown-section-title">Browse Categories</span>
+            <!-- Categories View -->
+            <div
+              class="dropdown-view-content"
+              *ngIf="dropdownView === 'categories' && !isTestSearchLoading && !testSearchQuery"
+              [@dropdownContentAnimation]="dropdownView"
+            >
+              <!-- Quick Categories -->
+              <div class="dropdown-section">
+                <div class="dropdown-section-header">
+                  <span class="dropdown-section-title">Browse Categories</span>
+                </div>
+                <div class="quick-categories">
+                  <div
+                    class="category-chip"
+                    *ngFor="let cat of testCategories"
+                    (click)="selectTestCategory(cat)"
+                  >
+                    <mat-icon>{{cat.icon}}</mat-icon>
+                    {{cat.name}}
+                  </div>
+                </div>
               </div>
-              <div class="quick-categories">
+
+              <!-- Recent Searches -->
+              <div class="dropdown-section" *ngIf="recentSearches.length > 0">
+                <div class="dropdown-section-header">
+                  <span class="dropdown-section-title">Recent Searches</span>
+                  <button class="dropdown-section-action" (click)="clearRecentSearches()">Clear all</button>
+                </div>
                 <div
-                  class="category-chip"
-                  *ngFor="let cat of testCategories"
-                  (click)="selectTestCategory(cat)"
+                  class="autocomplete-item"
+                  *ngFor="let recent of recentSearches"
+                  (click)="selectRecentSearch(recent)"
                 >
-                  <mat-icon>{{cat.icon}}</mat-icon>
-                  {{cat.name}}
+                  <div class="item-icon recent">
+                    <mat-icon>schedule</mat-icon>
+                  </div>
+                  <div class="item-content">
+                    <div class="item-name">{{recent.name}}</div>
+                    <div class="item-description">Searched {{recent.searchedAgo}}</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Recent Searches -->
-            <div class="dropdown-section" *ngIf="!testSearchQuery && !isTestSearchLoading && recentSearches.length > 0">
-              <div class="dropdown-section-header">
-                <span class="dropdown-section-title">Recent Searches</span>
-                <button class="dropdown-section-action" (click)="clearRecentSearches()">Clear all</button>
+            <!-- Tests View (Category Results or Search Results) -->
+            <div
+              class="dropdown-view-content"
+              *ngIf="dropdownView === 'tests' && !isTestSearchLoading"
+              [@dropdownContentAnimation]="dropdownView"
+            >
+              <!-- Back to Categories (only when browsing a category) -->
+              <div class="dropdown-back-header" *ngIf="selectedCategory">
+                <button class="back-to-categories-btn" (click)="goBackToCategories()">
+                  <mat-icon>arrow_back</mat-icon>
+                  <span>Back</span>
+                </button>
+                <span class="current-category">
+                  <mat-icon>{{selectedCategory.icon}}</mat-icon>
+                  {{selectedCategory.name}}
+                </span>
               </div>
-              <div
-                class="autocomplete-item"
-                *ngFor="let recent of recentSearches"
-                (click)="selectRecentSearch(recent)"
-              >
-                <div class="item-icon recent">
-                  <mat-icon>schedule</mat-icon>
-                </div>
-                <div class="item-content">
-                  <div class="item-name">{{recent.name}}</div>
-                  <div class="item-description">Searched {{recent.searchedAgo}}</div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Search Results -->
-            <div class="dropdown-section" *ngIf="testSearchQuery && !isTestSearchLoading && filteredTests.length > 0">
-              <div class="dropdown-section-header">
+              <!-- Search Results Header (when typing search query) -->
+              <div class="dropdown-section-header" *ngIf="!selectedCategory && testSearchQuery">
                 <span class="dropdown-section-title">Test Results</span>
               </div>
-              <div
-                class="autocomplete-item"
-                *ngFor="let test of filteredTests; let i = index"
-                [class.highlighted]="i === testHighlightedIndex"
-                (click)="selectFilteredTest(test)"
-              >
-                <div class="item-icon" [ngClass]="getIconClass(test.category)">
-                  <mat-icon>{{test.icon}}</mat-icon>
-                </div>
-                <div class="item-content">
-                  <div class="item-name" [innerHTML]="highlightSearchMatch(test.name)"></div>
-                  <div class="item-description">{{test.description}}</div>
-                </div>
-                <div class="item-meta">
-                  <span class="item-category" [ngClass]="getCategoryClass(test.category)">{{test.category}}</span>
-                  <span class="item-price">${{test.price}}</span>
-                </div>
-              </div>
-            </div>
 
-            <!-- No Results State -->
-            <div class="no-results" *ngIf="testSearchQuery && !isTestSearchLoading && filteredTests.length === 0">
-              <div class="no-results-icon">
-                <mat-icon>search_off</mat-icon>
+              <!-- Test Results List -->
+              <div class="dropdown-section tests-list" *ngIf="filteredTests.length > 0">
+                <div
+                  class="autocomplete-item"
+                  *ngFor="let test of filteredTests; let i = index"
+                  [class.highlighted]="i === testHighlightedIndex"
+                  (click)="selectFilteredTest(test)"
+                >
+                  <div class="item-icon" [ngClass]="getIconClass(test.category)">
+                    <mat-icon>{{test.icon}}</mat-icon>
+                  </div>
+                  <div class="item-content">
+                    <div class="item-name" [innerHTML]="highlightSearchMatch(test.name)"></div>
+                    <div class="item-description">{{test.description}}</div>
+                  </div>
+                  <div class="item-meta">
+                    <span class="item-category" [ngClass]="getCategoryClass(test.category)">{{test.category}}</span>
+                    <span class="item-price">${{test.price}}</span>
+                  </div>
+                </div>
               </div>
-              <div class="no-results-title">No tests found</div>
-              <div class="no-results-text">Try adjusting your search or browse categories above</div>
+
+              <!-- No Results State -->
+              <div class="no-results" *ngIf="filteredTests.length === 0">
+                <div class="no-results-icon">
+                  <mat-icon>search_off</mat-icon>
+                </div>
+                <div class="no-results-title">No tests found</div>
+                <div class="no-results-text">Try adjusting your search or browse categories</div>
+                <button class="btn btn-sm btn-outline back-btn" (click)="goBackToCategories()" *ngIf="selectedCategory">
+                  <mat-icon>arrow_back</mat-icon>
+                  Browse Categories
+                </button>
+              </div>
             </div>
 
             <!-- Dropdown Footer -->
@@ -212,7 +244,7 @@
                   <span>Close</span>
                 </div>
               </div>
-              <span class="results-count" *ngIf="testSearchQuery && filteredTests.length > 0">
+              <span class="results-count" *ngIf="filteredTests.length > 0">
                 {{filteredTests.length}} results
               </span>
             </div>
