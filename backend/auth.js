@@ -23,6 +23,7 @@ const createAuth = () => {
         baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${port}`,
         trustedOrigins: [
             "http://localhost:4200", // Angular dev server
+            "http://localhost:4201", // Alternative Angular port
             "http://localhost:4350", // Alternative frontend port
         ],
     });

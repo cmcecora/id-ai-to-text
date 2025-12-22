@@ -59,7 +59,7 @@ export interface DocumentData {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_BASE_URL = 'http://localhost:8010/api';
+  private readonly API_BASE_URL = 'http://localhost:3220/api';
 
   constructor(private http: HttpClient) { }
 

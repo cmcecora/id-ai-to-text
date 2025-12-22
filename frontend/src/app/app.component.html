@@ -1,8 +1,42 @@
 <mat-toolbar color="primary" class="app-toolbar">
   <mat-icon class="toolbar-icon">assignment_ind</mat-icon>
-  <span class="toolbar-title">ID Photo Scanner</span>
+  <span class="toolbar-title" routerLink="/" style="cursor: pointer;">ID Photo Scanner</span>
   <span class="spacer"></span>
-  <span class="toolbar-subtitle">Instantly extract text from ID documents</span>
+
+  <!-- Loading state -->
+  <ng-container *ngIf="isLoading$ | async">
+    <mat-spinner diameter="24" color="accent"></mat-spinner>
+  </ng-container>
+
+  <!-- Authenticated user menu -->
+  <ng-container *ngIf="(isAuthenticated$ | async) && !(isLoading$ | async)">
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+      <mat-icon>account_circle</mat-icon>
+      <span class="user-name">{{ (user$ | async)?.name || (user$ | async)?.email }}</span>
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <div class="user-info" mat-menu-item disabled>
+        <strong>{{ (user$ | async)?.name }}</strong>
+        <small>{{ (user$ | async)?.email }}</small>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sign out</span>
+      </button>
+    </mat-menu>
+  </ng-container>
+
+  <!-- Not authenticated - show login/signup buttons -->
+  <ng-container *ngIf="!(isAuthenticated$ | async) && !(isLoading$ | async)">
+    <button mat-button routerLink="/login" class="auth-button">
+      Sign In
+    </button>
+    <button mat-raised-button color="accent" routerLink="/signup" class="auth-button signup-button">
+      Sign Up
+    </button>
+  </ng-container>
 </mat-toolbar>
 
 <main class="main-content">

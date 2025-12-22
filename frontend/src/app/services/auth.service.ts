@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { authClient } from '../../auth';
 
 export interface User {
   id: string;
@@ -26,10 +26,18 @@ export interface AuthState {
   isLoading: boolean;
 }
 
+interface AuthResponse {
+  user?: User;
+  session?: Session;
+  error?: { message: string };
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly API_URL = 'http://localhost:3220/api/auth';
+
   private authState = new BehaviorSubject<AuthState>({
     user: null,
     session: null,
@@ -42,7 +50,7 @@ export class AuthService {
   public isAuthenticated$ = this.authState$.pipe(map(state => state.isAuthenticated));
   public isLoading$ = this.authState$.pipe(map(state => state.isLoading));
 
-  constructor() {
+  constructor(private http: HttpClient) {
     // Check session on service initialization
     this.checkSession();
   }
@@ -52,24 +60,26 @@ export class AuthService {
    */
   async checkSession(): Promise<void> {
     try {
-      const { data, error } = await authClient.getSession();
+      const response = await this.http.get<AuthResponse>(
+        `${this.API_URL}/get-session`,
+        { withCredentials: true }
+      ).toPromise();
 
-      if (error || !data) {
+      if (response?.user && response?.session) {
+        this.authState.next({
+          user: response.user,
+          session: response.session,
+          isAuthenticated: true,
+          isLoading: false
+        });
+      } else {
         this.authState.next({
           user: null,
           session: null,
           isAuthenticated: false,
           isLoading: false
         });
-        return;
       }
-
-      this.authState.next({
-        user: data.user as User,
-        session: data.session as Session,
-        isAuthenticated: true,
-        isLoading: false
-      });
     } catch (error) {
       console.error('Session check failed:', error);
       this.authState.next({
@@ -86,21 +96,22 @@ export class AuthService {
    */
   async signUp(email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const { data, error } = await authClient.signUp.email({
-        email,
-        password,
-        name
-      });
+      const response = await this.http.post<AuthResponse>(
+        `${this.API_URL}/sign-up/email`,
+        { email, password, name },
+        { withCredentials: true }
+      ).toPromise();
 
-      if (error) {
-        return { success: false, error: error.message };
+      if (response?.error) {
+        return { success: false, error: response.error.message };
       }
 
       // Refresh session after signup
       await this.checkSession();
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Sign up failed' };
+      const message = error?.error?.message || error?.message || 'Sign up failed';
+      return { success: false, error: message };
     }
   }
 
@@ -109,21 +120,22 @@ export class AuthService {
    */
   async signIn(email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> {
     try {
-      const { data, error } = await authClient.signIn.email({
-        email,
-        password,
-        rememberMe
-      });
+      const response = await this.http.post<AuthResponse>(
+        `${this.API_URL}/sign-in/email`,
+        { email, password, rememberMe },
+        { withCredentials: true }
+      ).toPromise();
 
-      if (error) {
-        return { success: false, error: error.message };
+      if (response?.error) {
+        return { success: false, error: response.error.message };
       }
 
       // Refresh session after signin
       await this.checkSession();
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Sign in failed' };
+      const message = error?.error?.message || error?.message || 'Sign in failed';
+      return { success: false, error: message };
     }
   }
 
@@ -132,7 +144,11 @@ export class AuthService {
    */
   async signOut(): Promise<void> {
     try {
-      await authClient.signOut();
+      await this.http.post(
+        `${this.API_URL}/sign-out`,
+        {},
+        { withCredentials: true }
+      ).toPromise();
     } catch (error) {
       console.error('Sign out error:', error);
     } finally {

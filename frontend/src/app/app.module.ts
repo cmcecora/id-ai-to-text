@@ -17,6 +17,8 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -25,6 +27,8 @@ import { UploadPanelComponent } from './upload-panel/upload-panel.component';
 import { DataFormComponent } from './data-form/data-form.component';
 import { MedicalBookingComponent } from './medical-booking/medical-booking.component';
 import { TestSearchComponent } from './test-search/test-search.component';
+import { LoginComponent } from './login/login.component';
+import { SignupComponent } from './signup/signup.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +37,9 @@ import { TestSearchComponent } from './test-search/test-search.component';
     UploadPanelComponent,
     DataFormComponent,
     MedicalBookingComponent,
-    TestSearchComponent
+    TestSearchComponent,
+    LoginComponent,
+    SignupComponent
   ],
   imports: [
     BrowserModule,
@@ -54,6 +60,8 @@ import { TestSearchComponent } from './test-search/test-search.component';
     MatDividerModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatCheckboxModule,
+    MatMenuModule,
     AppRoutingModule
   ],
   providers: [],

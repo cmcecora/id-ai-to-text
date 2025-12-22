@@ -32,6 +32,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:4200',  // Angular dev server
+    'http://localhost:4201',  // Alternative Angular port
     'http://localhost:4350',  // Alternative frontend port
   ],
   credentials: true,  // Required for Better-Auth cookies

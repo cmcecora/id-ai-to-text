@@ -700,3 +700,24 @@ p {
 .transition-all {
   transition: all 0.2s ease;
 }
+
+// ===========================
+// User Menu Styles (Global)
+// ===========================
+.user-info {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  min-width: 200px;
+
+  strong {
+    font-size: 14px;
+    color: #333;
+  }
+
+  small {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+}
