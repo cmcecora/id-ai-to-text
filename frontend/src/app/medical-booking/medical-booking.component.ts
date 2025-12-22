@@ -117,7 +117,7 @@ interface CalendarDay {
 })
 export class MedicalBookingComponent implements OnInit {
   currentStep = 1;
-  totalSteps = 5;
+  totalSteps = 6;
   animationDirection: 'forward' | 'backward' | 'initial' = 'initial';
   isAnimating = false;
 
@@ -195,6 +195,62 @@ export class MedicalBookingComponent implements OnInit {
       address: '456 Wellness Blvd, Floor 3',
       city: 'New York, NY 10023',
       distance: '2.1 miles away'
+    },
+    {
+      id: 'midtown',
+      name: 'Midtown Lab Services',
+      address: '789 Fifth Avenue, Suite 1200',
+      city: 'New York, NY 10022',
+      distance: '1.3 miles away'
+    },
+    {
+      id: 'uptown',
+      name: 'Uptown Health Labs',
+      address: '321 Madison Ave, Floor 5',
+      city: 'New York, NY 10017',
+      distance: '2.8 miles away'
+    },
+    {
+      id: 'eastside',
+      name: 'East Side Medical Testing',
+      address: '555 Lexington Ave',
+      city: 'New York, NY 10022',
+      distance: '1.7 miles away'
+    },
+    {
+      id: 'chelsea',
+      name: 'Chelsea Diagnostic Center',
+      address: '200 West 23rd Street',
+      city: 'New York, NY 10011',
+      distance: '3.2 miles away'
+    },
+    {
+      id: 'soho',
+      name: 'SoHo Medical Labs',
+      address: '150 Spring Street, Suite 300',
+      city: 'New York, NY 10012',
+      distance: '2.5 miles away'
+    },
+    {
+      id: 'tribeca',
+      name: 'TriBeCa Health Center',
+      address: '75 Greenwich Street',
+      city: 'New York, NY 10006',
+      distance: '3.8 miles away'
+    },
+    {
+      id: 'uws',
+      name: 'Upper West Side Diagnostics',
+      address: '2100 Broadway, Floor 2',
+      city: 'New York, NY 10023',
+      distance: '4.1 miles away'
+    },
+    {
+      id: 'ues',
+      name: 'Upper East Side Lab Center',
+      address: '1234 Park Avenue',
+      city: 'New York, NY 10128',
+      distance: '4.5 miles away'
     }
   ];
 
@@ -205,11 +261,30 @@ export class MedicalBookingComponent implements OnInit {
   uploadSkipped = false;
   currentJobId: string | null = null;
   ocrError: string | null = null;
+  uploadedImageUrl: string | null = null;
+  showImageModal = false;
 
   // Step 4: Patient Details Form
   patientForm!: FormGroup;
 
-  // Step 5: Confirmation
+  // Step 5: Payment
+  paymentForm!: FormGroup;
+  selectedPaymentMethod: string = 'card';
+  isProcessingPayment = false;
+  paymentMethods = [
+    { id: 'paypal', name: 'PayPal', icon: 'paypal' },
+    { id: 'google-pay', name: 'Google Pay', icon: 'google-pay' },
+    { id: 'apple-pay', name: 'Apple Pay', icon: 'apple-pay' },
+    { id: 'card', name: 'Card', icon: 'credit-card' },
+    { id: 'link', name: 'Link', icon: 'link' },
+    { id: 'shop', name: 'Shop Pay', icon: 'shop' },
+    { id: 'klarna', name: 'Klarna', icon: 'klarna' },
+    { id: 'affirm', name: 'Affirm', icon: 'affirm' },
+    { id: 'bank', name: 'Bank Account', icon: 'bank' },
+    { id: 'cashapp', name: 'Cash App', icon: 'cashapp' }
+  ];
+
+  // Step 6: Confirmation
   bookingConfirmed = false;
   confirmationNumber = '';
 
@@ -224,6 +299,7 @@ export class MedicalBookingComponent implements OnInit {
   ngOnInit(): void {
     this.generateCalendar();
     this.initPatientForm();
+    this.initPaymentForm();
     this.selectedLocation = this.locations[0];
 
     // Handle pre-selected test from search page
@@ -250,6 +326,17 @@ export class MedicalBookingComponent implements OnInit {
       insuranceProvider: [''],
       memberId: [''],
       notes: ['']
+    });
+  }
+
+  initPaymentForm(): void {
+    this.paymentForm = this.fb.group({
+      cardNumber: ['', [Validators.required, Validators.pattern(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/)]],
+      expiration: ['', [Validators.required, Validators.pattern(/^(0[1-9]|1[0-2])\/\d{2}$/)]],
+      cvc: ['', [Validators.required, Validators.pattern(/^\d{3,4}$/)]],
+      zip: ['', [Validators.required, Validators.pattern(/^\d{5}(-\d{4})?$/)]],
+      bankRoutingNumber: [''],
+      bankAccountNumber: ['']
     });
   }
 
@@ -372,9 +459,30 @@ export class MedicalBookingComponent implements OnInit {
       case 4:
         return this.patientForm.valid;
       case 5:
+        // Step 5 (Payment) - Validate based on selected payment method
+        return this.isPaymentValid();
+      case 6:
         return true;
       default:
         return false;
+    }
+  }
+
+  isPaymentValid(): boolean {
+    if (this.isProcessingPayment) return false;
+
+    if (this.selectedPaymentMethod === 'card') {
+      return this.paymentForm.get('cardNumber')?.valid === true &&
+             this.paymentForm.get('expiration')?.valid === true &&
+             this.paymentForm.get('cvc')?.valid === true &&
+             this.paymentForm.get('zip')?.valid === true;
+    } else if (this.selectedPaymentMethod === 'bank') {
+      return this.paymentForm.get('bankRoutingNumber')?.value?.length === 9 &&
+             this.paymentForm.get('bankAccountNumber')?.value?.length >= 4;
+    } else {
+      // For wallet-based payments (PayPal, Google Pay, Apple Pay, etc.)
+      // They handle their own validation
+      return true;
     }
   }
 
@@ -393,8 +501,8 @@ export class MedicalBookingComponent implements OnInit {
           this.prefillPatientForm();
         }
 
-        // Confirm booking when entering Step 5
-        if (this.currentStep === 5) {
+        // Confirm booking when entering Step 6
+        if (this.currentStep === 6) {
           this.confirmBooking();
         }
       }, 50);
@@ -452,12 +560,22 @@ export class MedicalBookingComponent implements OnInit {
       this.generateCalendar();
 
       // Reset ID upload state
+      if (this.uploadedImageUrl) {
+        URL.revokeObjectURL(this.uploadedImageUrl);
+      }
       this.ocrData = null;
       this.isProcessingOcr = false;
       this.ocrProgress = 0;
       this.uploadSkipped = false;
       this.currentJobId = null;
       this.ocrError = null;
+      this.uploadedImageUrl = null;
+      this.showImageModal = false;
+
+      // Reset payment state
+      this.paymentForm.reset();
+      this.selectedPaymentMethod = 'card';
+      this.isProcessingPayment = false;
 
       this.isAnimating = false;
       this.animationDirection = 'initial';
@@ -492,6 +610,8 @@ export class MedicalBookingComponent implements OnInit {
    * Handle file upload from upload-panel component
    */
   onFileProcessed(file: File): void {
+    // Create a preview URL for the uploaded image
+    this.uploadedImageUrl = URL.createObjectURL(file);
     this.processDocument(file);
   }
 
@@ -588,11 +708,17 @@ export class MedicalBookingComponent implements OnInit {
    * Clear current upload and allow new upload
    */
   clearUpload(): void {
+    // Revoke the object URL to free memory
+    if (this.uploadedImageUrl) {
+      URL.revokeObjectURL(this.uploadedImageUrl);
+    }
     this.ocrData = null;
     this.ocrError = null;
     this.currentJobId = null;
     this.ocrProgress = 0;
     this.uploadSkipped = false;
+    this.uploadedImageUrl = null;
+    this.showImageModal = false;
   }
 
   /**
@@ -624,6 +750,178 @@ export class MedicalBookingComponent implements OnInit {
       'OK',
       {
         duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      }
+    );
+  }
+
+  // ===========================
+  // Image Modal Methods
+  // ===========================
+
+  /**
+   * Open the image preview modal
+   */
+  openImageModal(): void {
+    this.showImageModal = true;
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+  }
+
+  /**
+   * Close the image preview modal
+   */
+  closeImageModal(): void {
+    this.showImageModal = false;
+    // Restore body scroll
+    document.body.style.overflow = '';
+  }
+
+  /**
+   * Format date of birth for display
+   */
+  formatDob(dob: Date | null): string {
+    if (!dob) return '';
+    const date = dob instanceof Date ? dob : new Date(dob);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  // ===========================
+  // Step 5: Payment Methods
+  // ===========================
+
+  /**
+   * Select payment method
+   */
+  selectPaymentMethod(methodId: string): void {
+    this.selectedPaymentMethod = methodId;
+  }
+
+  /**
+   * Format card number with spaces (4-4-4-4)
+   */
+  formatCardNumber(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 16) {
+      value = value.slice(0, 16);
+    }
+
+    // Add spaces every 4 digits
+    const parts = [];
+    for (let i = 0; i < value.length; i += 4) {
+      parts.push(value.slice(i, i + 4));
+    }
+    value = parts.join(' ');
+
+    this.paymentForm.patchValue({ cardNumber: value });
+  }
+
+  /**
+   * Format expiration date (MM/YY)
+   */
+  formatExpiration(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 4) {
+      value = value.slice(0, 4);
+    }
+
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2);
+    }
+
+    this.paymentForm.patchValue({ expiration: value });
+  }
+
+  /**
+   * Format CVC (3-4 digits only)
+   */
+  formatCvc(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 4) {
+      value = value.slice(0, 4);
+    }
+
+    this.paymentForm.patchValue({ cvc: value });
+  }
+
+  /**
+   * Format ZIP code
+   */
+  formatZip(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/[^\d-]/g, '');
+
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+
+    this.paymentForm.patchValue({ zip: value });
+  }
+
+  /**
+   * Format routing number (9 digits)
+   */
+  formatRoutingNumber(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 9) {
+      value = value.slice(0, 9);
+    }
+
+    this.paymentForm.patchValue({ bankRoutingNumber: value });
+  }
+
+  /**
+   * Format account number
+   */
+  formatAccountNumber(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 17) {
+      value = value.slice(0, 17);
+    }
+
+    this.paymentForm.patchValue({ bankAccountNumber: value });
+  }
+
+  /**
+   * Detect card type from number
+   */
+  getCardType(): string {
+    const cardNumber = this.paymentForm.get('cardNumber')?.value?.replace(/\s/g, '') || '';
+
+    if (cardNumber.startsWith('4')) return 'visa';
+    if (/^5[1-5]/.test(cardNumber) || /^2[2-7]/.test(cardNumber)) return 'mastercard';
+    if (/^3[47]/.test(cardNumber)) return 'amex';
+    if (/^6(?:011|5)/.test(cardNumber)) return 'discover';
+    return 'unknown';
+  }
+
+  /**
+   * Process wallet payment (PayPal, Google Pay, Apple Pay, etc.)
+   */
+  processWalletPayment(methodId: string): void {
+    this.selectedPaymentMethod = methodId;
+    // In a real implementation, this would trigger the respective payment SDK
+    // For now, we'll simulate by just proceeding to the next step
+    this.snackBar.open(
+      `${this.paymentMethods.find(m => m.id === methodId)?.name} selected. Click Continue to proceed.`,
+      'OK',
+      {
+        duration: 3000,
         horizontalPosition: 'center',
         verticalPosition: 'top'
       }

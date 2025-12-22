@@ -52,10 +52,21 @@
 
       <div class="step-line" [class.active]="currentStep >= 5"></div>
 
-      <!-- Step 5 (was Step 4) -->
-      <div class="step-item" [class.active]="currentStep >= 5">
+      <!-- Step 5: Payment -->
+      <div class="step-item" [class.active]="currentStep >= 5" [class.clickable]="currentStep >= 5" (click)="goToStep(5)">
         <div class="step-circle">
-          <span>5</span>
+          <span *ngIf="currentStep <= 5">5</span>
+          <mat-icon *ngIf="currentStep > 5">check</mat-icon>
+        </div>
+        <span class="step-label">Payment</span>
+      </div>
+
+      <div class="step-line" [class.active]="currentStep >= 6"></div>
+
+      <!-- Step 6: Confirm -->
+      <div class="step-item" [class.active]="currentStep >= 6">
+        <div class="step-circle">
+          <span>6</span>
         </div>
         <span class="step-label">Confirm</span>
       </div>
@@ -185,9 +196,9 @@
           <div class="time-section">
             <h3>Available Time Slots</h3>
             <p class="selected-date-text" *ngIf="selectedDate">{{formattedSelectedDate}}</p>
-            <p class="selected-date-text" *ngIf="!selectedDate">Select a date to see available times</p>
+            <p class="selected-date-text" *ngIf="!selectedDate">Select a date and time for your appointment</p>
 
-            <div class="time-slots-container" *ngIf="selectedDate">
+            <div class="time-slots-container">
               <!-- Morning -->
               <div class="time-period">
                 <p class="period-label">
@@ -262,30 +273,32 @@
           </div>
         </div>
 
-        <!-- Location Selection -->
-        <div class="location-section">
+        <!-- Location Selection (shows after time is selected) -->
+        <div class="location-section" *ngIf="selectedTime">
           <h3>Select Location</h3>
-          <div class="locations-grid">
-            <div
-              class="location-card"
-              *ngFor="let location of locations"
-              [class.selected]="selectedLocation?.id === location.id"
-              (click)="selectLocation(location)"
-            >
-              <div class="selected-badge" *ngIf="selectedLocation?.id === location.id">
-                <mat-icon>check</mat-icon>
-              </div>
-              <div class="location-content">
-                <div class="location-icon icon-container icon-lg" [class.icon-blue]="selectedLocation?.id === location.id" [class.icon-neutral]="selectedLocation?.id !== location.id">
-                  <mat-icon>business</mat-icon>
+          <div class="locations-scroll-container">
+            <div class="locations-grid">
+              <div
+                class="location-card"
+                *ngFor="let location of locations"
+                [class.selected]="selectedLocation?.id === location.id"
+                (click)="selectLocation(location)"
+              >
+                <div class="selected-badge" *ngIf="selectedLocation?.id === location.id">
+                  <mat-icon>check</mat-icon>
                 </div>
-                <div class="location-info">
-                  <p class="location-name">{{location.name}}</p>
-                  <p class="location-address">{{location.address}}<br>{{location.city}}</p>
-                  <p class="location-distance" [class.text-success]="selectedLocation?.id === location.id">
-                    <mat-icon>place</mat-icon>
-                    {{location.distance}}
-                  </p>
+                <div class="location-content">
+                  <div class="location-icon icon-container icon-lg" [class.icon-blue]="selectedLocation?.id === location.id" [class.icon-neutral]="selectedLocation?.id !== location.id">
+                    <mat-icon>business</mat-icon>
+                  </div>
+                  <div class="location-info">
+                    <p class="location-name">{{location.name}}</p>
+                    <p class="location-address">{{location.address}}<br>{{location.city}}</p>
+                    <p class="location-distance" [class.text-success]="selectedLocation?.id === location.id">
+                      <mat-icon>place</mat-icon>
+                      {{location.distance}}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -375,20 +388,39 @@
             </div>
           </div>
 
+          <!-- Image Preview Thumbnail -->
+          <div class="uploaded-image-preview" *ngIf="uploadedImageUrl">
+            <div class="image-thumbnail" (click)="openImageModal()">
+              <img [src]="uploadedImageUrl" alt="Uploaded ID">
+              <div class="image-overlay">
+                <mat-icon>zoom_in</mat-icon>
+                <span>Click to enlarge</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Preview of extracted data -->
           <div class="extracted-preview">
             <div class="preview-item" *ngIf="ocrData.firstName || ocrData.lastName">
               <span class="preview-label">Name:</span>
-              <span class="preview-value">{{ ocrData.firstName }} {{ ocrData.lastName }}</span>
+              <span class="preview-value">
+                {{ ocrData.firstName }}
+                <span *ngIf="ocrData.middleInitial"> {{ ocrData.middleInitial }}.</span>
+                {{ ocrData.lastName }}
+              </span>
+            </div>
+            <div class="preview-item" *ngIf="ocrData.sex">
+              <span class="preview-label">Sex:</span>
+              <span class="preview-value">{{ ocrData.sex }}</span>
             </div>
             <div class="preview-item" *ngIf="ocrData.dob">
               <span class="preview-label">Date of Birth:</span>
-              <span class="preview-value">{{ ocrData.dob }}</span>
+              <span class="preview-value">{{ formatDob(ocrData.dob) }}</span>
             </div>
             <div class="preview-item" *ngIf="ocrData.addressStreet">
               <span class="preview-label">Address:</span>
               <span class="preview-value">
-                {{ ocrData.addressStreet }}, {{ ocrData.addressCity }}, {{ ocrData.addressState }} {{ ocrData.addressZip }}
+                {{ ocrData.addressStreet }}<span *ngIf="ocrData.addressCity">, {{ ocrData.addressCity }}</span><span *ngIf="ocrData.addressState">, {{ ocrData.addressState }}</span><span *ngIf="ocrData.addressZip"> {{ ocrData.addressZip }}</span>
               </span>
             </div>
           </div>
@@ -424,6 +456,40 @@
         <p class="step-description">
           {{ ocrData && !uploadSkipped ? 'Please verify and complete your information' : 'Please provide your information for the appointment' }}
         </p>
+
+        <!-- Social Sign-In Options -->
+        <div class="social-signin-section">
+          <p class="social-signin-label">Sign in to save your information</p>
+          <div class="social-buttons">
+            <button class="social-btn google" type="button">
+              <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+            <button class="social-btn microsoft" type="button">
+              <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4 11.4H0V0h11.4v11.4z" fill="#F25022"/>
+                <path d="M24 11.4H12.6V0H24v11.4z" fill="#7FBA00"/>
+                <path d="M11.4 24H0V12.6h11.4V24z" fill="#00A4EF"/>
+                <path d="M24 24H12.6V12.6H24V24z" fill="#FFB900"/>
+              </svg>
+              <span>Continue with Microsoft</span>
+            </button>
+            <button class="social-btn yahoo" type="button">
+              <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 4.795 2.135 5.205h-2.474l-1.38-3.574-2.27 3.574H9.38l3.348-5.205-1.97-4.795h2.474l1.128 2.904 1.54-2.904h1.994z" fill="#6001D2"/>
+              </svg>
+              <span>Continue with Yahoo</span>
+            </button>
+          </div>
+          <div class="social-divider">
+            <span>or fill in your details below</span>
+          </div>
+        </div>
 
         <!-- Pre-fill notice if OCR data exists -->
         <div *ngIf="ocrData && !uploadSkipped" class="prefill-notice">
@@ -537,15 +603,357 @@
         </form>
       </div>
 
-      <!-- Step 5: Confirmation (was Step 4) -->
+      <!-- Step 5: Payment -->
       <div
         class="step-content"
         *ngIf="currentStep === 5"
+        [@slideAnimation]="animationDirection"
+        (@slideAnimation.done)="onAnimationDone()"
+      >
+        <h2>Payment</h2>
+        <p class="step-description">Choose your payment method and complete your booking</p>
+
+        <!-- Order Summary -->
+        <div class="order-summary-card">
+          <div class="order-summary-header">
+            <span class="order-summary-title">Order Summary</span>
+          </div>
+          <div class="order-summary-content">
+            <div class="order-item">
+              <div class="order-item-info">
+                <span class="order-item-name">{{selectedTest?.name}}</span>
+                <span class="order-item-details">{{shortFormattedDate}} at {{selectedTime}}</span>
+              </div>
+              <span class="order-item-price">${{selectedTest?.price}}</span>
+            </div>
+            <div class="order-divider"></div>
+            <div class="order-total">
+              <span>Total</span>
+              <span class="total-amount">${{selectedTest?.price}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods-section">
+          <h3 class="payment-section-title">Select Payment Method</h3>
+
+          <!-- Quick Pay Options (Wallets) -->
+          <div class="quick-pay-grid">
+            <!-- PayPal -->
+            <button
+              type="button"
+              class="quick-pay-btn paypal"
+              [class.selected]="selectedPaymentMethod === 'paypal'"
+              (click)="processWalletPayment('paypal')"
+            >
+              <svg class="payment-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.773.773 0 0 1 .763-.648h6.167c2.04 0 3.648.443 4.786 1.317 1.175.904 1.616 2.219 1.313 3.908-.045.253-.107.515-.186.787-.52 1.765-1.492 3.072-2.887 3.886-1.353.79-3.05 1.19-5.042 1.19H7.79a.773.773 0 0 0-.762.648l-.847 5.392a.641.641 0 0 1-.633.54h-.472v.597zm12.95-13.673c-.478 2.32-2.282 4.027-5.406 4.297.03-.027.058-.056.086-.086l-.055.037c-1.017.682-2.366 1.017-4.01 1.017H8.563l-.847 5.392a.967.967 0 0 1-.953.817H5.248l.046-.297.634-4.03a.967.967 0 0 1 .954-.817h1.796c3.178 0 5.577-.79 7.135-2.349 1.347-1.347 2.155-3.209 2.403-5.536.01-.063.017-.127.024-.19.13-.054.255-.114.374-.18l-.588.025z" fill="#003087"/>
+                <path d="M20.026 7.664c-.478 2.32-2.282 4.027-5.406 4.297-.03-.027-.058.056-.086-.086l.055.037c-1.017.682-2.366 1.017-4.01 1.017H8.563l.847-5.392a.967.967 0 0 1 .953-.817h4.285c1.688 0 3.05.297 4.054.882.49.285.88.66 1.163 1.114.18.288.227.573.161.948z" fill="#0070E0"/>
+              </svg>
+              <span>PayPal</span>
+            </button>
+
+            <!-- Google Pay -->
+            <button
+              type="button"
+              class="quick-pay-btn google-pay"
+              [class.selected]="selectedPaymentMethod === 'google-pay'"
+              (click)="processWalletPayment('google-pay')"
+            >
+              <svg class="payment-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z" fill="#4285F4"/>
+              </svg>
+              <span>Google Pay</span>
+            </button>
+
+            <!-- Apple Pay -->
+            <button
+              type="button"
+              class="quick-pay-btn apple-pay"
+              [class.selected]="selectedPaymentMethod === 'apple-pay'"
+              (click)="processWalletPayment('apple-pay')"
+            >
+              <svg class="payment-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" fill="#000"/>
+              </svg>
+              <span>Apple Pay</span>
+            </button>
+
+            <!-- Link -->
+            <button
+              type="button"
+              class="quick-pay-btn link-pay"
+              [class.selected]="selectedPaymentMethod === 'link'"
+              (click)="processWalletPayment('link')"
+            >
+              <svg class="payment-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 5v10h2V7h-2z" fill="#00D632"/>
+                <circle cx="12" cy="12" r="3" fill="#00D632"/>
+              </svg>
+              <span>Link</span>
+            </button>
+          </div>
+
+          <!-- More Payment Options -->
+          <div class="more-options-grid">
+            <!-- Shop Pay -->
+            <button
+              type="button"
+              class="more-pay-btn"
+              [class.selected]="selectedPaymentMethod === 'shop'"
+              (click)="processWalletPayment('shop')"
+            >
+              <svg class="payment-icon-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21.5 12c0-5.247-4.253-9.5-9.5-9.5S2.5 6.753 2.5 12s4.253 9.5 9.5 9.5 9.5-4.253 9.5-9.5zm-9.5 7c-3.866 0-7-3.134-7-7s3.134-7 7-7 7 3.134 7 7-3.134 7-7 7z" fill="#5A31F4"/>
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" fill="#5A31F4"/>
+              </svg>
+              <span>Shop Pay</span>
+            </button>
+
+            <!-- Klarna -->
+            <button
+              type="button"
+              class="more-pay-btn"
+              [class.selected]="selectedPaymentMethod === 'klarna'"
+              (click)="processWalletPayment('klarna')"
+            >
+              <svg class="payment-icon-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.592 2H1v20h3.592V2zm0 0h3.627A9.977 9.977 0 0 1 4.592 12a9.977 9.977 0 0 1 3.627 10H4.592V2zm6.019 0H21v20h-3.185v-8.051a5.972 5.972 0 0 0-3.23 5.305V22h-3.974V2z" fill="#FFB3C7"/>
+              </svg>
+              <span>Klarna</span>
+            </button>
+
+            <!-- Affirm -->
+            <button
+              type="button"
+              class="more-pay-btn"
+              [class.selected]="selectedPaymentMethod === 'affirm'"
+              (click)="processWalletPayment('affirm')"
+            >
+              <svg class="payment-icon-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#0FA0EA"/>
+              </svg>
+              <span>Affirm</span>
+            </button>
+
+            <!-- Bank Account -->
+            <button
+              type="button"
+              class="more-pay-btn"
+              [class.selected]="selectedPaymentMethod === 'bank'"
+              (click)="selectPaymentMethod('bank')"
+            >
+              <svg class="payment-icon-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 10h3v7H4v-7zm6.5 0h3v7h-3v-7zM2 19h20v3H2v-3zm15-9h3v7h-3v-7zm-5-9L2 6v2h20V6l-10-5z" fill="#1A1A1A"/>
+              </svg>
+              <span>Bank</span>
+            </button>
+
+            <!-- Cash App -->
+            <button
+              type="button"
+              class="more-pay-btn"
+              [class.selected]="selectedPaymentMethod === 'cashapp'"
+              (click)="processWalletPayment('cashapp')"
+            >
+              <svg class="payment-icon-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.59 3.47A5.1 5.1 0 0 0 20.53.41C19.06-.04 17.38 0 15.74.02c-3.18.02-6.36.02-9.54 0-1.65-.02-3.32-.06-4.79.41A5.1 5.1 0 0 0 .41 3.47C-.04 4.94 0 6.62.02 8.26c.02 3.18.02 6.36 0 9.54-.02 1.65-.06 3.32.41 4.79a5.1 5.1 0 0 0 3.06 3.06c1.47.47 3.15.43 4.79.41 3.18-.02 6.36-.02 9.54 0 1.65.02 3.32.06 4.79-.41a5.1 5.1 0 0 0 3.06-3.06c.47-1.47.43-3.15.41-4.79-.02-3.18-.02-6.36 0-9.54.02-1.65.06-3.32-.41-4.79h-.08zm-6.96 13.19c-.57 1.38-1.63 2.36-3.12 2.86-.53.18-1.08.29-1.67.31v1.24c0 .31-.25.57-.57.57h-1.5a.57.57 0 0 1-.57-.57v-1.29a8.1 8.1 0 0 1-3.08-1.08.57.57 0 0 1-.15-.83l.93-1.15c.21-.26.58-.3.84-.11.59.42 1.24.74 1.95.95.86.26 1.63.22 2.3-.12.68-.35.82-.99.53-1.42-.24-.35-.72-.54-1.43-.7l-1.28-.29c-1.63-.38-2.82-1.05-3.55-2-.77-1-1-2.24-.68-3.69.42-1.94 1.87-3.2 4.26-3.72V3.93c0-.31.25-.57.57-.57h1.5c.31 0 .57.25.57.57v1.1c.93.15 1.8.47 2.58.95.29.18.36.56.16.84l-.85 1.17a.57.57 0 0 1-.8.15c-.47-.31-.97-.53-1.51-.67-.86-.22-1.59-.16-2.17.18-.48.28-.6.8-.35 1.24.21.36.67.58 1.38.74l1.21.27c1.8.4 3.05 1.08 3.76 2.02.75 1 .93 2.2.51 3.6l.02.02z" fill="#00D632"/>
+              </svg>
+              <span>Cash App</span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="payment-divider">
+            <span>Or pay with card</span>
+          </div>
+
+          <!-- Card Payment Form -->
+          <div class="card-form-section" [class.active]="selectedPaymentMethod === 'card'" (click)="selectPaymentMethod('card')">
+            <div class="card-form-header">
+              <div class="card-form-title">
+                <svg class="card-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" fill="currentColor"/>
+                </svg>
+                <span>Card</span>
+              </div>
+              <div class="card-brands">
+                <svg class="card-brand visa" [class.active]="getCardType() === 'visa'" viewBox="0 0 38 24">
+                  <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#fff"/>
+                  <path d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32" fill="#fff"/>
+                  <path d="M28.3 10.1H28c-.4 1-.7 1.5-1 3h1.9c-.3-1.5-.3-2.2-.6-3zm2.9 5.9h-1.7c-.1 0-.1 0-.2-.1l-.2-.9-.1-.2h-2.4c-.1 0-.2 0-.2.2l-.3.9c0 .1-.1.1-.1.1h-2.1l.2-.5L27 8.7c0-.5.3-.7.8-.7h1.5c.1 0 .2 0 .2.2l1.4 6.5c.1.4.2.7.2 1.1.1.1.1.1.1.2zm-13.4-.3l.4-1.8c.1 0 .2.1.2.1.7.3 1.4.5 2.1.4.2 0 .5-.1.7-.2.5-.2.5-.7.1-1.1-.2-.2-.5-.3-.8-.5-.4-.2-.8-.4-1.1-.7-1.2-1-.8-2.4-.1-3.1.6-.4.9-.8 1.7-.8 1.2 0 2.5 0 3.1.2h.1c-.1.6-.2 1.1-.4 1.7-.5-.2-1-.4-1.5-.4-.3 0-.6 0-.9.1-.2 0-.3.1-.4.2-.2.2-.2.5 0 .7l.5.4c.4.2.8.4 1.1.6.5.3 1 .8 1.1 1.4.2.9-.1 1.7-.9 2.3-.5.4-.7.6-1.4.6-1.4 0-2.5.1-3.4-.2-.1.2-.1.2-.2.1zm-3.5.3c.1-.7.1-.7.2-1 .5-2.2 1-4.5 1.4-6.7.1-.2.1-.3.3-.3H18c-.2 1.2-.4 2.1-.7 3.2-.3 1.5-.6 3-1 4.5 0 .2-.1.2-.3.2M5 8.2c0-.1.2-.2.3-.2h3.4c.5 0 .9.3 1 .8l.9 4.4c0 .1 0 .1.1.2 0-.1.1-.1.1-.1l2.1-5.1c-.1-.1 0-.2.1-.2h2.1c0 .1 0 .1-.1.2l-3.1 7.3c-.1.2-.1.3-.2.4-.1.1-.3 0-.5 0H9.7c-.1 0-.2 0-.2-.2L7.9 9.5c-.2-.2-.5-.5-.9-.6-.6-.3-1.7-.5-1.9-.5L5 8.2z" fill="#142688"/>
+                </svg>
+                <svg class="card-brand mastercard" [class.active]="getCardType() === 'mastercard'" viewBox="0 0 38 24">
+                  <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#fff"/>
+                  <circle cx="15" cy="12" r="7" fill="#EB001B"/>
+                  <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
+                  <path d="M19 7.5c1.3 1.1 2.2 2.8 2.2 4.5s-.9 3.4-2.2 4.5c-1.3-1.1-2.2-2.8-2.2-4.5s.9-3.4 2.2-4.5z" fill="#FF5F00"/>
+                </svg>
+                <svg class="card-brand amex" [class.active]="getCardType() === 'amex'" viewBox="0 0 38 24">
+                  <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#006FCF"/>
+                  <path d="M8.971 10.268l.774 1.876H8.203l.768-1.876zm16.075.078h-2.977v.827h2.929v1.239h-2.923v.922h2.977v.739l2.077-2.245-2.077-2.34-.006.858zm-14.063-2.34h3.995l.887 1.935.822-1.935h3.984v5.667l-3.146.012.893-1.934h-1.893l-.876 1.922H9.984v-5.667z" fill="#fff"/>
+                </svg>
+                <svg class="card-brand discover" [class.active]="getCardType() === 'discover'" viewBox="0 0 38 24">
+                  <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#fff"/>
+                  <path d="M27 12c0 3.3-2.7 6-6 6s-6-2.7-6-6 2.7-6 6-6 6 2.7 6 6z" fill="#F48024"/>
+                </svg>
+              </div>
+            </div>
+
+            <form [formGroup]="paymentForm" class="card-form" *ngIf="selectedPaymentMethod === 'card'">
+              <div class="form-field card-number-field">
+                <label>Card number</label>
+                <div class="input-wrapper" [class.error]="paymentForm.get('cardNumber')?.invalid && paymentForm.get('cardNumber')?.touched">
+                  <input
+                    type="text"
+                    formControlName="cardNumber"
+                    placeholder="1234 1234 1234 1234"
+                    (input)="formatCardNumber($event)"
+                    maxlength="19"
+                  >
+                  <div class="card-type-indicator" *ngIf="getCardType() !== 'unknown'">
+                    <svg *ngIf="getCardType() === 'visa'" class="detected-card" viewBox="0 0 38 24">
+                      <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#fff"/>
+                      <path d="M28.3 10.1H28c-.4 1-.7 1.5-1 3h1.9c-.3-1.5-.3-2.2-.6-3zm2.9 5.9h-1.7c-.1 0-.1 0-.2-.1l-.2-.9-.1-.2h-2.4c-.1 0-.2 0-.2.2l-.3.9c0 .1-.1.1-.1.1h-2.1l.2-.5L27 8.7c0-.5.3-.7.8-.7h1.5c.1 0 .2 0 .2.2l1.4 6.5c.1.4.2.7.2 1.1.1.1.1.1.1.2zm-13.4-.3l.4-1.8c.1 0 .2.1.2.1.7.3 1.4.5 2.1.4.2 0 .5-.1.7-.2.5-.2.5-.7.1-1.1-.2-.2-.5-.3-.8-.5-.4-.2-.8-.4-1.1-.7-1.2-1-.8-2.4-.1-3.1.6-.4.9-.8 1.7-.8 1.2 0 2.5 0 3.1.2h.1c-.1.6-.2 1.1-.4 1.7-.5-.2-1-.4-1.5-.4-.3 0-.6 0-.9.1-.2 0-.3.1-.4.2-.2.2-.2.5 0 .7l.5.4c.4.2.8.4 1.1.6.5.3 1 .8 1.1 1.4.2.9-.1 1.7-.9 2.3-.5.4-.7.6-1.4.6-1.4 0-2.5.1-3.4-.2-.1.2-.1.2-.2.1zm-3.5.3c.1-.7.1-.7.2-1 .5-2.2 1-4.5 1.4-6.7.1-.2.1-.3.3-.3H18c-.2 1.2-.4 2.1-.7 3.2-.3 1.5-.6 3-1 4.5 0 .2-.1.2-.3.2M5 8.2c0-.1.2-.2.3-.2h3.4c.5 0 .9.3 1 .8l.9 4.4c0 .1 0 .1.1.2 0-.1.1-.1.1-.1l2.1-5.1c-.1-.1 0-.2.1-.2h2.1c0 .1 0 .1-.1.2l-3.1 7.3c-.1.2-.1.3-.2.4-.1.1-.3 0-.5 0H9.7c-.1 0-.2 0-.2-.2L7.9 9.5c-.2-.2-.5-.5-.9-.6-.6-.3-1.7-.5-1.9-.5L5 8.2z" fill="#142688"/>
+                    </svg>
+                    <svg *ngIf="getCardType() === 'mastercard'" class="detected-card" viewBox="0 0 38 24">
+                      <circle cx="15" cy="12" r="7" fill="#EB001B"/>
+                      <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
+                    </svg>
+                    <svg *ngIf="getCardType() === 'amex'" class="detected-card" viewBox="0 0 38 24">
+                      <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#006FCF"/>
+                    </svg>
+                    <svg *ngIf="getCardType() === 'discover'" class="detected-card" viewBox="0 0 38 24">
+                      <circle cx="19" cy="12" r="6" fill="#F48024"/>
+                    </svg>
+                  </div>
+                </div>
+                <span class="error-text" *ngIf="paymentForm.get('cardNumber')?.invalid && paymentForm.get('cardNumber')?.touched">
+                  Enter a valid card number
+                </span>
+              </div>
+
+              <div class="form-row-payment">
+                <div class="form-field">
+                  <label>Expiration</label>
+                  <div class="input-wrapper" [class.error]="paymentForm.get('expiration')?.invalid && paymentForm.get('expiration')?.touched">
+                    <input
+                      type="text"
+                      formControlName="expiration"
+                      placeholder="MM/YY"
+                      (input)="formatExpiration($event)"
+                      maxlength="5"
+                    >
+                  </div>
+                  <span class="error-text" *ngIf="paymentForm.get('expiration')?.invalid && paymentForm.get('expiration')?.touched">
+                    Invalid date
+                  </span>
+                </div>
+
+                <div class="form-field">
+                  <label>CVC</label>
+                  <div class="input-wrapper" [class.error]="paymentForm.get('cvc')?.invalid && paymentForm.get('cvc')?.touched">
+                    <input
+                      type="text"
+                      formControlName="cvc"
+                      placeholder="CVC"
+                      (input)="formatCvc($event)"
+                      maxlength="4"
+                    >
+                    <svg class="cvc-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                      <rect x="1" y="8" width="22" height="4" fill="currentColor" opacity="0.3"/>
+                      <rect x="14" y="14" width="6" height="2" rx="1" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <span class="error-text" *ngIf="paymentForm.get('cvc')?.invalid && paymentForm.get('cvc')?.touched">
+                    Invalid CVC
+                  </span>
+                </div>
+
+                <div class="form-field">
+                  <label>ZIP</label>
+                  <div class="input-wrapper" [class.error]="paymentForm.get('zip')?.invalid && paymentForm.get('zip')?.touched">
+                    <input
+                      type="text"
+                      formControlName="zip"
+                      placeholder="ZIP"
+                      (input)="formatZip($event)"
+                      maxlength="10"
+                    >
+                  </div>
+                  <span class="error-text" *ngIf="paymentForm.get('zip')?.invalid && paymentForm.get('zip')?.touched">
+                    Invalid ZIP
+                  </span>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Bank Account Form (shown when bank is selected) -->
+          <div class="bank-form-section" *ngIf="selectedPaymentMethod === 'bank'">
+            <div class="bank-form-header">
+              <svg class="bank-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 10h3v7H4v-7zm6.5 0h3v7h-3v-7zM2 19h20v3H2v-3zm15-9h3v7h-3v-7zm-5-9L2 6v2h20V6l-10-5z" fill="currentColor"/>
+              </svg>
+              <span>Bank Account</span>
+            </div>
+            <form [formGroup]="paymentForm" class="bank-form">
+              <div class="form-field">
+                <label>Routing number</label>
+                <div class="input-wrapper" [class.error]="paymentForm.get('bankRoutingNumber')?.value?.length > 0 && paymentForm.get('bankRoutingNumber')?.value?.length !== 9">
+                  <input
+                    type="text"
+                    formControlName="bankRoutingNumber"
+                    placeholder="9 digits"
+                    (input)="formatRoutingNumber($event)"
+                    maxlength="9"
+                  >
+                </div>
+                <span class="error-text" *ngIf="paymentForm.get('bankRoutingNumber')?.value?.length > 0 && paymentForm.get('bankRoutingNumber')?.value?.length !== 9">
+                  Must be 9 digits
+                </span>
+              </div>
+
+              <div class="form-field">
+                <label>Account number</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    formControlName="bankAccountNumber"
+                    placeholder="Account number"
+                    (input)="formatAccountNumber($event)"
+                    maxlength="17"
+                  >
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Security Notice -->
+          <div class="security-notice">
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="currentColor"/>
+            </svg>
+            <span>Your payment is secured with 256-bit SSL encryption</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Confirmation -->
+      <div
+        class="step-content"
+        *ngIf="currentStep === 6"
         [@fadeIn]
       >
         <div class="confirmation-container" *ngIf="bookingConfirmed">
-          <div class="success-icon">
-            <mat-icon>check_circle</mat-icon>
+          <!-- Animated Checkmark -->
+          <div class="animated-checkmark">
+            <svg class="checkmark-svg" viewBox="0 0 52 52">
+              <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
           </div>
           <h2>Booking Confirmed!</h2>
           <p class="confirmation-number">Confirmation #: {{confirmationNumber}}</p>
@@ -611,7 +1019,7 @@
       </div><!-- End step-content-wrapper -->
 
       <!-- Action Buttons -->
-      <div class="action-buttons" *ngIf="currentStep < 5 || !bookingConfirmed">
+      <div class="action-buttons" *ngIf="currentStep < 6 || !bookingConfirmed">
         <button class="btn btn-outline" (click)="previousStep()" *ngIf="currentStep > 1">
           <mat-icon>arrow_back</mat-icon>
           Back
@@ -636,22 +1044,20 @@
           (click)="nextStep()"
           [disabled]="!canProceed()"
         >
-          {{currentStep === 4 ? 'Confirm Booking' : 'Continue'}}
-          <mat-icon>{{currentStep === 4 ? 'check' : 'arrow_forward'}}</mat-icon>
+          {{currentStep === 5 ? 'Pay $' + selectedTest?.price : 'Continue'}}
+          <mat-icon>{{currentStep === 5 ? 'lock' : 'arrow_forward'}}</mat-icon>
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Help Card -->
-    <div class="help-card">
-      <div class="help-icon icon-container icon-lg icon-purple">
-        <mat-icon>headset_mic</mat-icon>
-      </div>
-      <div class="help-info">
-        <p class="help-title">Need help scheduling?</p>
-        <p class="help-description">Our support team is available 24/7 to assist you with booking.</p>
-      </div>
-      <button class="btn btn-outline">Contact Support</button>
+  <!-- Image Preview Modal -->
+  <div class="image-modal-overlay" *ngIf="showImageModal" (click)="closeImageModal()">
+    <div class="image-modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeImageModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="uploadedImageUrl" alt="Uploaded ID - Full Size">
     </div>
   </div>
 </div>
