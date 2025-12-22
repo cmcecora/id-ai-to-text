@@ -378,6 +378,58 @@
               </div>
             </div>
           </div>
+
+          <!-- Map Component -->
+          <div class="map-section">
+            <div class="map-container">
+              <!-- Map Background with Streets Pattern -->
+              <div class="map-background">
+                <!-- Grid streets pattern -->
+                <div class="map-streets"></div>
+
+                <!-- Map Markers -->
+                <div
+                  *ngFor="let location of locations; let i = index"
+                  class="map-marker"
+                  [class.selected]="selectedLocation?.id === location.id"
+                  [style.left.%]="getMarkerPosition(i).x"
+                  [style.top.%]="getMarkerPosition(i).y"
+                  (click)="selectLocation(location)"
+                >
+                  <div class="marker-pin">
+                    <mat-icon>location_on</mat-icon>
+                  </div>
+                  <div class="marker-label" *ngIf="selectedLocation?.id === location.id">
+                    {{location.name}}
+                  </div>
+                </div>
+
+                <!-- User Location Marker -->
+                <div class="user-marker" style="left: 50%; top: 50%;">
+                  <div class="user-pulse"></div>
+                  <div class="user-dot"></div>
+                </div>
+              </div>
+
+              <!-- Map Controls -->
+              <div class="map-controls">
+                <button class="map-control-btn" title="Zoom in">
+                  <mat-icon>add</mat-icon>
+                </button>
+                <button class="map-control-btn" title="Zoom out">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <button class="map-control-btn" title="My location">
+                  <mat-icon>my_location</mat-icon>
+                </button>
+              </div>
+
+              <!-- Map Attribution -->
+              <div class="map-attribution">
+                Map data for illustration only
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

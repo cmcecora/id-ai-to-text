@@ -1043,6 +1043,260 @@
   }
 }
 
+// ===========================
+// Map Component
+// ===========================
+.map-section {
+  margin-top: 20px;
+}
+
+.map-container {
+  position: relative;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--wh-neutral-20);
+
+  @media (max-width: 600px) {
+    height: 220px;
+  }
+}
+
+.map-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #e8f4e8 0%, #d4e8d4 50%, #c8dcc8 100%);
+}
+
+.map-streets {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    // Horizontal streets
+    linear-gradient(0deg, transparent 0%, transparent 48%, rgba(255,255,255,0.8) 48%, rgba(255,255,255,0.8) 52%, transparent 52%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, transparent 23%, rgba(255,255,255,0.6) 23%, rgba(255,255,255,0.6) 27%, transparent 27%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, transparent 73%, rgba(255,255,255,0.6) 73%, rgba(255,255,255,0.6) 77%, transparent 77%, transparent 100%),
+    // Vertical streets
+    linear-gradient(90deg, transparent 0%, transparent 48%, rgba(255,255,255,0.8) 48%, rgba(255,255,255,0.8) 52%, transparent 52%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, transparent 18%, rgba(255,255,255,0.5) 18%, rgba(255,255,255,0.5) 22%, transparent 22%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, transparent 33%, rgba(255,255,255,0.5) 33%, rgba(255,255,255,0.5) 37%, transparent 37%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, transparent 63%, rgba(255,255,255,0.5) 63%, rgba(255,255,255,0.5) 67%, transparent 67%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, transparent 83%, rgba(255,255,255,0.5) 83%, rgba(255,255,255,0.5) 87%, transparent 87%, transparent 100%);
+
+  // Add some park-like areas
+  &::before {
+    content: '';
+    position: absolute;
+    top: 35%;
+    left: 55%;
+    width: 80px;
+    height: 60px;
+    background: rgba(76, 175, 80, 0.3);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 60%;
+    left: 10%;
+    width: 60px;
+    height: 40px;
+    background: rgba(76, 175, 80, 0.25);
+    border-radius: 50%;
+  }
+}
+
+// Map Markers
+.map-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  z-index: 10;
+  transition: z-index 0s, transform 0.2s ease;
+
+  &:hover {
+    z-index: 20;
+    transform: translate(-50%, -100%) scale(1.1);
+  }
+
+  &.selected {
+    z-index: 30;
+
+    .marker-pin {
+      background: var(--wh-blue-50);
+      box-shadow: 0 4px 12px rgba(15, 130, 230, 0.4);
+
+      mat-icon {
+        color: white;
+      }
+
+      &::after {
+        border-top-color: var(--wh-blue-50);
+      }
+    }
+  }
+
+  .marker-pin {
+    width: 36px;
+    height: 36px;
+    background: var(--wh-white);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+
+    mat-icon {
+      transform: rotate(45deg);
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: var(--wh-red-50);
+    }
+  }
+
+  .marker-label {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--wh-blue-50);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: fadeInUp 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--wh-blue-50);
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+// User Location Marker
+.user-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+
+  .user-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(15, 130, 230, 0.2);
+    border-radius: 50%;
+    animation: pulse 2s ease-out infinite;
+  }
+
+  .user-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: var(--wh-blue-50);
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+// Map Controls
+.map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-control-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--wh-white);
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--wh-neutral-5);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--text);
+  }
+}
+
+// Map Attribution
+.map-attribution {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--subtext);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 .locations-scroll-container {
   max-height: 280px;
   overflow-y: auto;

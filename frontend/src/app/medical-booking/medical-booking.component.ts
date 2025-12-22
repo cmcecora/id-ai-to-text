@@ -547,6 +547,27 @@ export class MedicalBookingComponent implements OnInit {
     this.selectedLocation = location;
   }
 
+  /**
+   * Get marker position on the map based on index
+   * Returns pseudo-random but consistent positions for each location
+   */
+  getMarkerPosition(index: number): { x: number; y: number } {
+    // Predefined positions to spread markers across the map
+    const positions = [
+      { x: 25, y: 30 },   // downtown
+      { x: 15, y: 55 },   // westside
+      { x: 45, y: 25 },   // midtown
+      { x: 70, y: 20 },   // uptown
+      { x: 75, y: 45 },   // eastside
+      { x: 30, y: 70 },   // chelsea
+      { x: 55, y: 65 },   // soho
+      { x: 40, y: 80 },   // tribeca
+      { x: 20, y: 40 },   // uws
+      { x: 80, y: 70 },   // ues
+    ];
+    return positions[index % positions.length];
+  }
+
   selectTest(test: MedicalTest): void {
     this.selectedTest = test;
   }
