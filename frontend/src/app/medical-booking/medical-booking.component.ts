@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -112,16 +112,35 @@ interface CalendarDay {
         style({ opacity: 0 }),
         animate('300ms ease-out', style({ opacity: 1 }))
       ])
+    ]),
+
+    // Dropdown animation for autocomplete
+    trigger('dropdownAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-8px)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-8px)' }))
+      ])
     ])
   ]
 })
 export class MedicalBookingComponent implements OnInit {
+  @ViewChild('testSearchInput') testSearchInputRef!: ElementRef;
+  @ViewChild('locationSection') locationSectionRef!: ElementRef;
+
   currentStep = 1;
   totalSteps = 6;
   animationDirection: 'forward' | 'backward' | 'initial' = 'initial';
   isAnimating = false;
 
-  // Step 1: Test Selection
+  // Step 1: Test Selection & Search
+  testSearchQuery = '';
+  isTestDropdownOpen = false;
+  filteredTests: MedicalTest[] = [];
+  testHighlightedIndex = -1;
+
   selectedTest: MedicalTest | null = null;
   medicalTests: MedicalTest[] = [
     { id: 'cbc', name: 'Complete Blood Count (CBC)', description: 'Comprehensive blood cell analysis', resultsTime: '24 hours', price: 29, icon: 'favorite' },
@@ -296,7 +315,17 @@ export class MedicalBookingComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.test-search-container')) {
+      this.isTestDropdownOpen = false;
+    }
+  }
+
   ngOnInit(): void {
+    // Select today's date by default if it's a weekday
+    this.selectTodayIfAvailable();
     this.generateCalendar();
     this.initPatientForm();
     this.initPaymentForm();
@@ -314,6 +343,23 @@ export class MedicalBookingComponent implements OnInit {
         }
       }
     });
+  }
+
+  private selectTodayIfAvailable(): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+
+    // If today is a weekday (Mon-Fri), select it
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      this.selectedDate = today;
+    } else {
+      // If weekend, select next Monday
+      const daysUntilMonday = dayOfWeek === 0 ? 1 : 2;
+      const nextMonday = new Date(today);
+      nextMonday.setDate(today.getDate() + daysUntilMonday);
+      this.selectedDate = nextMonday;
+    }
   }
 
   initPatientForm(): void {
@@ -436,6 +482,19 @@ export class MedicalBookingComponent implements OnInit {
 
   selectTime(time: string): void {
     this.selectedTime = time;
+    // Scroll to location section after a short delay to allow *ngIf to render
+    setTimeout(() => {
+      this.scrollToLocationSection();
+    }, 100);
+  }
+
+  private scrollToLocationSection(): void {
+    if (this.locationSectionRef?.nativeElement) {
+      this.locationSectionRef.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   }
 
   selectLocation(location: Location): void {
@@ -444,6 +503,88 @@ export class MedicalBookingComponent implements OnInit {
 
   selectTest(test: MedicalTest): void {
     this.selectedTest = test;
+  }
+
+  // ===========================
+  // Step 1: Test Search Methods
+  // ===========================
+
+  onTestSearchFocus(): void {
+    this.isTestDropdownOpen = true;
+    if (this.testSearchQuery) {
+      this.filterTests();
+    }
+  }
+
+  onTestSearchInput(): void {
+    this.isTestDropdownOpen = true;
+    this.testHighlightedIndex = -1;
+    this.filterTests();
+  }
+
+  private filterTests(): void {
+    const query = this.testSearchQuery.trim().toLowerCase();
+    if (query.length > 0) {
+      this.filteredTests = this.medicalTests.filter(test =>
+        test.name.toLowerCase().includes(query) ||
+        test.description.toLowerCase().includes(query)
+      );
+    } else {
+      this.filteredTests = [];
+    }
+  }
+
+  onTestSearchKeyDown(event: KeyboardEvent): void {
+    if (!this.isTestDropdownOpen || this.filteredTests.length === 0) return;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.testHighlightedIndex = Math.min(
+          this.testHighlightedIndex + 1,
+          this.filteredTests.length - 1
+        );
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.testHighlightedIndex = Math.max(this.testHighlightedIndex - 1, 0);
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (this.testHighlightedIndex >= 0 && this.filteredTests[this.testHighlightedIndex]) {
+          this.selectFilteredTest(this.filteredTests[this.testHighlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        this.isTestDropdownOpen = false;
+        break;
+    }
+  }
+
+  clearTestSearch(): void {
+    this.testSearchQuery = '';
+    this.filteredTests = [];
+    this.isTestDropdownOpen = false;
+    this.testHighlightedIndex = -1;
+    this.testSearchInputRef?.nativeElement.focus();
+  }
+
+  selectFilteredTest(test: MedicalTest): void {
+    this.selectedTest = test;
+    this.testSearchQuery = '';
+    this.filteredTests = [];
+    this.isTestDropdownOpen = false;
+    this.testHighlightedIndex = -1;
+  }
+
+  highlightSearchMatch(text: string): string {
+    if (!this.testSearchQuery.trim()) return text;
+    const regex = new RegExp(`(${this.escapeRegExp(this.testSearchQuery)})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  }
+
+  private escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // Navigation
@@ -558,6 +699,12 @@ export class MedicalBookingComponent implements OnInit {
       this.bookingConfirmed = false;
       this.confirmationNumber = '';
       this.generateCalendar();
+
+      // Reset test search state
+      this.testSearchQuery = '';
+      this.filteredTests = [];
+      this.isTestDropdownOpen = false;
+      this.testHighlightedIndex = -1;
 
       // Reset ID upload state
       if (this.uploadedImageUrl) {

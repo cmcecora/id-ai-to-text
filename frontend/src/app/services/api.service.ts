@@ -59,7 +59,7 @@ export interface DocumentData {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_BASE_URL = 'http://localhost:8010/api';
+  private readonly API_BASE_URL = 'http://localhost:3120/api';
   private readonly API_TOKEN = 'demo-token'; // In production, get from auth service
 
   constructor(private http: HttpClient) { }

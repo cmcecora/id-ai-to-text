@@ -87,6 +87,65 @@
         <h2>Select Your Test</h2>
         <p class="step-description">Choose the medical test you'd like to schedule</p>
 
+        <!-- Search Input -->
+        <div class="test-search-container">
+          <div class="test-search-wrapper">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input
+              type="text"
+              class="test-search-input"
+              #testSearchInput
+              [(ngModel)]="testSearchQuery"
+              (focus)="onTestSearchFocus()"
+              (input)="onTestSearchInput()"
+              (keydown)="onTestSearchKeyDown($event)"
+              placeholder="Search for a test..."
+              autocomplete="off"
+            >
+            <button
+              class="search-clear-btn"
+              *ngIf="testSearchQuery"
+              (click)="clearTestSearch()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <!-- Autocomplete Dropdown -->
+          <div
+            class="test-autocomplete-dropdown"
+            *ngIf="isTestDropdownOpen && testSearchQuery"
+            @dropdownAnimation
+          >
+            <!-- Search Results -->
+            <div class="autocomplete-results" *ngIf="filteredTests.length > 0">
+              <div
+                class="autocomplete-result-item"
+                *ngFor="let test of filteredTests; let i = index"
+                [class.highlighted]="i === testHighlightedIndex"
+                (click)="selectFilteredTest(test)"
+              >
+                <div class="result-icon icon-container icon-md icon-purple">
+                  <mat-icon>{{test.icon}}</mat-icon>
+                </div>
+                <div class="result-content">
+                  <div class="result-name" [innerHTML]="highlightSearchMatch(test.name)"></div>
+                  <div class="result-description">{{test.description}}</div>
+                </div>
+                <div class="result-meta">
+                  <span class="result-price">${{test.price}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Results -->
+            <div class="no-results-state" *ngIf="filteredTests.length === 0">
+              <mat-icon>search_off</mat-icon>
+              <span>No tests found for "{{testSearchQuery}}"</span>
+            </div>
+          </div>
+        </div>
+
         <div class="tests-grid">
           <div
             class="test-card"
@@ -274,7 +333,7 @@
         </div>
 
         <!-- Location Selection (shows after time is selected) -->
-        <div class="location-section" *ngIf="selectedTime">
+        <div class="location-section" *ngIf="selectedTime" #locationSection>
           <h3>Select Location</h3>
           <div class="locations-scroll-container">
             <div class="locations-grid">

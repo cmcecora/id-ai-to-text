@@ -1,13 +1,32 @@
 // Medical Booking Component Styles
 // Following Whelp Design System Style Guide
 
-.booking-page {
+:host {
+  display: block;
   height: 100vh;
+  overflow: hidden;
+  // Prevent any scrolling on the booking page
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.booking-page {
+  height: 100%;
+  max-height: 100%;
   background-color: var(--main);
-  padding: 24px;
+  padding: 16px;
+  padding-bottom: 10px;
   display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevent background from scrolling
+  overflow: visible;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    padding-bottom: 10px;
+  }
 }
 
 .booking-container {
@@ -17,7 +36,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  max-height: 100%;
+  overflow: visible;
 }
 
 // ===========================
@@ -25,26 +45,30 @@
 // ===========================
 .booking-header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-shrink: 0;
 
   h1 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--text);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     letter-spacing: -0.02em;
 
     @media (max-width: 768px) {
-      font-size: 24px;
+      font-size: 20px;
     }
   }
 
   .header-subtitle {
     color: var(--subtext);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     margin: 0;
+
+    @media (max-width: 768px) {
+      font-size: 12px;
+    }
   }
 }
 
@@ -55,14 +79,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  padding: 0 16px;
-  overflow-x: auto;
+  margin-bottom: 12px;
+  padding: 8px;
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  min-height: 50px;
+  overflow: visible;
 
-  @media (max-width: 600px) {
-    justify-content: flex-start;
-    padding-bottom: 8px;
+  @media (max-width: 768px) {
+    padding: 6px 4px;
+    margin-bottom: 8px;
+    min-height: 44px;
   }
 }
 
@@ -76,8 +103,8 @@
   }
 
   .step-circle {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--wh-neutral-20);
     display: flex;
@@ -85,28 +112,49 @@
     justify-content: center;
     transition: all 0.2s ease;
 
+    @media (max-width: 600px) {
+      width: 32px;
+      height: 32px;
+    }
+
+    @media (max-width: 400px) {
+      width: 28px;
+      height: 28px;
+    }
+
     span {
       color: var(--subtext);
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
+
+      @media (max-width: 400px) {
+        font-size: 12px;
+      }
     }
 
     mat-icon {
       color: white;
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+
+      @media (max-width: 400px) {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 
   .step-label {
-    margin-left: 12px;
+    margin-left: 8px;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--subtext);
     transition: color 0.2s ease;
+    white-space: nowrap;
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       display: none;
     }
   }
@@ -127,16 +175,21 @@
 }
 
 .step-line {
-  width: 64px;
+  width: 24px;
   height: 2px;
   background: var(--wh-neutral-20);
-  margin: 0 16px;
+  margin: 0 6px;
   flex-shrink: 0;
   transition: background 0.2s ease;
 
   @media (max-width: 600px) {
-    width: 32px;
-    margin: 0 8px;
+    width: 16px;
+    margin: 0 4px;
+  }
+
+  @media (max-width: 400px) {
+    width: 12px;
+    margin: 0 2px;
   }
 
   &.active {
@@ -149,18 +202,25 @@
 // ===========================
 .main-card {
   background: var(--wh-white);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: var(--shadow-card);
-  padding: 24px;
-  flex: 1;
+  padding: 20px;
+  padding-bottom: 10px;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 0; // Important for flex child overflow
+  min-height: 0;
+  // Constrain height to ensure buttons stay above the fold
+  // Account for: header (~70px), progress steps (~62px), page padding (26px total), margins
+  max-height: calc(100vh - 180px);
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 16px;
+    padding-bottom: 10px;
     border-radius: 16px;
+    // Adjust for smaller elements on mobile
+    max-height: calc(100vh - 160px);
   }
 }
 
@@ -172,13 +232,14 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 0; // Important for flex child overflow
-  padding-right: 8px; // Space for scrollbar
-  margin-right: -8px; // Compensate for padding
+  min-height: 0;
+  max-height: 100%;
+  padding-right: 4px;
+  margin-right: -4px;
 
   // Custom scrollbar styling
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-track {
@@ -187,7 +248,7 @@
 
   &::-webkit-scrollbar-thumb {
     background: var(--wh-neutral-30);
-    border-radius: 3px;
+    border-radius: 2px;
 
     &:hover {
       background: var(--wh-neutral-40);
@@ -203,34 +264,231 @@
   width: 100%;
 
   h2 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
     color: var(--text);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     letter-spacing: -0.02em;
 
     @media (max-width: 768px) {
-      font-size: 20px;
+      font-size: 18px;
     }
   }
 
   .step-description {
     color: var(--subtext);
-    font-size: 14px;
-    margin-bottom: 32px;
+    font-size: 13px;
+    margin-bottom: 16px;
+
+    @media (max-width: 768px) {
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
   }
 }
 
 // ===========================
 // Step 1: Test Selection
 // ===========================
+
+// Test Search Autocomplete
+.test-search-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.test-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--wh-steel-40);
+    pointer-events: none;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    transition: color 0.2s ease;
+  }
+}
+
+.test-search-input {
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid var(--wh-neutral-30);
+  border-radius: 10px;
+  background: var(--wh-white);
+  color: var(--text);
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: var(--wh-steel-40);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--wh-blue-50);
+    box-shadow: 0 0 0 3px rgba(15, 130, 230, 0.1);
+  }
+
+  &:focus ~ .search-icon,
+  &:focus + .search-icon {
+    color: var(--wh-blue-50);
+  }
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  background: var(--wh-neutral-30);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: var(--wh-white);
+  }
+
+  &:hover {
+    background: var(--wh-steel-50);
+  }
+}
+
+.test-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--wh-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 100;
+  max-height: 320px;
+  overflow-y: auto;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--wh-neutral-30);
+    border-radius: 3px;
+  }
+}
+
+.autocomplete-results {
+  padding: 8px 0;
+}
+
+.autocomplete-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &.highlighted {
+    background: var(--wh-neutral-5);
+  }
+
+  .result-icon {
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .result-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .result-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+
+    ::ng-deep mark {
+      background: var(--wh-yellow-10);
+      color: var(--text);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+  }
+
+  .result-description {
+    font-size: 12px;
+    color: var(--subtext);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .result-meta {
+    flex-shrink: 0;
+  }
+
+  .result-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wh-green-50);
+  }
+}
+
+.no-results-state {
+  padding: 24px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--wh-neutral-40);
+  }
+
+  span {
+    font-size: 14px;
+    color: var(--subtext);
+  }
+}
+
 .tests-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 
@@ -238,8 +496,8 @@
   position: relative;
   background: var(--wh-white);
   border: 1px solid var(--wh-neutral-20);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -250,30 +508,30 @@
   &.selected {
     border-color: var(--wh-blue-50);
     border-width: 2px;
-    padding: 19px; // Compensate for border width
+    padding: 13px;
   }
 
   .test-icon {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
 
     mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
   }
 
   .test-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .test-description {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--subtext);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .test-meta {
@@ -285,18 +543,18 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--subtext);
 
       mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
       }
     }
 
     .test-price {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--wh-green-50);
     }
@@ -304,10 +562,10 @@
 
   .selected-check {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 20px;
-    height: 20px;
+    top: 10px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--wh-blue-50);
     display: flex;
@@ -316,9 +574,9 @@
 
     mat-icon {
       color: white;
-      font-size: 12px;
-      width: 12px;
-      height: 12px;
+      font-size: 11px;
+      width: 11px;
+      height: 11px;
     }
   }
 }
@@ -1047,14 +1305,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-top: 16px;
-  padding-top: 16px;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--wh-neutral-20);
-  flex-shrink: 0; // Prevent from shrinking
+  flex-shrink: 0;
 
   @media (max-width: 480px) {
     flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
 
     .btn {
       width: 100%;
@@ -1066,7 +1327,7 @@
   }
 
   .btn {
-    padding: 12px 24px;
+    padding: 10px 20px;
 
     mat-icon {
       font-size: 18px;
