@@ -6,7 +6,8 @@
       "WebSearch",
       "Bash(npm run build:*)",
       "WebFetch(domain:www.better-auth.com)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

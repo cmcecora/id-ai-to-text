@@ -11,9 +11,83 @@
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+.main-search-view {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+// ===========================
+// Search Row with Talk Button
+// ===========================
+.search-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+// ===========================
+// Talk to Assistant Button
+// ===========================
+.talk-assistant-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--wh-purple-50) 0%, var(--wh-blue-50) 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+  height: 52px; // Match the search input height
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+    height: auto;
+  }
+}
+
+// ===========================
+// Assistant View
+// ===========================
+.assistant-view {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 // ===========================
@@ -49,8 +123,8 @@
 // ===========================
 .search-container {
   position: relative;
+  flex: 1;
   max-width: 600px;
-  margin: 0 auto;
 }
 
 .search-input-wrapper {

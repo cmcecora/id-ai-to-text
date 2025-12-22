@@ -1,6 +1,6 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
-import { trigger, style, animate, transition } from '@angular/animations';
+import { trigger, style, animate, transition, state, query, group } from '@angular/animations';
 
 export interface MedicalTest {
   id: string;
@@ -36,6 +36,20 @@ interface RecentSearch {
         style({ opacity: 0 }),
         animate('300ms ease-out', style({ opacity: 1 }))
       ])
+    ]),
+    trigger('fadeOutUp', [
+      transition(':leave', [
+        animate('400ms ease-in', style({ opacity: 0, transform: 'translateY(-30px)' }))
+      ])
+    ]),
+    trigger('slideInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(50px)' }),
+        animate('500ms 100ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('400ms ease-in', style({ opacity: 0, transform: 'translateY(50px)' }))
+      ])
     ])
   ]
 })
@@ -46,6 +60,7 @@ export class TestSearchComponent implements OnInit {
   isDropdownOpen = false;
   isLoading = false;
   highlightedIndex = -1;
+  showAssistant = false;
 
   // Multi-select: Array of selected tests
   selectedTests: MedicalTest[] = [];
@@ -240,6 +255,15 @@ export class TestSearchComponent implements OnInit {
 
   private escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  openAssistant(): void {
+    this.isDropdownOpen = false;
+    this.showAssistant = true;
+  }
+
+  closeAssistant(): void {
+    this.showAssistant = false;
   }
 
   getCategoryClass(category: string): string {

@@ -1,0 +1,149 @@
+<div class="vapi-assistant" @fadeSlideIn>
+  <!-- Header -->
+  <div class="assistant-header">
+    <div class="header-left">
+      <div class="assistant-avatar" [class.active]="isCallActive" [class.speaking]="isSpeaking">
+        <mat-icon>support_agent</mat-icon>
+        <div class="pulse-ring" *ngIf="isSpeaking"></div>
+      </div>
+      <div class="header-info">
+        <h2>Medical Booking Assistant</h2>
+        <span class="status-text" [class.active]="isCallActive">{{ statusText }}</span>
+      </div>
+    </div>
+    <button class="close-btn" (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="assistant-content">
+    <!-- Left: Chat Interface -->
+    <div class="chat-panel">
+      <div class="messages-container" #messagesContainer>
+        <div
+          *ngFor="let message of messages"
+          class="message"
+          [ngClass]="'message-' + message.role"
+          @messageAnimation
+        >
+          <div class="message-avatar" *ngIf="message.role === 'assistant'">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          <div class="message-bubble">
+            <p>{{ message.content }}</p>
+            <span class="message-time">{{ message.timestamp | date:'shortTime' }}</span>
+          </div>
+          <div class="message-avatar user" *ngIf="message.role === 'user'">
+            <mat-icon>person</mat-icon>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="message message-assistant" *ngIf="isSpeaking">
+          <div class="message-avatar">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          <div class="message-bubble typing">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Call Controls -->
+      <div class="call-controls">
+        <div class="voice-indicator" [class.active]="isListening">
+          <div class="voice-wave" *ngIf="isListening">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <span class="indicator-text" *ngIf="!isListening && !isSpeaking && isCallActive">
+            Say something...
+          </span>
+        </div>
+
+        <button
+          class="call-btn"
+          [class.active]="isCallActive"
+          [class.connecting]="isConnecting"
+          [disabled]="isConnecting"
+          (click)="toggleCall()"
+        >
+          <mat-icon *ngIf="!isCallActive && !isConnecting">mic</mat-icon>
+          <mat-icon *ngIf="isCallActive">call_end</mat-icon>
+          <mat-icon *ngIf="isConnecting">sync</mat-icon>
+          <span>{{ callButtonText }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Booking Form -->
+    <div class="form-panel">
+      <div class="form-header">
+        <h3>Booking Information</h3>
+        <div class="form-actions" *ngIf="hasFormData()">
+          <button
+            class="edit-btn"
+            *ngIf="!isEditing"
+            (click)="toggleEdit()"
+          >
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          <button
+            class="save-btn"
+            *ngIf="isEditing"
+            (click)="saveChanges()"
+          >
+            <mat-icon>check</mat-icon>
+            Save
+          </button>
+        </div>
+      </div>
+
+      <div class="form-content" *ngIf="hasFormData(); else emptyForm">
+        <div class="form-fields">
+          <div
+            *ngFor="let field of getFilledFields()"
+            class="form-field"
+            [class.editing]="isEditing"
+          >
+            <label>{{ field.label }}</label>
+            <input
+              *ngIf="isEditing"
+              [formControl]="getFormControl(field.key)"
+              class="field-input"
+            />
+            <span *ngIf="!isEditing" class="field-value">{{ field.value }}</span>
+          </div>
+        </div>
+
+        <button
+          class="proceed-btn"
+          *ngIf="!isEditing && hasFormData()"
+          (click)="proceedToBooking()"
+        >
+          <span>Continue to Booking</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <ng-template #emptyForm>
+        <div class="empty-form">
+          <div class="empty-icon">
+            <mat-icon>description</mat-icon>
+          </div>
+          <h4>No information yet</h4>
+          <p>Start speaking with the assistant to fill in your booking details. The form will automatically update as you provide information.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

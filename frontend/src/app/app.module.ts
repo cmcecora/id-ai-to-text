@@ -29,6 +29,7 @@ import { MedicalBookingComponent } from './medical-booking/medical-booking.compo
 import { TestSearchComponent } from './test-search/test-search.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
+import { VapiAssistantComponent } from './components/vapi-assistant/vapi-assistant.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import { SignupComponent } from './signup/signup.component';
     MatNativeDateModule,
     MatCheckboxModule,
     MatMenuModule,
-    AppRoutingModule
+    AppRoutingModule,
+    VapiAssistantComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

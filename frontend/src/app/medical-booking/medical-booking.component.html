@@ -9,7 +9,11 @@
     <!-- Progress Steps -->
     <div class="progress-steps">
       <!-- Step 1 -->
-      <div class="step-item" [class.active]="currentStep >= 1" [class.clickable]="currentStep >= 1" (click)="goToStep(1)">
+      <div class="step-item" 
+           [class.active]="currentStep >= 1" 
+           [class.completed]="currentStep > 1"
+           [class.clickable]="currentStep >= 1" 
+           (click)="goToStep(1)">
         <div class="step-circle">
           <span *ngIf="currentStep <= 1">1</span>
           <mat-icon *ngIf="currentStep > 1">check</mat-icon>
@@ -20,7 +24,11 @@
       <div class="step-line" [class.active]="currentStep >= 2"></div>
 
       <!-- Step 2 -->
-      <div class="step-item" [class.active]="currentStep >= 2" [class.clickable]="currentStep >= 2" (click)="goToStep(2)">
+      <div class="step-item" 
+           [class.active]="currentStep >= 2" 
+           [class.completed]="currentStep > 2"
+           [class.clickable]="currentStep >= 2" 
+           (click)="goToStep(2)">
         <div class="step-circle">
           <span *ngIf="currentStep <= 2">2</span>
           <mat-icon *ngIf="currentStep > 2">check</mat-icon>
@@ -31,7 +39,11 @@
       <div class="step-line" [class.active]="currentStep >= 3"></div>
 
       <!-- Step 3 (NEW - Upload ID) -->
-      <div class="step-item" [class.active]="currentStep >= 3" [class.clickable]="currentStep >= 3" (click)="goToStep(3)">
+      <div class="step-item" 
+           [class.active]="currentStep >= 3" 
+           [class.completed]="currentStep > 3"
+           [class.clickable]="currentStep >= 3" 
+           (click)="goToStep(3)">
         <div class="step-circle">
           <span *ngIf="currentStep <= 3">3</span>
           <mat-icon *ngIf="currentStep > 3">check</mat-icon>
@@ -42,7 +54,11 @@
       <div class="step-line" [class.active]="currentStep >= 4"></div>
 
       <!-- Step 4 (was Step 3) -->
-      <div class="step-item" [class.active]="currentStep >= 4" [class.clickable]="currentStep >= 4" (click)="goToStep(4)">
+      <div class="step-item" 
+           [class.active]="currentStep >= 4" 
+           [class.completed]="currentStep > 4"
+           [class.clickable]="currentStep >= 4" 
+           (click)="goToStep(4)">
         <div class="step-circle">
           <span *ngIf="currentStep <= 4">4</span>
           <mat-icon *ngIf="currentStep > 4">check</mat-icon>
@@ -53,7 +69,11 @@
       <div class="step-line" [class.active]="currentStep >= 5"></div>
 
       <!-- Step 5: Payment -->
-      <div class="step-item" [class.active]="currentStep >= 5" [class.clickable]="currentStep >= 5" (click)="goToStep(5)">
+      <div class="step-item" 
+           [class.active]="currentStep >= 5" 
+           [class.completed]="currentStep > 5"
+           [class.clickable]="currentStep >= 5" 
+           (click)="goToStep(5)">
         <div class="step-circle">
           <span *ngIf="currentStep <= 5">5</span>
           <mat-icon *ngIf="currentStep > 5">check</mat-icon>

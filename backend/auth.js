@@ -24,6 +24,7 @@ const createAuth = () => {
         trustedOrigins: [
             "http://localhost:4200", // Angular dev server
             "http://localhost:4201", // Alternative Angular port
+            "http://localhost:4210", // Alternative Angular port
             "http://localhost:4350", // Alternative frontend port
         ],
     });

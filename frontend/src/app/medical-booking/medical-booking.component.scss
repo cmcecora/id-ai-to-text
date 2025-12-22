@@ -110,7 +110,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
 
     @media (max-width: 600px) {
       width: 32px;
@@ -126,6 +130,7 @@
       color: var(--subtext);
       font-weight: 600;
       font-size: 13px;
+      transition: opacity 0.25s ease, transform 0.25s ease;
 
       @media (max-width: 400px) {
         font-size: 12px;
@@ -137,6 +142,7 @@
       font-size: 16px;
       width: 16px;
       height: 16px;
+      animation: checkmarkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 
       @media (max-width: 400px) {
         font-size: 14px;
@@ -151,7 +157,8 @@
     font-weight: 500;
     font-size: 13px;
     color: var(--subtext);
-    transition: color 0.2s ease;
+    transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                font-weight 0.3s ease;
     white-space: nowrap;
 
     @media (max-width: 768px) {
@@ -162,6 +169,7 @@
   &.active {
     .step-circle {
       background: var(--wh-blue-50);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 
       span {
         color: white;
@@ -170,7 +178,49 @@
 
     .step-label {
       color: var(--wh-blue-50);
+      font-weight: 600;
     }
+  }
+
+  // Completed step styling
+  &.completed {
+    .step-circle {
+      background: var(--wh-blue-50);
+      animation: circlePulse 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step-label {
+      color: var(--wh-blue-50);
+    }
+  }
+}
+
+// Checkmark pop-in animation
+@keyframes checkmarkPop {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-45deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+// Circle pulse animation when completing
+@keyframes circlePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -180,7 +230,8 @@
   background: var(--wh-neutral-20);
   margin: 0 6px;
   flex-shrink: 0;
-  transition: background 0.2s ease;
+  position: relative;
+  overflow: hidden;
 
   @media (max-width: 600px) {
     width: 16px;
@@ -192,8 +243,20 @@
     margin: 0 2px;
   }
 
-  &.active {
+  // Animated fill overlay
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
     background: var(--wh-blue-50);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &.active::after {
+    width: 100%;
   }
 }
 
