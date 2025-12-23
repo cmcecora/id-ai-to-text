@@ -30,8 +30,8 @@ class TranscriptionController {
      * {
      *   "transcript": "Full transcript text...",
      *   "vapiCallId": "optional-call-id",
-     *   "realtimeData": { /* data collected during call */ },
-     *   "realtimeConfidence": { /* confidence scores from real-time */ },
+     *   "realtimeData": { data collected during call },
+     *   "realtimeConfidence": { confidence scores from real-time },
      *   "sourceType": "vapi_call" | "audio_upload" | "text_input"
      * }
      */

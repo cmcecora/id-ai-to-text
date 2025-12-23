@@ -132,6 +132,11 @@ export class VapiService {
   private refinedDataSubject = new Subject<ExtractedDataWithConfidence>();
   public refinedData$ = this.refinedDataSubject.asObservable();
 
+  // Subject to emit when call ends with full transcript and collected data
+  // This triggers Layer 2 AI post-processing
+  private callEndSubject = new Subject<{ transcript: string; collectedData: VoiceBookingData; confidence: { [key: string]: number } }>();
+  public callEnd$ = this.callEndSubject.asObservable();
+
   // Accumulated booking data from the conversation
   private collectedData: VoiceBookingData = {};
 
@@ -179,6 +184,24 @@ export class VapiService {
       this.currentVapiCallId = `vapi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       this.conversationTranscript = [];
       console.log('>>> [VapiService] Call started, ID:', this.currentVapiCallId);
+    });
+
+    // Emit callEnd$ when call ends - triggers Layer 2 AI post-processing
+    this.vapi.on('call-end', () => {
+      const fullTranscript = this.getFullTranscript();
+      console.log('>>> [VapiService] Call ended');
+      console.log('>>> [VapiService] Transcript length:', fullTranscript.length);
+      console.log('>>> [VapiService] Collected data fields:', Object.keys(this.collectedData).length);
+
+      // Emit the call end event with all collected data
+      this.callEndSubject.next({
+        transcript: fullTranscript,
+        collectedData: { ...this.collectedData },
+        confidence: { ...this.collectedConfidence }
+      });
+
+      // Reset pause state
+      this.isPaused = false;
     });
   }
 

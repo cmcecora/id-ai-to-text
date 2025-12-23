@@ -478,8 +478,15 @@ export class ApiService {
    * Validate extracted data against expected patterns
    */
   validateExtractedData(data: Partial<DocumentData>): Observable<ValidationResult> {
+    // Transform data before sending - ensure DOB is in YYYY-MM-DD format
+    const transformedData = { ...data };
+    
+    if (transformedData.dob) {
+      transformedData.dob = this.formatDateForApi(transformedData.dob);
+    }
+    
     return this.http.post<any>(`${this.API_BASE_URL}/transcription/validate`, {
-      data
+      data: transformedData
     }, {
       withCredentials: true
     }).pipe(
@@ -536,6 +543,47 @@ export class ApiService {
         });
       })
     );
+  }
+
+  /**
+   * Format a date value to YYYY-MM-DD format for API calls
+   */
+  private formatDateForApi(value: any): Date | null {
+    if (!value) return null;
+    
+    // If it's already a Date object
+    if (value instanceof Date) {
+      if (isNaN(value.getTime())) return null;
+      // Return the Date object - Angular will serialize it properly
+      // But for string validation, we need to convert to string format
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}` as any;
+    }
+    
+    // If it's a string
+    const dateStr = String(value).trim();
+    
+    // Already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr as any;
+    }
+    
+    // Convert MM/DD/YYYY or M/D/YYYY format to YYYY-MM-DD
+    const slashMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (slashMatch) {
+      let month = slashMatch[1].padStart(2, '0');
+      let day = slashMatch[2].padStart(2, '0');
+      let year = slashMatch[3];
+      if (year.length === 2) {
+        year = parseInt(year) > 50 ? '19' + year : '20' + year;
+      }
+      return `${year}-${month}-${day}` as any;
+    }
+    
+    // If we can't parse it, return the original value and let the backend validate
+    return value;
   }
 }
 

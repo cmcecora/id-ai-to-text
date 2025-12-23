@@ -543,7 +543,9 @@ export class MedicalBookingComponent implements OnInit, OnDestroy {
   // Subscriptions for cleanup
   private refinementSubscription?: Subscription;
   private audioSubscription?: Subscription;
+  private callEndSubscription?: Subscription;
   private isProcessingRefinement = false;
+  private isValidatingForm = false;
 
   constructor(
     private fb: FormBuilder,
@@ -575,6 +577,9 @@ export class MedicalBookingComponent implements OnInit, OnDestroy {
 
     // Subscribe to post-call refinement results from VapiService
     this.setupRefinementSubscription();
+
+    // Subscribe to call-end event to trigger Layer 2 AI post-processing
+    this.setupCallEndSubscription();
 
     // Subscribe to audio upload processing results
     this.setupAudioSubscription();
@@ -608,6 +613,7 @@ export class MedicalBookingComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.refinementSubscription?.unsubscribe();
     this.audioSubscription?.unsubscribe();
+    this.callEndSubscription?.unsubscribe();
   }
 
   /**
@@ -621,6 +627,106 @@ export class MedicalBookingComponent implements OnInit, OnDestroy {
         this.applyRefinedDataToForm(refinedData);
       }
     );
+  }
+
+  /**
+   * Subscribe to call-end event from VapiService.
+   * When a voice call ends, this triggers Layer 2 AI post-processing
+   * to refine the real-time extracted data using the full transcript.
+   */
+  private setupCallEndSubscription(): void {
+    this.callEndSubscription = this.vapiService.callEnd$.subscribe(
+      ({ transcript, collectedData, confidence }) => {
+        console.log('>>> [MedicalBooking] Call ended - triggering AI post-processing');
+        console.log('>>> [MedicalBooking] Transcript length:', transcript.length);
+        console.log('>>> [MedicalBooking] Collected fields:', Object.keys(collectedData).length);
+
+        // Only trigger AI extraction if we have meaningful transcript
+        if (transcript.length > 50) {
+          this.triggerAIPostProcessing(transcript, collectedData, confidence);
+        } else {
+          console.log('>>> [MedicalBooking] Transcript too short, skipping AI processing');
+        }
+      }
+    );
+  }
+
+  /**
+   * Trigger Layer 2 AI post-processing via the backend API.
+   * This sends the full transcript to Claude for thorough extraction,
+   * then merges the results with Layer 1 real-time data.
+   */
+  private triggerAIPostProcessing(
+    transcript: string,
+    layer1Data: BookingFormData,
+    layer1Confidence: { [key: string]: number }
+  ): void {
+    if (this.isProcessingRefinement) {
+      console.log('>>> [MedicalBooking] AI processing already in progress, skipping');
+      return;
+    }
+
+    this.isProcessingRefinement = true;
+
+    this.snackBar.open(
+      'Refining form data with AI...',
+      '',
+      { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' }
+    );
+
+    // Call the backend API for AI extraction
+    this.apiService.extractFromTranscript(transcript, layer1Data as any).subscribe({
+      next: (result) => {
+        if (result.success && result.extractedData) {
+          console.log('>>> [MedicalBooking] AI extraction successful:', result);
+
+          // Smart merge Layer 2 results with Layer 1 data
+          const mergedData = this.smartMergeVoiceData(
+            { ...layer1Data, ...result.extractedData } as BookingFormData,
+            result.confidence || {}
+          );
+
+          // Update voiceAssistantData and pre-fill form
+          this.voiceAssistantData = mergedData;
+          this.prefillFromVoiceData(mergedData);
+          this.updateFieldsNeedingReview();
+          this.cdr.detectChanges();
+
+          // Show success message
+          const lowConfidenceCount = this.fieldsNeedingReview.length;
+          if (lowConfidenceCount > 0) {
+            this.snackBar.open(
+              `AI refined ${Object.keys(result.extractedData).length} fields. ${lowConfidenceCount} may need review.`,
+              'OK',
+              { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' }
+            );
+          } else {
+            this.snackBar.open(
+              'Form data refined with AI analysis.',
+              'OK',
+              { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' }
+            );
+          }
+        } else {
+          console.error('>>> [MedicalBooking] AI extraction failed:', result.error);
+          this.snackBar.open(
+            'AI refinement failed. Please review the form manually.',
+            'OK',
+            { duration: 4000, horizontalPosition: 'center', verticalPosition: 'top' }
+          );
+        }
+        this.isProcessingRefinement = false;
+      },
+      error: (err) => {
+        console.error('>>> [MedicalBooking] AI post-processing error:', err);
+        this.snackBar.open(
+          'AI refinement error. Please review the form manually.',
+          'OK',
+          { duration: 4000, horizontalPosition: 'center', verticalPosition: 'top' }
+        );
+        this.isProcessingRefinement = false;
+      }
+    });
   }
 
   /**
@@ -1247,36 +1353,100 @@ export class MedicalBookingComponent implements OnInit, OnDestroy {
   }
 
   nextStep(): void {
-    if (this.canProceed() && this.currentStep < this.totalSteps && !this.isAnimating) {
-      this.isAnimating = true;
-      this.animationDirection = 'forward';
-      this.currentStep++;
-      this.scrollToTop();
-
-      // Pre-fill patient form when entering Step 4
+    if (this.canProceed() && this.currentStep < this.totalSteps && !this.isAnimating && !this.isValidatingForm) {
+      // Validate form with server when leaving step 4 (Patient Details)
       if (this.currentStep === 4) {
-        // Pre-fill from OCR data if available
-        if (this.ocrData && !this.uploadSkipped) {
-          this.prefillPatientForm();
-        }
-        // Auto-fill email from logged-in user
-        this.prefillEmailFromUser();
-        // Focus on phone field after a brief delay for DOM to render
-        setTimeout(() => {
-          this.focusPhoneInput();
-        }, 500);
+        this.validateFormAndProceed();
+        return;
       }
 
-      // Confirm booking when entering Step 6
-      if (this.currentStep === 6) {
-        this.confirmBooking();
-      }
-
-      // Reset isAnimating after animation completes (350ms animation + buffer)
-      setTimeout(() => {
-        this.isAnimating = false;
-      }, 400);
+      this.proceedToNextStep();
     }
+  }
+
+  /**
+   * Validate form data with server before proceeding to next step.
+   * This calls the backend validation endpoint to check for errors.
+   */
+  private validateFormAndProceed(): void {
+    if (this.isValidatingForm) return;
+
+    this.isValidatingForm = true;
+
+    this.snackBar.open(
+      'Validating form data...',
+      '',
+      { duration: 2000, horizontalPosition: 'center', verticalPosition: 'top' }
+    );
+
+    this.apiService.validateExtractedData(this.patientForm.value).subscribe({
+      next: (result) => {
+        this.isValidatingForm = false;
+
+        if (result.valid) {
+          // Validation passed, proceed to next step
+          this.proceedToNextStep();
+        } else {
+          // Show validation errors
+          Object.entries(result.errors).forEach(([field, message]) => {
+            const control = this.patientForm.get(field);
+            if (control) {
+              control.setErrors({ serverError: message });
+              control.markAsTouched();
+            }
+          });
+
+          // Show warning snackbar
+          const errorCount = Object.keys(result.errors).length;
+          this.snackBar.open(
+            `Please fix ${errorCount} validation error${errorCount > 1 ? 's' : ''} before continuing.`,
+            'OK',
+            { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' }
+          );
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isValidatingForm = false;
+        console.error('>>> [MedicalBooking] Server validation error:', err);
+        // If server validation fails, allow proceeding anyway (client validation passed)
+        this.proceedToNextStep();
+      }
+    });
+  }
+
+  /**
+   * Actually proceed to the next step (after validation passes or is skipped).
+   */
+  private proceedToNextStep(): void {
+    this.isAnimating = true;
+    this.animationDirection = 'forward';
+    this.currentStep++;
+    this.scrollToTop();
+
+    // Pre-fill patient form when entering Step 4
+    if (this.currentStep === 4) {
+      // Pre-fill from OCR data if available
+      if (this.ocrData && !this.uploadSkipped) {
+        this.prefillPatientForm();
+      }
+      // Auto-fill email from logged-in user
+      this.prefillEmailFromUser();
+      // Focus on phone field after a brief delay for DOM to render
+      setTimeout(() => {
+        this.focusPhoneInput();
+      }, 500);
+    }
+
+    // Confirm booking when entering Step 6
+    if (this.currentStep === 6) {
+      this.confirmBooking();
+    }
+
+    // Reset isAnimating after animation completes (350ms animation + buffer)
+    setTimeout(() => {
+      this.isAnimating = false;
+    }, 400);
   }
 
   previousStep(): void {

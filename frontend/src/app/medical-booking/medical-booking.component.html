@@ -865,15 +865,23 @@
                 <mat-icon matPrefix>email</mat-icon>
                 <mat-error *ngIf="patientForm.get('email')?.hasError('required')">Email is required</mat-error>
                 <mat-error *ngIf="patientForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
+                <mat-error *ngIf="patientForm.get('email')?.hasError('serverError')">{{ patientForm.get('email')?.errors?.['serverError'] }}</mat-error>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Phone Number</mat-label>
-                <input matInput #phoneInput formControlName="phone" type="tel" inputmode="tel" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event)" autocomplete="tel" name="phone">
-                <mat-icon matPrefix>phone</mat-icon>
-                <mat-hint>Optional</mat-hint>
-                <mat-error *ngIf="patientForm.get('phone')?.hasError('pattern')">Format: (555) 123-4567</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('phone')">
+                <mat-form-field appearance="outline">
+                  <mat-label>Phone Number</mat-label>
+                  <input matInput #phoneInput formControlName="phone" type="tel" inputmode="tel" placeholder="(555) 123-4567" (input)="formatPhoneNumber($event); markFieldAsUserEdited('phone')" autocomplete="tel" name="phone">
+                  <mat-icon matPrefix>phone</mat-icon>
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('phone')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-hint>Optional</mat-hint>
+                  <mat-error *ngIf="patientForm.get('phone')?.hasError('pattern')">Format: (555) 123-4567</mat-error>
+                  <mat-error *ngIf="patientForm.get('phone')?.hasError('serverError')">{{ patientForm.get('phone')?.errors?.['serverError'] }}</mat-error>
+                </mat-form-field>
+                <span class="confidence-badge" *ngIf="getFieldConfidence('phone') > 0 && !fieldNeedsReview('phone')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -888,6 +896,7 @@
                   <mat-icon matSuffix *ngIf="fieldNeedsReview('firstName')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
                   <mat-error *ngIf="patientForm.get('firstName')?.hasError('required')">First name is required</mat-error>
                   <mat-error *ngIf="patientForm.get('firstName')?.hasError('minlength')">Minimum 2 characters</mat-error>
+                  <mat-error *ngIf="patientForm.get('firstName')?.hasError('serverError')">{{ patientForm.get('firstName')?.errors?.['serverError'] }}</mat-error>
                 </mat-form-field>
                 <span class="confidence-badge" *ngIf="getFieldConfidence('firstName') > 0 && !fieldNeedsReview('firstName')">
                   <mat-icon>check_circle</mat-icon>
@@ -901,6 +910,7 @@
                   <mat-icon matSuffix *ngIf="fieldNeedsReview('lastName')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
                   <mat-error *ngIf="patientForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
                   <mat-error *ngIf="patientForm.get('lastName')?.hasError('minlength')">Minimum 2 characters</mat-error>
+                  <mat-error *ngIf="patientForm.get('lastName')?.hasError('serverError')">{{ patientForm.get('lastName')?.errors?.['serverError'] }}</mat-error>
                 </mat-form-field>
                 <span class="confidence-badge" *ngIf="getFieldConfidence('lastName') > 0 && !fieldNeedsReview('lastName')">
                   <mat-icon>check_circle</mat-icon>
@@ -916,6 +926,7 @@
                   <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
                   <mat-datepicker #dobPicker></mat-datepicker>
                   <mat-error *ngIf="patientForm.get('dob')?.hasError('required')">Date of birth is required</mat-error>
+                  <mat-error *ngIf="patientForm.get('dob')?.hasError('serverError')">{{ patientForm.get('dob')?.errors?.['serverError'] }}</mat-error>
                 </mat-form-field>
                 <mat-icon class="review-icon field-warning" *ngIf="fieldNeedsReview('dob')" matTooltip="Low confidence - please verify">warning</mat-icon>
               </div>
@@ -929,6 +940,7 @@
                     <mat-option value="F">Female</mat-option>
                   </mat-select>
                   <mat-error *ngIf="patientForm.get('sex')?.hasError('required')">Sex is required</mat-error>
+                  <mat-error *ngIf="patientForm.get('sex')?.hasError('serverError')">{{ patientForm.get('sex')?.errors?.['serverError'] }}</mat-error>
                 </mat-form-field>
                 <mat-icon class="review-icon field-warning" *ngIf="fieldNeedsReview('sex')" matTooltip="Low confidence - please verify">warning</mat-icon>
               </div>
@@ -941,6 +953,7 @@
                   <input matInput formControlName="addressStreet" placeholder="Enter your street address" autocomplete="street-address" name="addressStreet" (input)="markFieldAsUserEdited('addressStreet')">
                   <mat-icon matSuffix *ngIf="fieldNeedsReview('addressStreet')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
                   <mat-error *ngIf="patientForm.get('addressStreet')?.hasError('required')">Address is required</mat-error>
+                  <mat-error *ngIf="patientForm.get('addressStreet')?.hasError('serverError')">{{ patientForm.get('addressStreet')?.errors?.['serverError'] }}</mat-error>
                 </mat-form-field>
               </div>
             </div>
@@ -979,25 +992,37 @@
           <div class="form-section">
             <h3 class="section-title">Insurance Information <span class="optional">(Optional)</span></h3>
             <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Insurance Provider</mat-label>
-                <mat-select formControlName="insuranceProvider">
-                  <mat-option value="">Select provider</mat-option>
-                  <mat-option value="aetna">Aetna</mat-option>
-                  <mat-option value="bluecross">Blue Cross Blue Shield</mat-option>
-                  <mat-option value="cigna">Cigna</mat-option>
-                  <mat-option value="united">United Healthcare</mat-option>
-                  <mat-option value="humana">Humana</mat-option>
-                  <mat-option value="kaiser">Kaiser Permanente</mat-option>
-                  <mat-option value="other">Other</mat-option>
-                  <mat-option value="self">Self Pay</mat-option>
-                </mat-select>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('insuranceProvider')">
+                <mat-form-field appearance="outline">
+                  <mat-label>Insurance Provider</mat-label>
+                  <mat-select formControlName="insuranceProvider" (selectionChange)="markFieldAsUserEdited('insuranceProvider')">
+                    <mat-option value="">Select provider</mat-option>
+                    <mat-option value="aetna">Aetna</mat-option>
+                    <mat-option value="bluecross">Blue Cross Blue Shield</mat-option>
+                    <mat-option value="cigna">Cigna</mat-option>
+                    <mat-option value="united">United Healthcare</mat-option>
+                    <mat-option value="humana">Humana</mat-option>
+                    <mat-option value="kaiser">Kaiser Permanente</mat-option>
+                    <mat-option value="other">Other</mat-option>
+                    <mat-option value="self">Self Pay</mat-option>
+                  </mat-select>
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('insuranceProvider')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                </mat-form-field>
+                <span class="confidence-badge" *ngIf="getFieldConfidence('insuranceProvider') > 0 && !fieldNeedsReview('insuranceProvider')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </div>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Member ID</mat-label>
-                <input matInput formControlName="memberId" placeholder="Enter member ID">
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('insuranceId')">
+                <mat-form-field appearance="outline">
+                  <mat-label>Member ID</mat-label>
+                  <input matInput formControlName="memberId" placeholder="Enter member ID" (input)="markFieldAsUserEdited('insuranceId')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('insuranceId')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                </mat-form-field>
+                <span class="confidence-badge" *ngIf="getFieldConfidence('insuranceId') > 0 && !fieldNeedsReview('insuranceId')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </div>
             </div>
           </div>
         </form>
