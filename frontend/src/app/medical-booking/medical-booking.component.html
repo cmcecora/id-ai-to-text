@@ -1,19 +1,10 @@
 <div class="booking-page">
   <div class="booking-container">
-    <!-- Header -->
+    <!-- Booking Header -->
     <div class="booking-header">
       <h1><a routerLink="/">Book Your Medical Test</a></h1>
       <p class="header-subtitle">Schedule your appointment in just a few simple steps</p>
       
-      <!-- Voice Assistant Button -->
-      <button 
-        class="talk-assistant-btn"
-        (click)="openVoiceAssistant()"
-        title="Use Voice Assistant to fill out the form"
-      >
-        <mat-icon>support_agent</mat-icon>
-        <span>Use Voice Assistant</span>
-      </button>
     </div>
 
     <div class="booking-main-content" *ngIf="!showVoiceAssistant">
@@ -814,6 +805,19 @@
           <span>Some fields have been pre-filled from your ID. Please verify the information.</span>
         </div>
 
+        <!-- Voice data notice with confidence warning -->
+        <div *ngIf="voiceAssistantData && fieldsNeedingReview.length > 0" class="prefill-notice voice-review-notice">
+          <mat-icon>record_voice_over</mat-icon>
+          <span>
+            Voice-filled fields may need review. 
+            <strong>{{fieldsNeedingReview.length}} field(s)</strong> have low confidence and are highlighted.
+          </span>
+        </div>
+        <div *ngIf="voiceAssistantData && fieldsNeedingReview.length === 0" class="prefill-notice voice-success-notice">
+          <mat-icon>check_circle</mat-icon>
+          <span>Fields have been pre-filled from your voice responses with high confidence.</span>
+        </div>
+
         <!-- Appointment Summary -->
         <div class="appointment-summary">
           <div class="summary-item tests-summary" *ngIf="selectedTests.length > 0">
@@ -823,7 +827,7 @@
             <div class="summary-details">
               <p class="summary-title" *ngIf="selectedTests.length === 1">{{selectedTests[0]?.name}}</p>
               <p class="summary-title" *ngIf="selectedTests.length > 1">{{selectedTests.length}} Tests Selected</p>
-              <p class="summary-subtitle">{{shortFormattedDate}} at {{selectedTime}}</p>
+              <p class="summary-subtitle">{{shortFormattedDate || voiceDateText || 'Date coming from voice'}} at {{selectedTime || voiceTimeText || 'Time coming from voice'}}</p>
               <div class="tests-tags" *ngIf="selectedTests.length > 1">
                 <span class="mini-tag" *ngFor="let test of selectedTests">{{test.name}}</span>
               </div>
@@ -834,8 +838,17 @@
               <mat-icon>business</mat-icon>
             </div>
             <div class="summary-details">
-              <p class="summary-title">{{selectedLocation?.name}}</p>
-              <p class="summary-subtitle">{{selectedLocation?.address}}</p>
+              <p class="summary-title">{{selectedLocation?.name || voicePreferredLocationText || 'Preferred location'}}</p>
+              <p class="summary-subtitle">{{selectedLocation?.address || voicePreferredLocationText || selectedLocation?.city}}</p>
+            </div>
+          </div>
+          <div class="summary-item" *ngIf="voiceReasonForTest">
+            <div class="summary-icon icon-container icon-lg icon-green">
+              <mat-icon>chat_bubble</mat-icon>
+            </div>
+            <div class="summary-details">
+              <p class="summary-title">Reason for test</p>
+              <p class="summary-subtitle">{{voiceReasonForTest}}</p>
             </div>
           </div>
         </div>
@@ -868,67 +881,97 @@
           <div class="form-section">
             <h3 class="section-title">Personal Information</h3>
             <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>First Name</mat-label>
-                <input matInput formControlName="firstName" placeholder="Enter your first name" autocomplete="given-name" name="firstName">
-                <mat-error *ngIf="patientForm.get('firstName')?.hasError('required')">First name is required</mat-error>
-                <mat-error *ngIf="patientForm.get('firstName')?.hasError('minlength')">Minimum 2 characters</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('firstName')">
+                <mat-form-field appearance="outline">
+                  <mat-label>First Name</mat-label>
+                  <input matInput formControlName="firstName" placeholder="Enter your first name" autocomplete="given-name" name="firstName" (input)="markFieldAsUserEdited('firstName')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('firstName')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('firstName')?.hasError('required')">First name is required</mat-error>
+                  <mat-error *ngIf="patientForm.get('firstName')?.hasError('minlength')">Minimum 2 characters</mat-error>
+                </mat-form-field>
+                <span class="confidence-badge" *ngIf="getFieldConfidence('firstName') > 0 && !fieldNeedsReview('firstName')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </div>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Last Name</mat-label>
-                <input matInput formControlName="lastName" placeholder="Enter your last name" autocomplete="family-name" name="lastName">
-                <mat-error *ngIf="patientForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
-                <mat-error *ngIf="patientForm.get('lastName')?.hasError('minlength')">Minimum 2 characters</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('lastName')">
+                <mat-form-field appearance="outline">
+                  <mat-label>Last Name</mat-label>
+                  <input matInput formControlName="lastName" placeholder="Enter your last name" autocomplete="family-name" name="lastName" (input)="markFieldAsUserEdited('lastName')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('lastName')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
+                  <mat-error *ngIf="patientForm.get('lastName')?.hasError('minlength')">Minimum 2 characters</mat-error>
+                </mat-form-field>
+                <span class="confidence-badge" *ngIf="getFieldConfidence('lastName') > 0 && !fieldNeedsReview('lastName')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </div>
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="date-field">
-                <mat-label>Date of Birth</mat-label>
-                <input matInput [matDatepicker]="dobPicker" formControlName="dob" placeholder="MM/DD/YYYY" autocomplete="bday" name="dob">
-                <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-                <mat-datepicker #dobPicker></mat-datepicker>
-                <mat-error *ngIf="patientForm.get('dob')?.hasError('required')">Date of birth is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('dob')">
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>Date of Birth</mat-label>
+                  <input matInput [matDatepicker]="dobPicker" formControlName="dob" placeholder="MM/DD/YYYY" autocomplete="bday" name="dob" (input)="markFieldAsUserEdited('dob')">
+                  <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #dobPicker></mat-datepicker>
+                  <mat-error *ngIf="patientForm.get('dob')?.hasError('required')">Date of birth is required</mat-error>
+                </mat-form-field>
+                <mat-icon class="review-icon field-warning" *ngIf="fieldNeedsReview('dob')" matTooltip="Low confidence - please verify">warning</mat-icon>
+              </div>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Sex</mat-label>
-                <mat-select formControlName="sex" name="sex">
-                  <mat-option value="">Select</mat-option>
-                  <mat-option value="M">Male</mat-option>
-                  <mat-option value="F">Female</mat-option>
-                </mat-select>
-                <mat-error *ngIf="patientForm.get('sex')?.hasError('required')">Sex is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('sex')">
+                <mat-form-field appearance="outline">
+                  <mat-label>Sex</mat-label>
+                  <mat-select formControlName="sex" name="sex" (selectionChange)="markFieldAsUserEdited('sex')">
+                    <mat-option value="">Select</mat-option>
+                    <mat-option value="M">Male</mat-option>
+                    <mat-option value="F">Female</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="patientForm.get('sex')?.hasError('required')">Sex is required</mat-error>
+                </mat-form-field>
+                <mat-icon class="review-icon field-warning" *ngIf="fieldNeedsReview('sex')" matTooltip="Low confidence - please verify">warning</mat-icon>
+              </div>
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Street Address</mat-label>
-                <input matInput formControlName="addressStreet" placeholder="Enter your street address" autocomplete="street-address" name="addressStreet">
-                <mat-error *ngIf="patientForm.get('addressStreet')?.hasError('required')">Address is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper full-width" [class.needs-review]="fieldNeedsReview('addressStreet')">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Street Address</mat-label>
+                  <input matInput formControlName="addressStreet" placeholder="Enter your street address" autocomplete="street-address" name="addressStreet" (input)="markFieldAsUserEdited('addressStreet')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('addressStreet')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('addressStreet')?.hasError('required')">Address is required</mat-error>
+                </mat-form-field>
+              </div>
             </div>
 
             <div class="form-row three-col">
-              <mat-form-field appearance="outline">
-                <mat-label>City</mat-label>
-                <input matInput formControlName="addressCity" placeholder="City" autocomplete="address-level2" name="addressCity">
-                <mat-error *ngIf="patientForm.get('addressCity')?.hasError('required')">City is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('addressCity')">
+                <mat-form-field appearance="outline">
+                  <mat-label>City</mat-label>
+                  <input matInput formControlName="addressCity" placeholder="City" autocomplete="address-level2" name="addressCity" (input)="markFieldAsUserEdited('addressCity')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('addressCity')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('addressCity')?.hasError('required')">City is required</mat-error>
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="state-field">
-                <mat-label>State</mat-label>
-                <input matInput formControlName="addressState" placeholder="State" maxlength="2" autocomplete="address-level1" name="addressState">
-                <mat-error *ngIf="patientForm.get('addressState')?.hasError('required')">State is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('addressState')">
+                <mat-form-field appearance="outline" class="state-field">
+                  <mat-label>State</mat-label>
+                  <input matInput formControlName="addressState" placeholder="State" maxlength="2" autocomplete="address-level1" name="addressState" (input)="markFieldAsUserEdited('addressState')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('addressState')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('addressState')?.hasError('required')">State is required</mat-error>
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="zip-field">
-                <mat-label>ZIP Code</mat-label>
-                <input matInput formControlName="addressZip" placeholder="ZIP" autocomplete="postal-code" name="addressZip">
-                <mat-error *ngIf="patientForm.get('addressZip')?.hasError('required')">ZIP is required</mat-error>
-              </mat-form-field>
+              <div class="field-wrapper" [class.needs-review]="fieldNeedsReview('addressZip')">
+                <mat-form-field appearance="outline" class="zip-field">
+                  <mat-label>ZIP Code</mat-label>
+                  <input matInput formControlName="addressZip" placeholder="ZIP" autocomplete="postal-code" name="addressZip" (input)="markFieldAsUserEdited('addressZip')">
+                  <mat-icon matSuffix *ngIf="fieldNeedsReview('addressZip')" class="review-icon" matTooltip="Low confidence - please verify">warning</mat-icon>
+                  <mat-error *ngIf="patientForm.get('addressZip')?.hasError('required')">ZIP is required</mat-error>
+                </mat-form-field>
+              </div>
             </div>
           </div>
 
@@ -1431,7 +1474,12 @@
     </div>
 
     <!-- VAPI Assistant View -->
-    <div class="assistant-view" *ngIf="showVoiceAssistant" @slideInUp>
+    <div 
+      class="assistant-view" 
+      [style.display]="showVoiceAssistant ? 'block' : 'none'" 
+      style="padding: 20px; background: #ff0000; min-height: 500px;"
+    >
+      <h1 style="color: white; font-size: 40px; margin: 0;">DEBUG: Voice Assistant Container is showing!!!</h1>
       <app-vapi-assistant 
         (closeAssistant)="closeVoiceAssistant()"
         (bookingDataCollected)="onVoiceBookingDataCollected($event)"

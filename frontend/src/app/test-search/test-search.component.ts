@@ -1,6 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { trigger, style, animate, transition, state, query, group } from '@angular/animations';
+import { BookingFormData } from '../components/vapi-assistant/vapi-assistant.component';
 
 export interface MedicalTest {
   id: string;
@@ -273,6 +274,13 @@ export class TestSearchComponent implements OnInit {
 
   closeAssistant(): void {
     this.showAssistant = false;
+  }
+
+  onVoiceBookingDataCollected(data: BookingFormData): void {
+    this.showAssistant = false;
+    this.router.navigate(['/book-test'], {
+      state: { voiceAssistantData: data }
+    });
   }
 
   getCategoryClass(category: string): string {

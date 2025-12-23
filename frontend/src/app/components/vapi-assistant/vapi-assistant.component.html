@@ -107,6 +107,21 @@
           <p class="response-text">{{ response.content }}</p>
         </div>
       </div>
+
+      <div class="response-actions">
+        <p class="response-hint" *ngIf="hasFormData(); else waitingHint">We'll carry these answers into your booking details.</p>
+        <ng-template #waitingHint>
+          <p class="response-hint">Finish the call to use your answers in the booking flow.</p>
+        </ng-template>
+        <button
+          class="continue-btn"
+          (click)="proceedToBooking()"
+          [disabled]="!hasFormData() || isCallActive"
+        >
+          <span>Continue</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
 </div>

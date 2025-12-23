@@ -425,4 +425,143 @@ export class ApiService {
       catchError(this.handleError)
     );
   }
+
+  // =============================================================================
+  // Transcription Extraction Methods (mirrors ID OCR approach for voice data)
+  // =============================================================================
+
+  /**
+   * Extract structured data from a voice call transcript using AI
+   * This mirrors the bulletproof OCR approach for text extraction
+   */
+  extractFromTranscript(
+    transcript: string,
+    existingData?: Partial<DocumentData>
+  ): Observable<TranscriptionExtractionResult> {
+    return this.http.post<any>(`${this.API_BASE_URL}/transcription/extract`, {
+      transcript,
+      existingData
+    }, {
+      withCredentials: true
+    }).pipe(
+      timeout(60000), // 60 second timeout for AI processing
+      map(response => {
+        if (response.success && response.data) {
+          return {
+            success: true,
+            jobId: response.data.job_id,
+            extractedData: response.data.extracted_data,
+            confidence: response.data.confidence,
+            overallConfidence: response.data.overall_confidence
+          };
+        }
+        return {
+          success: false,
+          error: response.error || 'Extraction failed'
+        };
+      }),
+      catchError(error => {
+        console.error('Transcription extraction error:', error);
+        // Return a fallback result instead of throwing
+        return new Observable<TranscriptionExtractionResult>(observer => {
+          observer.next({
+            success: false,
+            error: error.message || 'Failed to extract data from transcript'
+          });
+          observer.complete();
+        });
+      })
+    );
+  }
+
+  /**
+   * Validate extracted data against expected patterns
+   */
+  validateExtractedData(data: Partial<DocumentData>): Observable<ValidationResult> {
+    return this.http.post<any>(`${this.API_BASE_URL}/transcription/validate`, {
+      data
+    }, {
+      withCredentials: true
+    }).pipe(
+      timeout(10000),
+      map(response => {
+        if (response.success && response.data) {
+          return {
+            valid: response.data.valid,
+            errors: response.data.errors || {},
+            warnings: response.data.warnings || {}
+          };
+        }
+        return {
+          valid: false,
+          errors: { general: 'Validation failed' },
+          warnings: {}
+        };
+      }),
+      catchError(error => {
+        console.error('Validation error:', error);
+        return new Observable<ValidationResult>(observer => {
+          observer.next({
+            valid: false,
+            errors: { general: error.message || 'Validation failed' },
+            warnings: {}
+          });
+          observer.complete();
+        });
+      })
+    );
+  }
+
+  /**
+   * Parse an address string into components
+   */
+  parseAddress(address: string): Observable<ParsedAddress> {
+    return this.http.post<any>(`${this.API_BASE_URL}/transcription/parse-address`, {
+      address
+    }, {
+      withCredentials: true
+    }).pipe(
+      timeout(10000),
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return { confidence: 0 };
+      }),
+      catchError(error => {
+        console.error('Address parsing error:', error);
+        return new Observable<ParsedAddress>(observer => {
+          observer.next({ confidence: 0 });
+          observer.complete();
+        });
+      })
+    );
+  }
+}
+
+// =============================================================================
+// Transcription Extraction Interfaces
+// =============================================================================
+
+export interface TranscriptionExtractionResult {
+  success: boolean;
+  jobId?: string;
+  extractedData?: Partial<DocumentData>;
+  confidence?: { [key: string]: number };
+  overallConfidence?: number;
+  error?: string;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: { [key: string]: string };
+  warnings: { [key: string]: string };
+}
+
+export interface ParsedAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  confidence: number;
 }

@@ -214,7 +214,10 @@
 
       <!-- VAPI Assistant View -->
       <div class="assistant-view" *ngIf="showAssistant" @slideInUp>
-        <app-vapi-assistant (closeAssistant)="closeAssistant()"></app-vapi-assistant>
+        <app-vapi-assistant
+          (closeAssistant)="closeAssistant()"
+          (bookingDataCollected)="onVoiceBookingDataCollected($event)"
+        ></app-vapi-assistant>
       </div>
     </div>
   </div>

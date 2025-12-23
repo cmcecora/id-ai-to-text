@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -13,6 +14,8 @@ import {
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService, DocumentData } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
+import { VapiService, ExtractedDataWithConfidence } from '../services/vapi.service';
+import { AudioService, AudioProcessingState } from '../services/audio.service';
 import { BookingFormData } from '../components/vapi-assistant/vapi-assistant.component';
 
 interface MedicalTest {
@@ -201,7 +204,7 @@ interface CalendarDay {
     ])
   ]
 })
-export class MedicalBookingComponent implements OnInit {
+export class MedicalBookingComponent implements OnInit, OnDestroy {
   @ViewChild('testSearchInput') testSearchInputRef!: ElementRef;
   @ViewChild('locationSection') locationSectionRef!: ElementRef;
   @ViewChild('phoneInput') phoneInputRef!: ElementRef;
@@ -524,6 +527,23 @@ export class MedicalBookingComponent implements OnInit {
   // Voice Assistant
   showVoiceAssistant = false;
   voiceAssistantData: BookingFormData | null = null;
+  voiceReasonForTest: string | null = null;
+  voicePreferredLocationText: string | null = null;
+  voiceDateText: string | null = null;
+  voiceTimeText: string | null = null;
+  private voiceNavApplied = false;
+
+  // Field confidence tracking for voice-extracted data
+  fieldConfidence: { [key: string]: number } = {};
+  // Fields that need user review (confidence < 0.7)
+  fieldsNeedingReview: string[] = [];
+  // Track user-edited fields (these override voice data)
+  userEditedFields: Set<string> = new Set();
+
+  // Subscriptions for cleanup
+  private refinementSubscription?: Subscription;
+  private audioSubscription?: Subscription;
+  private isProcessingRefinement = false;
 
   constructor(
     private fb: FormBuilder,
@@ -532,7 +552,9 @@ export class MedicalBookingComponent implements OnInit {
     private apiService: ApiService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    private vapiService: VapiService,
+    private audioService: AudioService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -550,6 +572,12 @@ export class MedicalBookingComponent implements OnInit {
     this.initPatientForm();
     this.initPaymentForm();
     this.selectedLocation = this.locations[0];
+
+    // Subscribe to post-call refinement results from VapiService
+    this.setupRefinementSubscription();
+
+    // Subscribe to audio upload processing results
+    this.setupAudioSubscription();
 
     // Handle pre-selected tests from search page
     this.route.queryParams.subscribe(params => {
@@ -571,7 +599,172 @@ export class MedicalBookingComponent implements OnInit {
           this.animationDirection = 'initial';
         }
       }
+
+      // Also check for voice data passed via navigation state (e.g., from root page assistant)
+      this.applyVoiceDataFromNavigation();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.refinementSubscription?.unsubscribe();
+    this.audioSubscription?.unsubscribe();
+  }
+
+  /**
+   * Subscribe to refined data from post-call processing
+   * This applies Claude API-refined extraction results to the form
+   */
+  private setupRefinementSubscription(): void {
+    this.refinementSubscription = this.vapiService.refinedData$.subscribe(
+      (refinedData: ExtractedDataWithConfidence) => {
+        console.log('>>> [MedicalBooking] Received refined data:', refinedData);
+        this.applyRefinedDataToForm(refinedData);
+      }
+    );
+  }
+
+  /**
+   * Subscribe to audio upload processing state
+   */
+  private setupAudioSubscription(): void {
+    this.audioSubscription = this.audioService.extractedData$.subscribe(
+      (extractedData) => {
+        console.log('>>> [MedicalBooking] Received audio extraction data:', extractedData);
+        // Convert to BookingFormData format and apply
+        const bookingData: BookingFormData = {
+          firstName: extractedData.firstName,
+          lastName: extractedData.lastName,
+          dob: extractedData.dob,
+          sex: extractedData.sex,
+          addressStreet: extractedData.addressStreet,
+          addressCity: extractedData.addressCity,
+          addressState: extractedData.addressState,
+          addressZip: extractedData.addressZip,
+          email: extractedData.email,
+          phone: extractedData.phone,
+          insuranceProvider: extractedData.insuranceProvider,
+          insuranceId: extractedData.memberId,
+          confidence: this.audioService.getState().confidence
+        };
+        this.onVoiceBookingDataCollected(bookingData);
+      }
+    );
+  }
+
+  /**
+   * Apply refined data from post-call processing to the form
+   * Uses smart merge to respect user-edited fields and confidence scores
+   */
+  private applyRefinedDataToForm(refinedData: ExtractedDataWithConfidence): void {
+    if (this.isProcessingRefinement) return;
+    this.isProcessingRefinement = true;
+
+    try {
+      const { data, confidence, overallConfidence } = refinedData;
+
+      // Convert VoiceBookingData to BookingFormData
+      const bookingData: BookingFormData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dob: data.dob,
+        sex: data.sex,
+        address: data.address,
+        email: data.email,
+        phone: data.phone,
+        insuranceProvider: data.insuranceProvider,
+        insuranceId: data.insuranceId,
+        test: data.test,
+        reasons: data.reasons,
+        preferredLocation: data.preferredLocation,
+        preferredDate: data.preferredDate,
+        preferredTime: data.preferredTime,
+        confidence: confidence
+      };
+
+      // Apply via smart merge (respects user edits and confidence)
+      const mergedData = this.smartMergeVoiceData(bookingData, confidence);
+
+      // Update form fields
+      this.prefillFromVoiceData(mergedData);
+
+      // Update fields needing review
+      this.updateFieldsNeedingReview();
+
+      // Show notification if confidence improved
+      const lowConfidenceCount = this.fieldsNeedingReview.length;
+      if (lowConfidenceCount > 0) {
+        this.snackBar.open(
+          `Form refined with AI. ${lowConfidenceCount} field(s) may still need review.`,
+          'OK',
+          { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' }
+        );
+      } else {
+        this.snackBar.open(
+          'Form refined with AI analysis.',
+          'OK',
+          { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' }
+        );
+      }
+
+      console.log('>>> [MedicalBooking] Applied refined data. Overall confidence:', overallConfidence);
+    } finally {
+      this.isProcessingRefinement = false;
+    }
+  }
+
+  /**
+   * Trigger post-call refinement manually
+   * Called when the voice call ends or when user requests refinement
+   */
+  async triggerPostCallRefinement(): Promise<void> {
+    if (this.isProcessingRefinement) {
+      console.log('>>> [MedicalBooking] Refinement already in progress');
+      return;
+    }
+
+    // Check if we should trigger refinement (low confidence)
+    if (!this.vapiService.shouldTriggerRefinement(0.7)) {
+      console.log('>>> [MedicalBooking] Confidence is high, skipping refinement');
+      return;
+    }
+
+    this.snackBar.open(
+      'Refining form data with AI...',
+      '',
+      { duration: 2000, horizontalPosition: 'center', verticalPosition: 'top' }
+    );
+
+    try {
+      const result = await this.vapiService.processPostCallRefinement();
+      if (!result.success) {
+        console.error('>>> [MedicalBooking] Refinement failed:', result.error);
+        this.snackBar.open(
+          'Refinement failed. Please review the form manually.',
+          'OK',
+          { duration: 4000 }
+        );
+      }
+      // Success is handled by the subscription
+    } catch (error) {
+      console.error('>>> [MedicalBooking] Refinement error:', error);
+    }
+  }
+
+  /**
+   * If the user came from the root page assistant, pull the voice data from navigation state
+   * and pre-fill the booking flow.
+   */
+  private applyVoiceDataFromNavigation(): void {
+    if (this.voiceNavApplied) return;
+
+    const navState = (this.router.getCurrentNavigation()?.extras.state || {}) as { voiceAssistantData?: BookingFormData };
+    const historyState = (history.state || {}) as { voiceAssistantData?: BookingFormData };
+    const voiceData = navState.voiceAssistantData || historyState.voiceAssistantData;
+
+    if (voiceData) {
+      this.voiceNavApplied = true;
+      this.onVoiceBookingDataCollected(voiceData);
+    }
   }
 
   private selectTodayIfAvailable(): void {
@@ -1782,7 +1975,11 @@ export class MedicalBookingComponent implements OnInit {
    * Open the voice assistant modal
    */
   openVoiceAssistant(): void {
+    console.log('>>> openVoiceAssistant() called, setting showVoiceAssistant = true');
     this.showVoiceAssistant = true;
+    console.log('>>> showVoiceAssistant is now:', this.showVoiceAssistant);
+    this.cdr.detectChanges();
+    console.log('>>> cdr.detectChanges() called');
   }
 
   /**
@@ -1794,45 +1991,185 @@ export class MedicalBookingComponent implements OnInit {
 
   /**
    * Handle booking data collected from voice assistant
+   * Uses smart merge with confidence scoring to handle incremental updates
    */
-  onVoiceBookingDataCollected(data: BookingFormData): void {
-    console.log('Voice assistant data received:', data);
-    this.voiceAssistantData = data;
+  onVoiceBookingDataCollected(rawData: BookingFormData): void {
+    console.log('Voice assistant data received:', rawData);
+    const data = this.normalizeVoiceData(rawData);
     
-    // Pre-fill the patient form with collected data
-    this.prefillFromVoiceData(data);
+    // Extract confidence scores if available (from VapiService)
+    const confidence = rawData.confidence || {};
     
-    // Handle test selection if provided
-    if (data.test) {
-      this.handleVoiceTestSelection(data.test);
-    }
+    // Smart merge: only update fields where confidence is higher than existing
+    // or where user hasn't manually edited
+    const mergedData = this.smartMergeVoiceData(data, confidence);
     
-    // Handle date/time selection if provided
-    if (data.preferredDate || data.preferredTime) {
-      this.handleVoiceDateTimeSelection(data.preferredDate, data.preferredTime);
-    }
+    this.voiceAssistantData = mergedData;
     
-    // Handle location selection if provided
-    if (data.preferredLocation) {
-      this.handleVoiceLocationSelection(data.preferredLocation);
-    }
+    // Apply and map all captured voice answers into the booking flow
+    this.applyVoiceCapturedData(mergedData);
+
+    // Update fields needing review based on confidence scores
+    this.updateFieldsNeedingReview();
 
     // Close the voice assistant
     this.closeVoiceAssistant();
     
-    // Show success message
-    this.snackBar.open(
-      'Form pre-filled with your voice responses. Please review and complete.',
-      'OK',
-      {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top'
-      }
-    );
+    // Show appropriate message based on confidence
+    const lowConfidenceCount = this.fieldsNeedingReview.length;
+    if (lowConfidenceCount > 0) {
+      this.snackBar.open(
+        `Form pre-filled. ${lowConfidenceCount} field(s) may need review (highlighted).`,
+        'OK',
+        {
+          duration: 6000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: 'warning-snackbar'
+        }
+      );
+    } else {
+      this.snackBar.open(
+        'Form pre-filled with your voice responses. Please review and complete.',
+        'OK',
+        {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        }
+      );
+    }
     
     // Navigate to the appropriate step based on what data was collected
-    this.navigateToRelevantStep(data);
+    this.navigateToRelevantStep(mergedData);
+
+    // Ensure we land on the patient details step with the captured answers
+    if (this.currentStep < 4) {
+      this.currentStep = 4;
+      this.animationDirection = 'forward';
+    }
+
+    // Trigger post-call refinement in background if there are low-confidence fields
+    // This will use Claude API to improve extraction accuracy
+    if (lowConfidenceCount > 0) {
+      setTimeout(() => {
+        this.triggerPostCallRefinement();
+      }, 500); // Small delay to let UI settle
+    }
+  }
+
+  /**
+   * Smart merge voice data with existing form data using confidence scores
+   * 
+   * Rules:
+   * 1. User-edited fields are NEVER overwritten
+   * 2. Higher confidence values win over lower confidence
+   * 3. Non-empty values win over empty values
+   */
+  private smartMergeVoiceData(
+    newData: BookingFormData, 
+    newConfidence: { [key: string]: number }
+  ): BookingFormData {
+    const merged: BookingFormData = { ...newData };
+    const currentFormValue = this.patientForm?.value || {};
+
+    // Map of form fields to BookingFormData fields
+    const fieldMapping: { [formField: string]: keyof BookingFormData } = {
+      'firstName': 'firstName',
+      'lastName': 'lastName',
+      'dob': 'dob',
+      'sex': 'sex',
+      'addressStreet': 'addressStreet',
+      'addressCity': 'addressCity',
+      'addressState': 'addressState',
+      'addressZip': 'addressZip',
+      'email': 'email',
+      'phone': 'phone',
+      'insuranceProvider': 'insuranceProvider',
+      'memberId': 'insuranceId'
+    };
+
+    for (const [formField, dataField] of Object.entries(fieldMapping)) {
+      const existingValue = currentFormValue[formField];
+      const newValue = (newData as any)[dataField];
+      const existingConfidence = this.fieldConfidence[dataField] || 0;
+      const newConf = newConfidence[dataField] || 0.7;
+
+      // Rule 1: Never overwrite user-edited fields
+      if (this.userEditedFields.has(formField)) {
+        console.log(`🔒 [SmartMerge] Preserving user-edited field: ${formField}`);
+        (merged as any)[dataField] = existingValue;
+        continue;
+      }
+
+      // Rule 2: Skip if new value is empty
+      if (newValue === undefined || newValue === null || newValue === '') {
+        continue;
+      }
+
+      // Rule 3: Use new value if existing is empty
+      if (!existingValue || existingValue === '') {
+        (merged as any)[dataField] = newValue;
+        this.fieldConfidence[dataField] = newConf;
+        console.log(`📥 [SmartMerge] Using new value for ${dataField}: "${newValue}" (confidence: ${newConf.toFixed(2)})`);
+        continue;
+      }
+
+      // Rule 4: Compare confidence scores
+      if (newConf > existingConfidence) {
+        (merged as any)[dataField] = newValue;
+        this.fieldConfidence[dataField] = newConf;
+        console.log(`⬆️ [SmartMerge] Upgrading ${dataField}: "${existingValue}" -> "${newValue}" (${existingConfidence.toFixed(2)} -> ${newConf.toFixed(2)})`);
+      } else {
+        console.log(`⬇️ [SmartMerge] Keeping existing ${dataField}: "${existingValue}" (confidence: ${existingConfidence.toFixed(2)} >= ${newConf.toFixed(2)})`);
+      }
+    }
+
+    return merged;
+  }
+
+  /**
+   * Update the list of fields that need user review (low confidence)
+   */
+  private updateFieldsNeedingReview(): void {
+    const CONFIDENCE_THRESHOLD = 0.7;
+    this.fieldsNeedingReview = [];
+
+    for (const [field, confidence] of Object.entries(this.fieldConfidence)) {
+      if (confidence < CONFIDENCE_THRESHOLD) {
+        this.fieldsNeedingReview.push(field);
+      }
+    }
+
+    console.log('Fields needing review:', this.fieldsNeedingReview);
+  }
+
+  /**
+   * Check if a field needs review due to low confidence
+   */
+  fieldNeedsReview(fieldName: string): boolean {
+    return this.fieldsNeedingReview.includes(fieldName);
+  }
+
+  /**
+   * Get confidence level for a field (for UI display)
+   */
+  getFieldConfidence(fieldName: string): number {
+    return this.fieldConfidence[fieldName] || 0;
+  }
+
+  /**
+   * Mark a field as user-edited (prevents future voice overwrites)
+   */
+  markFieldAsUserEdited(fieldName: string): void {
+    this.userEditedFields.add(fieldName);
+    // Remove from needs review since user has manually verified
+    const index = this.fieldsNeedingReview.indexOf(fieldName);
+    if (index > -1) {
+      this.fieldsNeedingReview.splice(index, 1);
+    }
+    // Set high confidence for user-edited fields
+    this.fieldConfidence[fieldName] = 1.0;
   }
 
   /**
@@ -1841,6 +2178,13 @@ export class MedicalBookingComponent implements OnInit {
   private prefillFromVoiceData(data: BookingFormData): void {
     const formUpdate: { [key: string]: any } = {};
 
+    if (data.fullName && (!data.firstName || !data.lastName)) {
+      const parts = data.fullName.split(' ').filter(Boolean);
+      if (parts.length >= 2) {
+        formUpdate['firstName'] = parts[0];
+        formUpdate['lastName'] = parts.slice(1).join(' ');
+      }
+    }
     if (data.firstName) formUpdate['firstName'] = data.firstName;
     if (data.lastName) formUpdate['lastName'] = data.lastName;
     if (data.dob) {
@@ -1898,6 +2242,107 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   /**
+   * Normalize and apply all captured voice answers into UI state and forms.
+   */
+  private applyVoiceCapturedData(data: BookingFormData): void {
+    // Reset previous voice-specific helpers
+    this.voicePreferredLocationText = null;
+    this.voiceDateText = null;
+    this.voiceTimeText = null;
+
+    // Keep a copy of the reasons for display/submission
+    this.voiceReasonForTest = data.reasons || null;
+
+    // Pre-fill the patient form with collected data
+    this.prefillFromVoiceData(data);
+    
+    // Handle tests (support multiple names separated by commas/and)
+    if (data.test) {
+      const tests = this.splitVoiceTests(data.test);
+      if (tests.length > 0) {
+        tests.forEach(name => this.addVoiceTestToSelection(name));
+      }
+    }
+    
+    // Handle date/time selection if provided
+    if (data.preferredDate || data.preferredTime) {
+      this.handleVoiceDateTimeSelection(data.preferredDate, data.preferredTime);
+    }
+    
+    // Handle location selection if provided
+    if (data.preferredLocation) {
+      this.handleVoiceLocationSelection(data.preferredLocation);
+    }
+
+    // Move to patient details so the user can verify the mapped answers
+    this.currentStep = Math.max(this.currentStep, 4);
+    this.animationDirection = 'forward';
+  }
+
+  /**
+   * Normalize common voice answers so they map cleanly into the booking form.
+   */
+  private normalizeVoiceData(data: BookingFormData): BookingFormData {
+    const normalized: BookingFormData = { ...data };
+
+    // Full name → first/last when needed
+    if (normalized.fullName && (!normalized.firstName || !normalized.lastName)) {
+      const parts = normalized.fullName.split(' ').filter(Boolean);
+      if (parts.length >= 2) {
+        normalized.firstName = normalized.firstName || parts[0];
+        normalized.lastName = normalized.lastName || parts.slice(1).join(' ');
+      }
+    }
+
+    // Normalize sex to M/F
+    if (normalized.sex) {
+      normalized.sex = this.normalizeSex(normalized.sex);
+    }
+
+    // Location fallback field names
+    if (!normalized.preferredLocation && (normalized as any).location) {
+      normalized.preferredLocation = (normalized as any).location;
+    }
+
+    // If dateTime is provided, try to split it into date/time when missing
+    if (normalized.dateTime) {
+      const parts = normalized.dateTime.split(/(?:at|\s+-\s+|\s+)/i).map(p => p.trim()).filter(Boolean);
+      if (!normalized.preferredDate && parts.length > 0) {
+        normalized.preferredDate = parts[0];
+      }
+      if (!normalized.preferredTime && parts.length > 1) {
+        normalized.preferredTime = parts.slice(1).join(' ');
+      }
+    }
+
+    // Normalize phone number to digits
+    if (normalized.phone) {
+      normalized.phone = this.normalizePhoneNumber(normalized.phone);
+    }
+
+    // Lowercase email
+    if (normalized.email) {
+      normalized.email = normalized.email.trim().toLowerCase();
+    }
+
+    // Normalize insurance carrier
+    if (normalized.insuranceProvider) {
+      normalized.insuranceProvider = this.normalizeInsuranceProvider(normalized.insuranceProvider);
+    }
+
+    // If we only have address string, try to derive parts
+    if (normalized.address && (!normalized.addressStreet || !normalized.addressCity || !normalized.addressState || !normalized.addressZip)) {
+      const parsed = this.parseAddressString(normalized.address);
+      normalized.addressStreet = normalized.addressStreet || parsed.street;
+      normalized.addressCity = normalized.addressCity || parsed.city;
+      normalized.addressState = normalized.addressState || parsed.state;
+      normalized.addressZip = normalized.addressZip || parsed.zip;
+    }
+
+    return normalized;
+  }
+
+  /**
    * Handle test selection from voice input
    */
   private handleVoiceTestSelection(testName: string): void {
@@ -1922,39 +2367,106 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   /**
+   * Split a raw test answer into individual test names.
+   */
+  private splitVoiceTests(raw: string): string[] {
+    if (!raw) return [];
+    return raw
+      .split(/(?:,| and | & )/i)
+      .map(t => t.trim())
+      .filter(Boolean);
+  }
+
+  /**
+   * Add a test from voice input, creating a placeholder if we can't map it.
+   */
+  private addVoiceTestToSelection(testName: string): void {
+    const lowerName = testName.toLowerCase();
+    const existing = this.selectedTests.find(t => t.name.toLowerCase() === lowerName);
+    if (existing) return;
+
+    const match = this.medicalTests.find(test =>
+      test.name.toLowerCase() === lowerName ||
+      test.name.toLowerCase().includes(lowerName) ||
+      lowerName.includes(test.name.toLowerCase()) ||
+      test.description.toLowerCase().includes(lowerName)
+    );
+
+    if (match) {
+      if (!this.selectedTests.find(t => t.id === match.id)) {
+        this.selectedTests.push(match);
+      }
+      return;
+    }
+
+    // No match found: create a placeholder test entry so the user's intent is preserved
+    const placeholderId = `voice-${this.slugify(testName)}`;
+    if (!this.selectedTests.find(t => t.id === placeholderId)) {
+      this.selectedTests.push({
+        id: placeholderId,
+        name: testName,
+        description: 'Provided during voice call',
+        category: 'blood',
+        resultsTime: '',
+        price: 0,
+        icon: 'support_agent'
+      });
+    }
+  }
+
+  /**
    * Handle date/time selection from voice input
    */
   private handleVoiceDateTimeSelection(date?: string, time?: string): void {
     if (date) {
-      const parsedDate = this.parseDateString(date);
+      const parsedDate = this.parseNaturalDateString(date) || this.parseDateString(date);
       if (parsedDate) {
-        // Check if the date is available
-        const dayOfWeek = parsedDate.getDay();
+        // Check if the date is available; if not, choose the next available weekday but keep the user's text
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        if (parsedDate >= today && dayOfWeek !== 0 && dayOfWeek !== 6) {
-          this.selectedDate = parsedDate;
-          this.generateCalendar();
-        }
+
+        const candidate = parsedDate < today ? today : parsedDate;
+        const usableDate = this.getNextAvailableWeekday(candidate);
+        this.selectedDate = usableDate;
+        this.voiceDateText = date;
+        this.generateCalendar();
+      } else {
+        this.voiceDateText = date;
       }
     }
     
     if (time) {
+      const normalizedTime = time.toLowerCase().trim();
+      this.voiceTimeText = time;
+
       // Try to match with available time slots
-      const normalizedTime = time.toLowerCase().replace(/\s/g, '');
-      
       const allSlots = [...this.morningSlots, ...this.afternoonSlots, ...this.eveningSlots];
       const matchingSlot = allSlots.find(slot => {
         const slotNormalized = slot.time.toLowerCase().replace(/\s/g, '');
+        const requestedNormalized = normalizedTime.replace(/\s/g, '');
         return slot.available && (
-          slotNormalized === normalizedTime ||
-          slot.time.toLowerCase().includes(time.toLowerCase())
+          slotNormalized === requestedNormalized ||
+          slot.time.toLowerCase().includes(normalizedTime)
         );
       });
       
       if (matchingSlot) {
         this.selectedTime = matchingSlot.time;
+      } else {
+        // Fallback: pick the first available slot in the morning/afternoon/evening
+        if (normalizedTime.includes('morning')) {
+          const slot = this.morningSlots.find(s => s.available);
+          if (slot) this.selectedTime = slot.time;
+        } else if (normalizedTime.includes('afternoon')) {
+          const slot = this.afternoonSlots.find(s => s.available);
+          if (slot) this.selectedTime = slot.time;
+        } else if (normalizedTime.includes('evening')) {
+          const slot = this.eveningSlots.find(s => s.available);
+          if (slot) this.selectedTime = slot.time;
+        } else {
+          const firstAvailable = allSlots.find(s => s.available);
+          if (firstAvailable) this.selectedTime = firstAvailable.time;
+        }
       }
     }
   }
@@ -1964,11 +2476,18 @@ export class MedicalBookingComponent implements OnInit {
    */
   private handleVoiceLocationSelection(locationName: string): void {
     const lowerLocationName = locationName.toLowerCase();
+    this.voicePreferredLocationText = locationName;
     
-    const matchingLocation = this.locations.find(loc =>
-      loc.name.toLowerCase().includes(lowerLocationName) ||
-      lowerLocationName.includes(loc.name.toLowerCase())
-    );
+    const matchingLocation = this.locations.find(loc => {
+      const cityLower = loc.city.toLowerCase();
+      const addressLower = loc.address.toLowerCase();
+      return loc.name.toLowerCase().includes(lowerLocationName) ||
+             lowerLocationName.includes(loc.name.toLowerCase()) ||
+             cityLower.includes(lowerLocationName) ||
+             addressLower.includes(lowerLocationName) ||
+             lowerLocationName.includes(cityLower) ||
+             lowerLocationName.includes(addressLower);
+    });
     
     if (matchingLocation) {
       this.selectedLocation = matchingLocation;
@@ -2005,10 +2524,118 @@ export class MedicalBookingComponent implements OnInit {
   }
 
   /**
+   * Normalize sex answers into a single-letter code.
+   */
+  private normalizeSex(sex: string): string {
+    const lower = sex.toLowerCase().trim();
+    if (['male', 'm', 'man'].includes(lower)) return 'M';
+    if (['female', 'f', 'woman'].includes(lower)) return 'F';
+    return sex;
+  }
+
+  /**
+   * Normalize phone numbers to digits-only (returns raw digits; formatting applied later).
+   */
+  private normalizePhoneNumber(phone: string): string {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 11 && digits.startsWith('1')) {
+      return digits.slice(1);
+    }
+    if (digits.length >= 10) {
+      return digits.slice(0, 10);
+    }
+    return digits || phone;
+  }
+
+  /**
+   * Map common carrier names to the select options we support.
+   */
+  private normalizeInsuranceProvider(provider: string): string {
+    const normalized = provider.toLowerCase();
+    const map: { [key: string]: string } = {
+      'aetna': 'aetna',
+      'blue cross': 'bluecross',
+      'blue cross blue shield': 'bluecross',
+      'bcbs': 'bluecross',
+      'cigna': 'cigna',
+      'united': 'united',
+      'united healthcare': 'united',
+      'unitedhealthcare': 'united',
+      'humana': 'humana',
+      'kaiser': 'kaiser',
+      'kaiser permanente': 'kaiser',
+      'self': 'self'
+    };
+
+    const matchKey = Object.keys(map).find(key => normalized.includes(key));
+    return matchKey ? map[matchKey] : provider;
+  }
+
+  /**
+   * Parse natural language dates like "next Monday", "tomorrow", "today".
+   */
+  private parseNaturalDateString(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    const lower = dateStr.toLowerCase();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (lower.includes('today')) {
+      return today;
+    }
+
+    if (lower.includes('tomorrow')) {
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      return tomorrow;
+    }
+
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const nextMatch = lower.match(/next\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/);
+    const thisMatch = lower.match(/this\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/);
+    const dayMatch = nextMatch || thisMatch || lower.match(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
+
+    if (dayMatch && dayMatch[1]) {
+      const targetDay = dayNames.indexOf(dayMatch[1]);
+      const currentDay = today.getDay();
+      let daysAhead = targetDay - currentDay;
+      if (daysAhead <= 0 || nextMatch) {
+        daysAhead += 7;
+      }
+      const result = new Date(today);
+      result.setDate(today.getDate() + daysAhead);
+      return result;
+    }
+
+    return null;
+  }
+
+  /**
+   * Pick the next weekday (Mon-Fri) that is not in the past.
+   */
+  private getNextAvailableWeekday(startDate: Date): Date {
+    const date = new Date(startDate);
+    date.setHours(0, 0, 0, 0);
+    while (date.getDay() === 0 || date.getDay() === 6) {
+      date.setDate(date.getDate() + 1);
+    }
+    return date;
+  }
+
+  /**
+   * Slugify helper for placeholder test IDs.
+   */
+  private slugify(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  /**
    * Parse a date string into a Date object
    */
   private parseDateString(dateStr: string): Date | null {
     if (!dateStr) return null;
+    
+    const cleanedStr = dateStr.replace(/(\d+)(st|nd|rd|th)/gi, '$1');
     
     // Try various date formats
     const formats = [
@@ -2021,7 +2648,7 @@ export class MedicalBookingComponent implements OnInit {
     ];
     
     for (const format of formats) {
-      const match = dateStr.match(format);
+      const match = cleanedStr.match(format);
       if (match) {
         if (format === formats[0]) {
           // MM/DD/YYYY
@@ -2043,7 +2670,7 @@ export class MedicalBookingComponent implements OnInit {
     }
     
     // Try native Date parsing as fallback
-    const parsed = new Date(dateStr);
+    const parsed = new Date(cleanedStr);
     return isNaN(parsed.getTime()) ? null : parsed;
   }
 
@@ -2064,14 +2691,29 @@ export class MedicalBookingComponent implements OnInit {
       working = working.replace(zipMatch[0], '').trim();
     }
 
-    // Extract state (2-letter)
+    // Extract state (2-letter or spelled out)
     const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+    const stateNames: Record<string, string> = {
+      'alabama': 'AL','alaska': 'AK','arizona': 'AZ','arkansas': 'AR','california': 'CA','colorado': 'CO','connecticut': 'CT','delaware': 'DE','florida': 'FL','georgia': 'GA','hawaii': 'HI','idaho': 'ID','illinois': 'IL','indiana': 'IN','iowa': 'IA','kansas': 'KS','kentucky': 'KY','louisiana': 'LA','maine': 'ME','maryland': 'MD','massachusetts': 'MA','michigan': 'MI','minnesota': 'MN','mississippi': 'MS','missouri': 'MO','montana': 'MT','nebraska': 'NE','nevada': 'NV','new hampshire': 'NH','new jersey': 'NJ','new mexico': 'NM','new york': 'NY','north carolina': 'NC','north dakota': 'ND','ohio': 'OH','oklahoma': 'OK','oregon': 'OR','pennsylvania': 'PA','rhode island': 'RI','south carolina': 'SC','south dakota': 'SD','tennessee': 'TN','texas': 'TX','utah': 'UT','vermont': 'VT','virginia': 'VA','washington': 'WA','west virginia': 'WV','wisconsin': 'WI','wyoming': 'WY'
+    };
+
     for (const state of states) {
       const stateRegex = new RegExp(`\\b${state}\\b`, 'i');
       if (stateRegex.test(working)) {
         result.state = state;
         working = working.replace(stateRegex, '').trim();
         break;
+      }
+    }
+
+    if (!result.state) {
+      for (const [name, abbr] of Object.entries(stateNames)) {
+        const stateRegex = new RegExp(`\\b${name}\\b`, 'i');
+        if (stateRegex.test(working)) {
+          result.state = abbr;
+          working = working.replace(stateRegex, '').trim();
+          break;
+        }
       }
     }
 
@@ -2099,8 +2741,9 @@ export class MedicalBookingComponent implements OnInit {
     const digits = phone.replace(/\D/g, '');
     
     // Format as (XXX) XXX-XXXX
-    if (digits.length === 10) {
-      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    if (digits.length >= 10) {
+      const ten = digits.length === 11 && digits.startsWith('1') ? digits.slice(1, 11) : digits.slice(0, 10);
+      return `(${ten.slice(0, 3)}) ${ten.slice(3, 6)}-${ten.slice(6)}`;
     }
     
     return phone;

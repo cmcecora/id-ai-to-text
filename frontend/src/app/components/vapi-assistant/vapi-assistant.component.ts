@@ -41,6 +41,8 @@ export interface BookingFormData {
   email?: string;
   phone?: string;
   hasDoctorOrder?: boolean;
+  // Confidence scores for each field (from voice extraction)
+  confidence?: { [key: string]: number };
 }
 
 @Component({
@@ -844,7 +846,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     const normalized = { ...data };
     const hasParsedParts = normalized.addressStreet || normalized.addressCity || normalized.addressState || normalized.addressZip;
 
-    if (!hasParsedParts) {
+    if (!hasParsedParts && normalized.address) {
       const parsed = this.parseAddress(normalized.address);
       if (parsed.street) normalized.addressStreet = parsed.street;
       if (parsed.city) normalized.addressCity = parsed.city;
@@ -1487,7 +1489,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   hasFormData(): boolean {
-    const values = this.bookingForm.value as Record<string, any>;
+    const values = this.getCollectedData() as Record<string, any>;
     return Object.values(values).some(v => v !== null && v !== undefined && String(v).trim() !== '');
   }
 
@@ -1507,18 +1509,25 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   private emitBookingData(): void {
-    const formData = this.bookingForm.value as BookingFormData;
-    
-    // Clean up the data - remove empty values
+    const mergedData = this.getCollectedData();
     const cleanedData: BookingFormData = {};
-    for (const [key, value] of Object.entries(formData)) {
+
+    // Strip empty values before emitting
+    for (const [key, value] of Object.entries(mergedData)) {
       if (value !== null && value !== undefined && String(value).trim() !== '') {
         (cleanedData as any)[key] = value;
       }
     }
-    
+
     const normalizedData = this.cleanupAddressFields(cleanedData);
-    console.log('Emitting booking data:', normalizedData);
+    
+    // Attach confidence scores from VapiService
+    const confidenceScores = this.vapiService.getCollectedConfidence();
+    if (Object.keys(confidenceScores).length > 0) {
+      normalizedData.confidence = confidenceScores;
+    }
+    
+    console.log('Emitting booking data with confidence:', normalizedData);
     this.bookingDataCollected.emit(normalizedData);
   }
 

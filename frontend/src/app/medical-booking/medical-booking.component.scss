@@ -3962,51 +3962,131 @@
   }
 }
 
-// ===========================
-// Voice Assistant
-// ===========================
-.talk-assistant-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, var(--wh-purple-50) 0%, var(--wh-blue-50) 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
-  margin: 12px auto 0;
-  height: 48px;
-
-  mat-icon {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-    height: auto;
-  }
-}
-
 .assistant-view {
   width: 100%;
   margin-top: 20px;
+}
+
+// ===========================
+// Voice Data Confidence Indicators
+// ===========================
+
+// Voice-specific prefill notices
+.voice-review-notice {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.08) 100%);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  
+  mat-icon {
+    color: #f57c00;
+  }
+  
+  strong {
+    color: #e65100;
+  }
+}
+
+.voice-success-notice {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.08) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  
+  mat-icon {
+    color: #2e7d32;
+  }
+}
+
+// Field wrapper for confidence indicators
+.field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  
+  mat-form-field {
+    flex: 1;
+  }
+  
+  &.full-width {
+    width: 100%;
+  }
+  
+  // Low confidence field highlighting
+  &.needs-review {
+    mat-form-field {
+      ::ng-deep {
+        .mat-mdc-text-field-wrapper {
+          background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 152, 0, 0.04) 100%);
+        }
+        
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: rgba(255, 152, 0, 0.5) !important;
+        }
+        
+        .mdc-floating-label {
+          color: #f57c00;
+        }
+      }
+    }
+  }
+}
+
+// Review warning icon inside fields
+.review-icon {
+  color: #f57c00;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  cursor: help;
+  animation: pulse-warning 2s ease-in-out infinite;
+  
+  &.field-warning {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// Confidence badge (checkmark for high confidence)
+.confidence-badge {
+  position: absolute;
+  right: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  mat-icon {
+    color: #4caf50;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Form row adjustments for field wrappers
+.form-row {
+  .field-wrapper {
+    margin-right: 4px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+  
+  &.three-col {
+    .field-wrapper {
+      flex: 1;
+      min-width: 0;
+    }
+  }
 }

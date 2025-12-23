@@ -11,6 +11,8 @@ const heicConvert = require('heic-convert');
 
 // Import controllers
 const IdUploadController = require('./app/Http/Controllers/IdUploadController');
+const TranscriptionController = require('./app/Http/Controllers/TranscriptionController');
+const AudioUploadController = require('./app/Http/Controllers/AudioUploadController');
 const IdOcrJob = require('./app/Jobs/IdOcrJob');
 
 // Import database connection
@@ -93,8 +95,41 @@ const upload = multer({
   }
 });
 
+// Audio file filter for audio uploads
+const audioFileFilter = (req, file, cb) => {
+  const allowedMimes = [
+    'audio/mpeg',      // mp3
+    'audio/mp3',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/wave',
+    'audio/x-m4a',
+    'audio/m4a',
+    'audio/mp4',
+    'audio/webm',
+    'audio/ogg'
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid audio file type. Supported formats: MP3, WAV, M4A, WebM, OGG'), false);
+  }
+};
+
+// Audio upload configuration
+const audioUpload = multer({
+  storage: storage,
+  fileFilter: audioFileFilter,
+  limits: {
+    fileSize: parseInt(process.env.MAX_AUDIO_SIZE) || 50 * 1024 * 1024 // 50MB for audio
+  }
+});
+
 // Initialize controllers
 const idUploadController = new IdUploadController();
+const transcriptionController = new TranscriptionController();
+const audioUploadController = new AudioUploadController();
 
 // Auth instance (initialized after DB connection)
 let auth = null;
@@ -169,6 +204,75 @@ app.get('/api/id/upload/:jobId',
 app.post('/api/id/documents',
   lazyRequireAuth(),
   idUploadController.saveDocumentData.bind(idUploadController)
+);
+
+// =============================================================================
+// Transcription Extraction Routes (mirrors ID OCR approach for voice data)
+// =============================================================================
+
+// POST /api/transcription/extract - Quick synchronous extraction
+app.post('/api/transcription/extract',
+  lazyRequireAuth(),
+  transcriptionController.extract.bind(transcriptionController)
+);
+
+// POST /api/transcription/process - Full async processing with MongoDB persistence
+app.post('/api/transcription/process',
+  lazyRequireAuth(),
+  transcriptionController.processFullTranscript.bind(transcriptionController)
+);
+
+// GET /api/transcription/:jobId/status - Poll job status
+app.get('/api/transcription/:jobId/status',
+  lazyRequireAuth(),
+  transcriptionController.getStatus.bind(transcriptionController)
+);
+
+// GET /api/transcription/:jobId - Get extraction results
+app.get('/api/transcription/:jobId',
+  lazyRequireAuth(),
+  transcriptionController.getResults.bind(transcriptionController)
+);
+
+// POST /api/transcription/merge - Merge real-time + post-call data
+app.post('/api/transcription/merge',
+  lazyRequireAuth(),
+  transcriptionController.mergeData.bind(transcriptionController)
+);
+
+// POST /api/transcription/validate - Validate extracted data
+app.post('/api/transcription/validate',
+  lazyRequireAuth(),
+  transcriptionController.validate.bind(transcriptionController)
+);
+
+// POST /api/transcription/parse-address - Parse address string into components
+app.post('/api/transcription/parse-address',
+  lazyRequireAuth(),
+  transcriptionController.parseAddress.bind(transcriptionController)
+);
+
+// =============================================================================
+// Audio Upload Routes (audio file to transcript to extracted fields)
+// =============================================================================
+
+// POST /api/audio/upload - Upload audio file for transcription and extraction
+app.post('/api/audio/upload',
+  lazyRequireAuth(),
+  audioUpload.single('audio'),
+  audioUploadController.upload.bind(audioUploadController)
+);
+
+// GET /api/audio/:jobId/status - Poll job status
+app.get('/api/audio/:jobId/status',
+  lazyRequireAuth(),
+  audioUploadController.getStatus.bind(audioUploadController)
+);
+
+// GET /api/audio/:jobId - Get extraction results
+app.get('/api/audio/:jobId',
+  lazyRequireAuth(),
+  audioUploadController.getResults.bind(audioUploadController)
 );
 
 // Error handling middleware (simulating Laravel's error handling)
@@ -262,13 +366,28 @@ const startServer = async () => {
 ╠══════════════════════════════════════════════════════════════╣
 ║ Server running on: http://localhost:${PORT}                      ║
 ║ Environment: ${process.env.NODE_ENV || 'development'}                  ║
-║ MongoDB: Connected ✅                                        ║
+║ MongoDB: Connected                                           ║
 ║                                                              ║
-║ Available endpoints:                                         ║
+║ ID OCR Endpoints:                                            ║
 ║  POST /api/id/upload             - Upload ID document       ║
 ║  GET  /api/id/upload/:id         - Get upload results       ║
 ║  GET  /api/id/upload/:id/status  - Get job status          ║
 ║  POST /api/id/documents          - Save document data       ║
+║                                                              ║
+║ Transcription Extraction Endpoints:                          ║
+║  POST /api/transcription/extract    - Quick extraction      ║
+║  POST /api/transcription/process    - Full async processing ║
+║  GET  /api/transcription/:id/status - Get job status        ║
+║  GET  /api/transcription/:id        - Get results           ║
+║  POST /api/transcription/merge      - Merge RT + post-call  ║
+║  POST /api/transcription/validate   - Validate data         ║
+║  POST /api/transcription/parse-address - Parse address      ║
+║                                                              ║
+║ Audio Upload Endpoints:                                      ║
+║  POST /api/audio/upload          - Upload audio file        ║
+║  GET  /api/audio/:id/status      - Get job status           ║
+║  GET  /api/audio/:id             - Get results              ║
+║                                                              ║
 ║  GET  /api/health                - Health check             ║
 ╚══════════════════════════════════════════════════════════════╝
       `);
