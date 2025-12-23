@@ -22,7 +22,6 @@ export class SignupComponent implements OnInit {
     private router: Router
   ) {
     this.signupForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
@@ -57,9 +56,9 @@ export class SignupComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const { name, email, password } = this.signupForm.value;
+    const { email, password } = this.signupForm.value;
 
-    const result = await this.authService.signUp(email, password, name);
+    const result = await this.authService.signUp(email, password);
 
     this.isLoading = false;
 
@@ -70,15 +69,16 @@ export class SignupComponent implements OnInit {
     }
   }
 
-  getNameError(): string {
-    const name = this.signupForm.get('name');
-    if (name?.hasError('required')) {
-      return 'Name is required';
-    }
-    if (name?.hasError('minlength')) {
-      return 'Name must be at least 2 characters';
-    }
-    return '';
+  signInWithGoogle(): void {
+    this.authService.signInWithSocial('google');
+  }
+
+  signInWithFacebook(): void {
+    this.authService.signInWithSocial('facebook');
+  }
+
+  signInWithApple(): void {
+    this.authService.signInWithSocial('apple');
   }
 
   getEmailError(): string {

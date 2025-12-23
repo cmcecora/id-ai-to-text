@@ -94,11 +94,11 @@ export class AuthService {
   /**
    * Sign up with email and password
    */
-  async signUp(email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> {
+  async signUp(email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await this.http.post<AuthResponse>(
         `${this.API_URL}/sign-up/email`,
-        { email, password, name },
+        { email, password, name: name || email.split('@')[0] },
         { withCredentials: true }
       ).toPromise();
 
@@ -113,6 +113,14 @@ export class AuthService {
       const message = error?.error?.message || error?.message || 'Sign up failed';
       return { success: false, error: message };
     }
+  }
+
+  /**
+   * Sign in with social provider (Google, Facebook, Apple)
+   */
+  signInWithSocial(provider: 'google' | 'facebook' | 'apple'): void {
+    // Redirect to the OAuth endpoint
+    window.location.href = `${this.API_URL}/sign-in/social/${provider}`;
   }
 
   /**

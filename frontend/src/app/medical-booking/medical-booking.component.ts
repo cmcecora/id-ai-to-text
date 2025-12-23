@@ -12,6 +12,7 @@ import {
 } from '@angular/animations';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService, DocumentData } from '../services/api.service';
+import { AuthService } from '../services/auth.service';
 
 interface MedicalTest {
   id: string;
@@ -191,6 +192,7 @@ interface CalendarDay {
 export class MedicalBookingComponent implements OnInit {
   @ViewChild('testSearchInput') testSearchInputRef!: ElementRef;
   @ViewChild('locationSection') locationSectionRef!: ElementRef;
+  @ViewChild('phoneInput') phoneInputRef!: ElementRef;
 
   currentStep = 1;
   totalSteps = 6;
@@ -513,7 +515,8 @@ export class MedicalBookingComponent implements OnInit {
     private router: Router,
     private apiService: ApiService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -583,7 +586,7 @@ export class MedicalBookingComponent implements OnInit {
       addressState: ['', Validators.required],
       addressZip: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^\(\d{3}\) \d{3}-\d{4}$/)]],
+      phone: ['', [Validators.pattern(/^\(\d{3}\) \d{3}-\d{4}$/)]],
       insuranceProvider: [''],
       memberId: ['']
     });
@@ -1041,9 +1044,18 @@ export class MedicalBookingComponent implements OnInit {
       this.currentStep++;
       this.scrollToTop();
 
-      // Pre-fill patient form when entering Step 4 if OCR data exists
-      if (this.currentStep === 4 && this.ocrData && !this.uploadSkipped) {
-        this.prefillPatientForm();
+      // Pre-fill patient form when entering Step 4
+      if (this.currentStep === 4) {
+        // Pre-fill from OCR data if available
+        if (this.ocrData && !this.uploadSkipped) {
+          this.prefillPatientForm();
+        }
+        // Auto-fill email from logged-in user
+        this.prefillEmailFromUser();
+        // Focus on phone field after a brief delay for DOM to render
+        setTimeout(() => {
+          this.focusPhoneInput();
+        }, 500);
       }
 
       // Confirm booking when entering Step 6
@@ -1531,6 +1543,25 @@ export class MedicalBookingComponent implements OnInit {
         horizontalPosition: 'center',
         verticalPosition: 'top'
       });
+    }
+  }
+
+  /**
+   * Pre-fill email from the logged-in user
+   */
+  private prefillEmailFromUser(): void {
+    const user = this.authService.currentUser;
+    if (user?.email && !this.patientForm.get('email')?.value) {
+      this.patientForm.patchValue({ email: user.email });
+    }
+  }
+
+  /**
+   * Focus on the phone input field
+   */
+  private focusPhoneInput(): void {
+    if (this.phoneInputRef?.nativeElement) {
+      this.phoneInputRef.nativeElement.focus();
     }
   }
 

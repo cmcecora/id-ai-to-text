@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     // Redirect if already authenticated
     if (this.authService.isAuthenticated) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/book-test']);
     }
   }
 
@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit {
     this.isLoading = false;
 
     if (result.success) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/book-test']);
     } else {
       this.errorMessage = result.error || 'Login failed. Please try again.';
     }
@@ -76,5 +76,17 @@ export class LoginComponent implements OnInit {
       return 'Password must be at least 8 characters';
     }
     return '';
+  }
+
+  signInWithGoogle(): void {
+    this.authService.signInWithSocial('google');
+  }
+
+  signInWithFacebook(): void {
+    this.authService.signInWithSocial('facebook');
+  }
+
+  signInWithApple(): void {
+    this.authService.signInWithSocial('apple');
   }
 }
