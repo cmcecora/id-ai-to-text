@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, ElementRef, ViewChild, AfterViewChecked, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, ElementRef, ViewChild, AfterViewChecked, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -107,7 +107,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   isEditing = false;
   // Form fields in EXACT collection order:
   // 1. Test, 2. Reasons, 3. Location, 4. Date, 5. Time, 6. First Name, 7. Last Name,
-  // 8. DOB, 9. Sex, 10. Address (street, city, state, zip), 11. Email, 12. Phone,
+  // 8. DOB, 9. Sex, 10. Address (raw), 11. Email, 12. Phone,
   // 13. Insurance Provider, 14. Insurance ID
   formFields: { key: keyof BookingFormData; label: string; type: string }[] = [
     { key: 'test', label: 'Test', type: 'text' },                    // 1
@@ -119,10 +119,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     { key: 'lastName', label: 'Last Name', type: 'text' },           // 7
     { key: 'dob', label: 'DOB', type: 'text' },                      // 8
     { key: 'sex', label: 'Sex', type: 'text' },                      // 9
-    { key: 'addressStreet', label: 'Street', type: 'text' },         // 10a
-    { key: 'addressCity', label: 'City', type: 'text' },             // 10b
-    { key: 'addressState', label: 'State', type: 'text' },           // 10c
-    { key: 'addressZip', label: 'ZIP', type: 'text' },               // 10d
+    { key: 'address', label: 'Address', type: 'text' },              // 10 (raw)
     { key: 'email', label: 'Email', type: 'text' },                  // 11
     { key: 'phone', label: 'Phone', type: 'text' },                  // 12
     { key: 'insuranceProvider', label: 'Insurance', type: 'text' },  // 13
@@ -136,7 +133,8 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   constructor(
     private vapiService: VapiService,
     private fb: FormBuilder,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {
     this.bookingForm = this.fb.group({
       test: [''],
@@ -148,6 +146,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       lastName: [''],
       dob: [''],
       sex: [''],
+      address: [''],
       addressStreet: [''],
       addressCity: [''],
       addressState: [''],
@@ -197,6 +196,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
         this.ngZone.run(() => {
           console.log('>>> [VapiAssistant] Inside ngZone.run(), calling updateFormFromVoiceData');
           this.updateFormFromVoiceData(data);
+          this.triggerViewUpdate();
         });
       }
     );
@@ -207,10 +207,9 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     console.log('>>> [VapiAssistant] updateFormFromVoiceData called with:', data);
 
     // VapiService now normalizes field names before sending, so we can map directly.
-    // FIELD ORDER:
+    // FIELD ORDER (one raw answer per question):
     // 1. Test, 2. Reasons, 3. Location, 4. Date, 5. Time, 6. First Name, 7. Last Name,
-    // 8. DOB, 9. Sex, 10. Address (street, city, state, zip), 11. Email, 12. Phone,
-    // 13. Insurance Provider, 14. Insurance ID
+    // 8. DOB, 9. Sex, 10. Address (raw), 11. Email, 12. Phone, 13. Insurance Provider, 14. Insurance ID
     
     const formUpdate: Partial<BookingFormData> = {};
 
@@ -273,22 +272,10 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       console.log(`>>> [VapiAssistant] [9] Sex: "${data.sex}" -> "${normalizedSex}"`);
     }
 
-    // 10. ADDRESS (tenth field group) - street, city, state, zip
-    if (data.addressStreet) {
-      formUpdate.addressStreet = data.addressStreet;
-      console.log(`>>> [VapiAssistant] [10a] Street: "${data.addressStreet}"`);
-    }
-    if (data.addressCity) {
-      formUpdate.addressCity = data.addressCity;
-      console.log(`>>> [VapiAssistant] [10b] Address City: "${data.addressCity}"`);
-    }
-    if (data.addressState) {
-      formUpdate.addressState = data.addressState;
-      console.log(`>>> [VapiAssistant] [10c] State: "${data.addressState}"`);
-    }
-    if (data.addressZip) {
-      formUpdate.addressZip = data.addressZip;
-      console.log(`>>> [VapiAssistant] [10d] ZIP: "${data.addressZip}"`);
+    // 10. ADDRESS (tenth field) - keep full raw answer; split later in cleanup
+    if (data.address) {
+      formUpdate.address = data.address;
+      console.log(`>>> [VapiAssistant] [10] Address (raw): "${data.address}"`);
     }
 
     // 11. EMAIL (eleventh field)
@@ -332,6 +319,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
         this.isConnecting = false;
         this.isListening = true;
         this.addSystemMessage('Connected! You can now speak with the assistant.');
+        this.triggerViewUpdate();
       });
     });
 
@@ -351,6 +339,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
         if (wasActive) {
           this.tryExtractFromLastMessages();
         }
+        this.triggerViewUpdate();
       });
     });
 
@@ -358,6 +347,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       this.ngZone.run(() => {
         this.isSpeaking = true;
         this.isListening = false;
+        this.triggerViewUpdate();
       });
     });
 
@@ -365,12 +355,14 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       this.ngZone.run(() => {
         this.isSpeaking = false;
         this.isListening = true;
+        this.triggerViewUpdate();
       });
     });
 
     this.vapiService.onTranscript((message) => {
       this.ngZone.run(() => {
         this.handleTranscript(message);
+        this.triggerViewUpdate();
       });
     });
 
@@ -379,6 +371,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
         console.error('Vapi error:', error);
         this.isConnecting = false;
         this.addSystemMessage('An error occurred. Please try again.');
+        this.triggerViewUpdate();
       });
     });
   }
@@ -709,56 +702,19 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       }
     }
 
-    // 8. Extract ADDRESS (street, city, state, zip)
+    // 8. Extract ADDRESS (raw string)
     const addressPatterns = [
       /(?:live at|address is|I live at|my address is|located at)\s+(.+)/i,
       /(\d+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|court|ct|place|pl))/i
     ];
     for (const pattern of addressPatterns) {
       const match = text.match(pattern);
-      if (match && !this.bookingForm.get('addressStreet')?.value) {
+      if (match && !this.bookingForm.get('address')?.value) {
         const address = match[1].trim();
-        // Try to parse address components
-        const parsed = this.parseAddress(address);
-        if (parsed.street) this.bookingForm.patchValue({ addressStreet: parsed.street });
-        if (parsed.city) this.bookingForm.patchValue({ addressCity: parsed.city });
-        if (parsed.state) this.bookingForm.patchValue({ addressState: parsed.state });
-        if (parsed.zip) this.bookingForm.patchValue({ addressZip: parsed.zip });
-        console.log('[Extraction] Address:', parsed);
+        this.bookingForm.patchValue({ address });
+        console.log('[Extraction] Address (raw):', address);
         break;
       }
-    }
-
-    // Extract city separately
-    const cityPatterns = [
-      /(?:city is|in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
-      /(?:live in|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i
-    ];
-    for (const pattern of cityPatterns) {
-      const match = text.match(pattern);
-      if (match && !this.bookingForm.get('addressCity')?.value) {
-        this.bookingForm.patchValue({ addressCity: match[1].trim() });
-        console.log('[Extraction] City:', match[1]);
-        break;
-      }
-    }
-
-    // Extract state
-    const stateAbbreviations = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
-    for (const state of stateAbbreviations) {
-      const stateRegex = new RegExp(`\\b${state}\\b`, 'i');
-      if (stateRegex.test(text) && !this.bookingForm.get('addressState')?.value) {
-        this.bookingForm.patchValue({ addressState: state });
-        console.log('[Extraction] State:', state);
-        break;
-      }
-    }
-
-    // Extract zip code
-    const zipMatch = text.match(/\b(\d{5}(?:-\d{4})?)\b/);
-    if (zipMatch && !this.bookingForm.get('addressZip')?.value) {
-      this.bookingForm.patchValue({ addressZip: zipMatch[1] });
-      console.log('[Extraction] Zip:', zipMatch[1]);
     }
 
     // 9. Extract EMAIL
@@ -876,6 +832,27 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     }
 
     return result;
+  }
+
+  /**
+   * Cleanup raw address into structured fields at the end of collection.
+   * Keeps the original raw address while backfilling derived fields if missing.
+   */
+  private cleanupAddressFields(data: BookingFormData): BookingFormData {
+    if (!data.address) return data;
+
+    const normalized = { ...data };
+    const hasParsedParts = normalized.addressStreet || normalized.addressCity || normalized.addressState || normalized.addressZip;
+
+    if (!hasParsedParts) {
+      const parsed = this.parseAddress(normalized.address);
+      if (parsed.street) normalized.addressStreet = parsed.street;
+      if (parsed.city) normalized.addressCity = parsed.city;
+      if (parsed.state) normalized.addressState = parsed.state;
+      if (parsed.zip) normalized.addressZip = parsed.zip;
+    }
+
+    return normalized;
   }
 
   /**
@@ -1260,29 +1237,29 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       sex: 'sex',
       gender: 'sex',
 
-      // 10. Address variations
-      address: 'addressStreet',
-      street: 'addressStreet',
-      street_address: 'addressStreet',
-      addressStreet: 'addressStreet',
-      streetAddress: 'addressStreet',
-      address_street: 'addressStreet',
+      // 10. Address variations (single raw field)
+      address: 'address',
+      street: 'address',
+      street_address: 'address',
+      addressStreet: 'address',
+      streetAddress: 'address',
+      address_street: 'address',
       
-      addressCity: 'addressCity',
-      address_city: 'addressCity',
+      addressCity: 'address',
+      address_city: 'address',
       // 'city' is intentionally NOT mapped here - it goes to preferredLocation
       
-      state: 'addressState',
-      addressState: 'addressState',
-      address_state: 'addressState',
+      state: 'address',
+      addressState: 'address',
+      address_state: 'address',
       
-      zip: 'addressZip',
-      zipCode: 'addressZip',
-      zip_code: 'addressZip',
-      addressZip: 'addressZip',
-      address_zip: 'addressZip',
-      postal_code: 'addressZip',
-      postalCode: 'addressZip',
+      zip: 'address',
+      zipCode: 'address',
+      zip_code: 'address',
+      addressZip: 'address',
+      address_zip: 'address',
+      postal_code: 'address',
+      postalCode: 'address',
 
       // 11. Email variations
       email: 'email',
@@ -1373,6 +1350,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     }
 
     this.shouldScrollToBottom = true;
+    this.triggerViewUpdate();
   }
 
   private addSystemMessage(content: string): void {
@@ -1388,6 +1366,15 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     } catch (err) {}
   }
 
+  /**
+   * Force change detection when external (non-Angular) events update the view.
+   */
+  private triggerViewUpdate(): void {
+    if (!(this.cdr as any)?.destroyed) {
+      this.cdr.detectChanges();
+    }
+  }
+
   async toggleCall(): Promise<void> {
     // If currently connecting, cancel the connection attempt
     if (this.isConnecting) {
@@ -1396,6 +1383,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       this.vapiService.endCall();
       this.isConnecting = false;
       this.addSystemMessage('Connection cancelled.');
+      this.triggerViewUpdate();
       return;
     }
 
@@ -1409,6 +1397,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       this.isSpeaking = false;
       this.isListening = false;
       this.addSystemMessage('Call ended.');
+      this.triggerViewUpdate();
       return;
     }
 
@@ -1416,6 +1405,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     this.userResponses = [];
     this.isConnecting = true;
     this.addSystemMessage('Connecting to assistant...');
+    this.triggerViewUpdate();
 
     // Set a connection timeout (15 seconds)
     this.connectionTimeout = setTimeout(() => {
@@ -1424,6 +1414,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
         this.vapiService.endCall();
         this.isConnecting = false;
         this.addSystemMessage('Connection timed out. Please try again.');
+        this.triggerViewUpdate();
       }
     }, 15000);
 
@@ -1434,6 +1425,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       this.clearConnectionTimeout();
       this.isConnecting = false;
       this.addSystemMessage('Failed to connect. Please try again.');
+      this.triggerViewUpdate();
     }
   }
 
@@ -1463,6 +1455,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     } else {
       this.addSystemMessage('Call resumed. Continue speaking...');
     }
+    this.triggerViewUpdate();
   }
 
   get pauseButtonText(): string {
@@ -1524,8 +1517,9 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       }
     }
     
-    console.log('Emitting booking data:', cleanedData);
-    this.bookingDataCollected.emit(cleanedData);
+    const normalizedData = this.cleanupAddressFields(cleanedData);
+    console.log('Emitting booking data:', normalizedData);
+    this.bookingDataCollected.emit(normalizedData);
   }
 
   proceedToBooking(): void {
@@ -1545,9 +1539,10 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
 
   // Get collected data from both form and service
   getCollectedData(): BookingFormData {
-    return {
+    const merged = {
       ...this.bookingForm.value,
       ...this.vapiService.getCollectedData()
     };
+    return this.cleanupAddressFields(merged);
   }
 }

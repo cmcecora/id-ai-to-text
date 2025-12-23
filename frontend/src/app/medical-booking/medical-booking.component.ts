@@ -1855,6 +1855,13 @@ export class MedicalBookingComponent implements OnInit {
     if (data.addressCity) formUpdate['addressCity'] = data.addressCity;
     if (data.addressState) formUpdate['addressState'] = data.addressState;
     if (data.addressZip) formUpdate['addressZip'] = data.addressZip;
+    if (data.address) {
+      const parsed = this.parseAddressString(data.address);
+      if (parsed.street) formUpdate['addressStreet'] = parsed.street;
+      if (parsed.city) formUpdate['addressCity'] = parsed.city;
+      if (parsed.state) formUpdate['addressState'] = parsed.state;
+      if (parsed.zip) formUpdate['addressZip'] = parsed.zip;
+    }
     if (data.email) formUpdate['email'] = data.email;
     if (data.phone) {
       // Format phone number
@@ -2038,6 +2045,50 @@ export class MedicalBookingComponent implements OnInit {
     // Try native Date parsing as fallback
     const parsed = new Date(dateStr);
     return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  /**
+   * Split a raw address string into components for the booking form.
+   * Keeps things lenient to handle imperfect voice answers.
+   */
+  private parseAddressString(address: string): { street?: string; city?: string; state?: string; zip?: string } {
+    const result: { street?: string; city?: string; state?: string; zip?: string } = {};
+    if (!address) return result;
+
+    let working = address.trim();
+
+    // Extract ZIP
+    const zipMatch = working.match(/\b(\d{5}(?:-\d{4})?)\b/);
+    if (zipMatch) {
+      result.zip = zipMatch[1];
+      working = working.replace(zipMatch[0], '').trim();
+    }
+
+    // Extract state (2-letter)
+    const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+    for (const state of states) {
+      const stateRegex = new RegExp(`\\b${state}\\b`, 'i');
+      if (stateRegex.test(working)) {
+        result.state = state;
+        working = working.replace(stateRegex, '').trim();
+        break;
+      }
+    }
+
+    // Split remaining by comma
+    const parts = working.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      result.street = parts[0];
+      result.city = parts[1];
+    } else if (parts.length === 1) {
+      if (/^\d+\s+/.test(parts[0])) {
+        result.street = parts[0];
+      } else {
+        result.city = parts[0];
+      }
+    }
+
+    return result;
   }
 
   /**

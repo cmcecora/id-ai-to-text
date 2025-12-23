@@ -5,10 +5,10 @@ import Vapi from '@vapi-ai/web';
 
 // Interface for booking form data collected via voice (incremental updates)
 // Field names are CANONICAL - the normalizeFieldName() method maps any Vapi field name to these
-// FIELD ORDER:
+// FIELD ORDER (one raw answer per question):
 // 1. test, 2. reasons, 3. preferredLocation, 4. preferredDate, 5. preferredTime,
-// 6. firstName, 7. lastName, 8. dob, 9. sex, 10. addressStreet, 11. addressCity,
-// 12. addressState, 13. addressZip, 14. email, 15. phone, 16. insuranceProvider, 17. insuranceId
+// 6. firstName, 7. lastName, 8. dob, 9. sex, 10. address (full string), 11. email,
+// 12. phone, 13. insuranceProvider, 14. insuranceId
 export interface VoiceBookingData {
   test?: string;              // 1. What test do they want?
   reasons?: string;           // 2. Why do they need this test?
@@ -19,14 +19,11 @@ export interface VoiceBookingData {
   lastName?: string;          // 7. Last name
   dob?: string;               // 8. Date of birth (words or numbers)
   sex?: string;               // 9. Sex (male or female)
-  addressStreet?: string;     // 10. Street address
-  addressCity?: string;       // 11. City (for address)
-  addressState?: string;      // 12. State
-  addressZip?: string;        // 13. ZIP code
-  email?: string;             // 14. Email address
-  phone?: string;             // 15. Phone number (just numbers)
-  insuranceProvider?: string; // 16. Insurance company name
-  insuranceId?: string;       // 17. Insurance ID / Member ID
+  address?: string;           // 10. Full address string (parsed later by cleanup)
+  email?: string;             // 11. Email address
+  phone?: string;             // 12. Phone number (just numbers)
+  insuranceProvider?: string; // 13. Insurance company name
+  insuranceId?: string;       // 14. Insurance ID / Member ID
   hasDoctorOrder?: boolean;   // Extra: Has doctor's order?
 }
 
@@ -175,10 +172,10 @@ export class VapiService {
    * Normalize any incoming field name to our canonical form field name.
    * Uses EXACT and SPECIFIC pattern matching to avoid incorrect mappings.
    * 
-   * FIELD ORDER:
+   * FIELD ORDER (one raw answer per question):
    * 1. test, 2. reasons, 3. preferredLocation, 4. preferredDate, 5. preferredTime,
-   * 6. firstName, 7. lastName, 8. dob, 9. sex, 10. addressStreet, 11. addressCity,
-   * 12. addressState, 13. addressZip, 14. email, 15. phone, 16. insuranceProvider, 17. insuranceId
+   * 6. firstName, 7. lastName, 8. dob, 9. sex, 10. address (full string),
+   * 11. email, 12. phone, 13. insuranceProvider, 14. insuranceId
    * 
    * IMPORTANT: Each field should capture the FULL user response for that question.
    * We use exact matching where possible to avoid cross-contamination between fields.
@@ -246,23 +243,18 @@ export class VapiService {
       'sex': 'sex',
       'gender': 'sex',
       
-      // ADDRESS fields - require explicit "address" prefix or specific field names
-      'address': 'addressStreet',
-      'addressstreet': 'addressStreet',
-      'streetaddress': 'addressStreet',
-      'street': 'addressStreet',
-      
-      'addresscity': 'addressCity',
-      // NOTE: 'city' alone is NOT mapped here - it could be location or address
-      
-      'addressstate': 'addressState',
-      // NOTE: 'state' alone is NOT mapped here - too ambiguous
-      
-      'addresszip': 'addressZip',
-      'zipcode': 'addressZip',
-      'zip': 'addressZip',
-      'postalcode': 'addressZip',
-      'postal': 'addressZip',
+      // ADDRESS (single raw field)
+      'address': 'address',
+      'addressstreet': 'address',
+      'streetaddress': 'address',
+      'street': 'address',
+      'addresscity': 'address',
+      'addressstate': 'address',
+      'addresszip': 'address',
+      'zipcode': 'address',
+      'zip': 'address',
+      'postalcode': 'address',
+      'postal': 'address',
       
       'email': 'email',
       'emailaddress': 'email',
@@ -343,30 +335,10 @@ export class VapiService {
       return 'sex';
     }
     
-    // 10-13. ADDRESS - ONLY match if explicitly contains "address"
-    if (lowerKey.includes('address')) {
-      if (lowerKey.includes('street') || lowerKey === 'address') {
-        return 'addressStreet';
-      }
-      if (lowerKey.includes('city')) {
-        return 'addressCity';
-      }
-      if (lowerKey.includes('state')) {
-        return 'addressState';
-      }
-      if (lowerKey.includes('zip') || lowerKey.includes('postal')) {
-        return 'addressZip';
-      }
-    }
-    
-    // Street is unambiguous
-    if (lowerKey.includes('street')) {
-      return 'addressStreet';
-    }
-    
-    // ZIP/postal is unambiguous
-    if (lowerKey.includes('zip') || lowerKey.includes('postal')) {
-      return 'addressZip';
+    // 10. ADDRESS - collapse to single raw address field
+    if (lowerKey.includes('address') || lowerKey.includes('street') ||
+        lowerKey.includes('zip') || lowerKey.includes('postal')) {
+      return 'address';
     }
     
     // 14. EMAIL
