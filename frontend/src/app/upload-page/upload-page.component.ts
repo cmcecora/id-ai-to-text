@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-upload-page',
+  standalone: false,
   templateUrl: './upload-page.component.html',
   styleUrls: ['./upload-page.component.scss']
 })

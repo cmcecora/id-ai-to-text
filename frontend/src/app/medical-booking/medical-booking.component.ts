@@ -57,6 +57,7 @@ interface CalendarDay {
 
 @Component({
   selector: 'app-medical-booking',
+  standalone: false,
   templateUrl: './medical-booking.component.html',
   styleUrls: ['./medical-booking.component.scss'],
   animations: [

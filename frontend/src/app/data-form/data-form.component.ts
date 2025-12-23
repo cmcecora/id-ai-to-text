@@ -16,6 +16,7 @@ export interface DocumentData {
 
 @Component({
   selector: 'app-data-form',
+  standalone: false,
   templateUrl: './data-form.component.html',
   styleUrls: ['./data-form.component.scss']
 })

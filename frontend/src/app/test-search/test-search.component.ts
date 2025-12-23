@@ -19,6 +19,7 @@ interface RecentSearch {
 
 @Component({
   selector: 'app-test-search',
+  standalone: false,
   templateUrl: './test-search.component.html',
   styleUrls: ['./test-search.component.scss'],
   animations: [
