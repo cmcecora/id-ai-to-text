@@ -416,7 +416,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 16px 20px;
   background: var(--wh-white);
   border-bottom: 1px solid var(--wh-neutral-20);
 
@@ -426,11 +426,21 @@
     color: var(--text);
     margin: 0;
   }
-}
 
-.form-actions {
-  display: flex;
-  gap: 8px;
+  .form-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--wh-green-50);
+    font-weight: 500;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
 }
 
 .edit-btn,
@@ -486,9 +496,28 @@
 // Booking Fields List (New Style)
 // ===========================
 .booking-fields-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-left: 12px;
 }
 
 .booking-field-input {
@@ -504,9 +533,9 @@
   transition: all 0.2s ease;
   box-sizing: border-box;
 
-  // Placeholder text - light grey, acts as label
+  // Placeholder text - light grey
   &::placeholder {
-    color: #9ca3af;
+    color: #d1d5db;
     font-weight: 400;
   }
 
@@ -516,12 +545,69 @@
   }
 
   // When field has value - black text, subtle highlight
-  &:not(:placeholder-shown) {
+  &.has-value {
     color: var(--text, #1a1a1a);
     font-weight: 500;
-    background: var(--wh-blue-5, #eff6ff);
-    border-color: var(--wh-blue-30, #93c5fd);
+    background: var(--wh-green-5, #f0fdf4);
+    border-color: var(--wh-green-30, #86efac);
   }
+}
+
+// ===========================
+// Form Actions (Continue Button)
+// ===========================
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  background: var(--wh-white);
+  border-top: 1px solid var(--wh-neutral-20);
+}
+
+.continue-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--wh-blue-50), var(--wh-blue-60));
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  }
+
+  &:disabled {
+    background: var(--wh-steel-30);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.action-hint {
+  font-size: 12px;
+  color: var(--subtext);
+  text-align: center;
+  margin: 0;
 }
 
 // ===========================

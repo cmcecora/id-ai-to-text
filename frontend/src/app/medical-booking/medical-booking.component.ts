@@ -13,6 +13,7 @@ import {
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService, DocumentData } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
+import { BookingFormData } from '../components/vapi-assistant/vapi-assistant.component';
 
 interface MedicalTest {
   id: string;
@@ -508,6 +509,10 @@ export class MedicalBookingComponent implements OnInit {
   // Step 6: Confirmation
   bookingConfirmed = false;
   confirmationNumber = '';
+
+  // Voice Assistant
+  showVoiceAssistant = false;
+  voiceAssistantData: BookingFormData | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -1756,5 +1761,290 @@ export class MedicalBookingComponent implements OnInit {
         verticalPosition: 'top'
       }
     );
+  }
+
+  // ===========================
+  // Voice Assistant Methods
+  // ===========================
+
+  /**
+   * Open the voice assistant modal
+   */
+  openVoiceAssistant(): void {
+    this.showVoiceAssistant = true;
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+  }
+
+  /**
+   * Close the voice assistant modal
+   */
+  closeVoiceAssistant(): void {
+    this.showVoiceAssistant = false;
+    // Restore body scroll
+    document.body.style.overflow = '';
+  }
+
+  /**
+   * Handle booking data collected from voice assistant
+   */
+  onVoiceBookingDataCollected(data: BookingFormData): void {
+    console.log('Voice assistant data received:', data);
+    this.voiceAssistantData = data;
+    
+    // Pre-fill the patient form with collected data
+    this.prefillFromVoiceData(data);
+    
+    // Handle test selection if provided
+    if (data.test) {
+      this.handleVoiceTestSelection(data.test);
+    }
+    
+    // Handle date/time selection if provided
+    if (data.preferredDate || data.preferredTime) {
+      this.handleVoiceDateTimeSelection(data.preferredDate, data.preferredTime);
+    }
+    
+    // Handle location selection if provided
+    if (data.preferredLocation) {
+      this.handleVoiceLocationSelection(data.preferredLocation);
+    }
+
+    // Close the voice assistant
+    this.closeVoiceAssistant();
+    
+    // Show success message
+    this.snackBar.open(
+      'Form pre-filled with your voice responses. Please review and complete.',
+      'OK',
+      {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      }
+    );
+    
+    // Navigate to the appropriate step based on what data was collected
+    this.navigateToRelevantStep(data);
+  }
+
+  /**
+   * Pre-fill patient form with voice data
+   */
+  private prefillFromVoiceData(data: BookingFormData): void {
+    const formUpdate: { [key: string]: any } = {};
+
+    if (data.firstName) formUpdate['firstName'] = data.firstName;
+    if (data.lastName) formUpdate['lastName'] = data.lastName;
+    if (data.dob) {
+      // Try to parse the date
+      const parsedDate = this.parseDateString(data.dob);
+      if (parsedDate) {
+        formUpdate['dob'] = parsedDate;
+      }
+    }
+    if (data.sex) formUpdate['sex'] = data.sex;
+    if (data.addressStreet) formUpdate['addressStreet'] = data.addressStreet;
+    if (data.addressCity) formUpdate['addressCity'] = data.addressCity;
+    if (data.addressState) formUpdate['addressState'] = data.addressState;
+    if (data.addressZip) formUpdate['addressZip'] = data.addressZip;
+    if (data.email) formUpdate['email'] = data.email;
+    if (data.phone) {
+      // Format phone number
+      const formattedPhone = this.formatPhoneForForm(data.phone);
+      formUpdate['phone'] = formattedPhone;
+    }
+    if (data.insuranceProvider) {
+      // Map to form value
+      const insuranceMap: { [key: string]: string } = {
+        'aetna': 'aetna',
+        'blue cross': 'bluecross',
+        'blue cross blue shield': 'bluecross',
+        'bcbs': 'bluecross',
+        'cigna': 'cigna',
+        'united': 'united',
+        'united healthcare': 'united',
+        'unitedhealthcare': 'united',
+        'humana': 'humana',
+        'kaiser': 'kaiser',
+        'kaiser permanente': 'kaiser'
+      };
+      const normalizedProvider = data.insuranceProvider.toLowerCase();
+      const matchedProvider = Object.keys(insuranceMap).find(key =>
+        normalizedProvider.includes(key)
+      );
+      formUpdate['insuranceProvider'] = matchedProvider ? insuranceMap[matchedProvider] : 'other';
+    }
+    if (data.insuranceId) formUpdate['memberId'] = data.insuranceId;
+
+    if (Object.keys(formUpdate).length > 0) {
+      this.patientForm.patchValue(formUpdate);
+      console.log('Patient form updated with voice data:', formUpdate);
+    }
+  }
+
+  /**
+   * Handle test selection from voice input
+   */
+  private handleVoiceTestSelection(testName: string): void {
+    const lowerTestName = testName.toLowerCase();
+    
+    // Find matching test(s)
+    const matchingTests = this.medicalTests.filter(test =>
+      test.name.toLowerCase().includes(lowerTestName) ||
+      lowerTestName.includes(test.name.toLowerCase()) ||
+      test.description.toLowerCase().includes(lowerTestName)
+    );
+    
+    if (matchingTests.length > 0) {
+      // Add matched tests to selection (avoid duplicates)
+      for (const test of matchingTests) {
+        if (!this.selectedTests.find(t => t.id === test.id)) {
+          this.selectedTests.push(test);
+        }
+      }
+      console.log('Voice test selection matched:', matchingTests.map(t => t.name));
+    }
+  }
+
+  /**
+   * Handle date/time selection from voice input
+   */
+  private handleVoiceDateTimeSelection(date?: string, time?: string): void {
+    if (date) {
+      const parsedDate = this.parseDateString(date);
+      if (parsedDate) {
+        // Check if the date is available
+        const dayOfWeek = parsedDate.getDay();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (parsedDate >= today && dayOfWeek !== 0 && dayOfWeek !== 6) {
+          this.selectedDate = parsedDate;
+          this.generateCalendar();
+        }
+      }
+    }
+    
+    if (time) {
+      // Try to match with available time slots
+      const normalizedTime = time.toLowerCase().replace(/\s/g, '');
+      
+      const allSlots = [...this.morningSlots, ...this.afternoonSlots, ...this.eveningSlots];
+      const matchingSlot = allSlots.find(slot => {
+        const slotNormalized = slot.time.toLowerCase().replace(/\s/g, '');
+        return slot.available && (
+          slotNormalized === normalizedTime ||
+          slot.time.toLowerCase().includes(time.toLowerCase())
+        );
+      });
+      
+      if (matchingSlot) {
+        this.selectedTime = matchingSlot.time;
+      }
+    }
+  }
+
+  /**
+   * Handle location selection from voice input
+   */
+  private handleVoiceLocationSelection(locationName: string): void {
+    const lowerLocationName = locationName.toLowerCase();
+    
+    const matchingLocation = this.locations.find(loc =>
+      loc.name.toLowerCase().includes(lowerLocationName) ||
+      lowerLocationName.includes(loc.name.toLowerCase())
+    );
+    
+    if (matchingLocation) {
+      this.selectedLocation = matchingLocation;
+      console.log('Voice location selection matched:', matchingLocation.name);
+    }
+  }
+
+  /**
+   * Navigate to the most relevant step based on collected data
+   */
+  private navigateToRelevantStep(data: BookingFormData): void {
+    // If we have test info but no date, go to step 2
+    if (data.test && this.selectedTests.length > 0 && !this.selectedDate) {
+      this.currentStep = 2;
+      return;
+    }
+    
+    // If we have date/time but no ID upload, go to step 3
+    if (this.selectedDate && this.selectedTime && !this.ocrData) {
+      this.currentStep = 3;
+      return;
+    }
+    
+    // If we have personal info, go to step 4 (patient details)
+    if (data.firstName || data.lastName || data.email || data.phone) {
+      this.currentStep = 4;
+      return;
+    }
+    
+    // Default: stay on current step or go to step 1
+    if (this.currentStep < 2 && this.selectedTests.length > 0) {
+      this.currentStep = 2;
+    }
+  }
+
+  /**
+   * Parse a date string into a Date object
+   */
+  private parseDateString(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    
+    // Try various date formats
+    const formats = [
+      // MM/DD/YYYY
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+      // MM/DD/YY
+      /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
+      // Month DD, YYYY
+      /^(\w+)\s+(\d{1,2}),?\s+(\d{4})$/,
+    ];
+    
+    for (const format of formats) {
+      const match = dateStr.match(format);
+      if (match) {
+        if (format === formats[0]) {
+          // MM/DD/YYYY
+          return new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
+        } else if (format === formats[1]) {
+          // MM/DD/YY
+          const year = parseInt(match[3]) + 2000;
+          return new Date(year, parseInt(match[1]) - 1, parseInt(match[2]));
+        } else if (format === formats[2]) {
+          // Month DD, YYYY
+          const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
+            'july', 'august', 'september', 'october', 'november', 'december'];
+          const monthIndex = monthNames.indexOf(match[1].toLowerCase());
+          if (monthIndex >= 0) {
+            return new Date(parseInt(match[3]), monthIndex, parseInt(match[2]));
+          }
+        }
+      }
+    }
+    
+    // Try native Date parsing as fallback
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  /**
+   * Format phone number for form
+   */
+  private formatPhoneForForm(phone: string): string {
+    // Remove all non-digits
+    const digits = phone.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    
+    return phone;
   }
 }

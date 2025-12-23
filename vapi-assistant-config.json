@@ -1,0 +1,101 @@
+{
+  "name": "Medical Booking Assistant",
+  "instructions": "You are a friendly medical booking assistant helping patients schedule their medical tests. Ask the following questions one at a time, wait for the user's response, and call the update_booking_form function after each answer to save the information:\n\n1. What test or tests do you want to get?\n2. What are the reasons you want to get testing?\n3. Where and when do you want to get tested?\n4. What is your first name, last name, date of birth, and sex?\n5. What is your home address?\n6. What is your email?\n7. What is your phone number?\n8. What is your insurance carrier and ID?\n9. Do you have a doctor's order or do you need one?\n\nAfter collecting each piece of information, immediately call the update_booking_form function with the structured data. Be conversational and helpful. If the user provides multiple pieces of information at once, extract all of them and call the function with all available data.",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4o",
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "update_booking_form",
+          "description": "Updates the booking form with patient information collected during the conversation. Call this function whenever you collect any piece of information from the patient.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "test": {
+                "type": "string",
+                "description": "The medical test(s) requested (e.g., 'Complete Blood Count', 'MRI', 'Lipid Panel')"
+              },
+              "reasons": {
+                "type": "string",
+                "description": "The reason(s) for wanting the test"
+              },
+              "preferredDate": {
+                "type": "string",
+                "description": "Preferred appointment date (e.g., 'December 28, 2024' or '12/28/2024')"
+              },
+              "preferredTime": {
+                "type": "string",
+                "description": "Preferred time slot (e.g., '9:00 AM', 'morning', 'afternoon')"
+              },
+              "preferredLocation": {
+                "type": "string",
+                "description": "Preferred clinic or location name"
+              },
+              "firstName": {
+                "type": "string",
+                "description": "Patient's first name"
+              },
+              "lastName": {
+                "type": "string",
+                "description": "Patient's last name"
+              },
+              "dob": {
+                "type": "string",
+                "description": "Date of birth in MM/DD/YYYY format"
+              },
+              "sex": {
+                "type": "string",
+                "enum": ["M", "F"],
+                "description": "Patient's sex - M for Male, F for Female"
+              },
+              "addressStreet": {
+                "type": "string",
+                "description": "Street address (e.g., '123 Main Street')"
+              },
+              "addressCity": {
+                "type": "string",
+                "description": "City name"
+              },
+              "addressState": {
+                "type": "string",
+                "description": "State abbreviation (e.g., 'NY', 'CA')"
+              },
+              "addressZip": {
+                "type": "string",
+                "description": "ZIP code (5 or 9 digit format)"
+              },
+              "email": {
+                "type": "string",
+                "description": "Email address"
+              },
+              "phone": {
+                "type": "string",
+                "description": "Phone number"
+              },
+              "insuranceProvider": {
+                "type": "string",
+                "description": "Insurance carrier/provider name (e.g., 'Blue Cross', 'Aetna', 'United Healthcare')"
+              },
+              "insuranceId": {
+                "type": "string",
+                "description": "Insurance member ID or policy number"
+              },
+              "hasDoctorOrder": {
+                "type": "boolean",
+                "description": "Whether the patient has a doctor's order (true) or needs one (false)"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "21m00Tcm4TlvDq8ikWAM"
+  },
+  "firstMessage": "Hello! I'm your medical booking assistant. I'll help you schedule your medical test appointment. Let's get started - what test or tests would you like to get?"
+}
+

@@ -88,18 +88,40 @@
     <div class="form-panel">
       <div class="form-header">
         <h3>Booking Information</h3>
+        <span class="form-status" *ngIf="hasFormData()">
+          <mat-icon>check_circle</mat-icon>
+          {{ getFilledFields().length }} fields collected
+        </span>
       </div>
 
       <div class="form-content">
         <div class="booking-fields-list">
-          <input
-            *ngFor="let field of formFields"
-            [formControl]="getFormControl(field.key)"
-            class="booking-field-input"
-            [placeholder]="field.label"
-            readonly
-          />
+          <div class="field-item" *ngFor="let field of formFields">
+            <label class="field-label">{{ field.label }}</label>
+            <input
+              [formControl]="getFormControl(field.key)"
+              class="booking-field-input"
+              [class.has-value]="getFormControl(field.key).value"
+              [placeholder]="'—'"
+              readonly
+            />
+          </div>
         </div>
+      </div>
+
+      <!-- Continue Button -->
+      <div class="form-actions" *ngIf="hasFormData()">
+        <button 
+          class="continue-btn"
+          (click)="proceedToBooking()"
+          [disabled]="isCallActive"
+        >
+          <mat-icon>arrow_forward</mat-icon>
+          <span>Continue to Booking</span>
+        </button>
+        <p class="action-hint" *ngIf="isCallActive">
+          End the call to continue with your booking
+        </p>
       </div>
     </div>
   </div>
