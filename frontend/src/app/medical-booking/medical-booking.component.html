@@ -1342,6 +1342,7 @@
         class="step-content"
         *ngIf="currentStep === 6"
         [@fadeIn]
+        (@fadeIn.done)="onAnimationDone()"
       >
         <div class="confirmation-container" *ngIf="bookingConfirmed">
           <!-- Animated Checkmark -->
@@ -1422,7 +1423,7 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons" *ngIf="currentStep < 6 || !bookingConfirmed">
-        <button class="btn btn-outline" (click)="previousStep()" *ngIf="currentStep > 1">
+        <button class="btn btn-outline" (click)="previousStep()" *ngIf="currentStep > 1" [disabled]="isAnimating">
           <mat-icon>arrow_back</mat-icon>
           Back
         </button>
@@ -1433,7 +1434,7 @@
           *ngIf="currentStep === 3 && (ocrData || uploadSkipped)"
           class="btn btn-primary"
           (click)="nextStep()"
-          [disabled]="isProcessingOcr"
+          [disabled]="isProcessingOcr || isAnimating"
         >
           Continue
           <mat-icon>arrow_forward</mat-icon>
@@ -1444,7 +1445,7 @@
           *ngIf="currentStep !== 3"
           class="btn btn-primary"
           (click)="nextStep()"
-          [disabled]="!canProceed()"
+          [disabled]="!canProceed() || isAnimating"
         >
           {{currentStep === 5 ? 'Pay $' + getSelectedTotal() : 'Continue'}}
           <mat-icon>{{currentStep === 5 ? 'lock' : 'arrow_forward'}}</mat-icon>

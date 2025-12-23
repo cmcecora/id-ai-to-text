@@ -1026,24 +1026,23 @@ export class MedicalBookingComponent implements OnInit {
     if (this.canProceed() && this.currentStep < this.totalSteps && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'forward';
-      this.scrollToTop(); // Scroll before step change
+      this.currentStep++;
+      this.scrollToTop();
 
-      // Small delay to allow animation to register
+      // Pre-fill patient form when entering Step 4 if OCR data exists
+      if (this.currentStep === 4 && this.ocrData && !this.uploadSkipped) {
+        this.prefillPatientForm();
+      }
+
+      // Confirm booking when entering Step 6
+      if (this.currentStep === 6) {
+        this.confirmBooking();
+      }
+
+      // Reset isAnimating after animation completes (350ms animation + buffer)
       setTimeout(() => {
-        this.currentStep++;
         this.isAnimating = false;
-        this.scrollToTop(); // Scroll again after content renders
-
-        // Pre-fill patient form when entering Step 4 if OCR data exists
-        if (this.currentStep === 4 && this.ocrData && !this.uploadSkipped) {
-          this.prefillPatientForm();
-        }
-
-        // Confirm booking when entering Step 6
-        if (this.currentStep === 6) {
-          this.confirmBooking();
-        }
-      }, 50);
+      }, 400);
     }
   }
 
@@ -1051,13 +1050,13 @@ export class MedicalBookingComponent implements OnInit {
     if (this.currentStep > 1 && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'backward';
-      this.scrollToTop(); // Scroll before step change
+      this.currentStep--;
+      this.scrollToTop();
 
+      // Reset isAnimating after animation completes
       setTimeout(() => {
-        this.currentStep--;
         this.isAnimating = false;
-        this.scrollToTop(); // Scroll again after content renders
-      }, 50);
+      }, 400);
     }
   }
 
@@ -1065,13 +1064,13 @@ export class MedicalBookingComponent implements OnInit {
     if (step < this.currentStep && !this.isAnimating) {
       this.isAnimating = true;
       this.animationDirection = 'backward';
-      this.scrollToTop(); // Scroll before step change
+      this.currentStep = step;
+      this.scrollToTop();
 
+      // Reset isAnimating after animation completes
       setTimeout(() => {
-        this.currentStep = step;
         this.isAnimating = false;
-        this.scrollToTop(); // Scroll again after content renders
-      }, 50);
+      }, 400);
     }
   }
 
@@ -1091,9 +1090,10 @@ export class MedicalBookingComponent implements OnInit {
     }
   }
 
-  // Animation callback to track animation state
+  // Animation callback - kept for potential future use but timing is handled by setTimeout
   onAnimationDone(): void {
-    this.isAnimating = false;
+    // Animation completion is now handled by setTimeout in navigation methods
+    // This callback can be used for additional post-animation logic if needed
   }
 
   confirmBooking(): void {
