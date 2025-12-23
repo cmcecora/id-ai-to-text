@@ -13,10 +13,24 @@ const createAuth = () => {
 
     const port = process.env.PORT || 8010;
 
+    // Debug: Log OAuth configuration
+    console.log('Google OAuth Config:', {
+        clientId: process.env.GOOGLE_CLIENT_ID ? '✅ Set' : '❌ Missing',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET ? '✅ Set' : '❌ Missing',
+        baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${port}`
+    });
+
     return betterAuth({
         database: mongodbAdapter(db),
         emailAndPassword: {
             enabled: true,
+        },
+        // Google OAuth social provider
+        socialProviders: {
+            google: {
+                clientId: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            },
         },
         // Add your secret key (should be in .env in production)
         secret: process.env.BETTER_AUTH_SECRET || "development-secret-change-in-production",

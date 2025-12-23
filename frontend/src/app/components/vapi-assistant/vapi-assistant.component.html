@@ -88,62 +88,19 @@
     <div class="form-panel">
       <div class="form-header">
         <h3>Booking Information</h3>
-        <div class="form-actions" *ngIf="hasFormData()">
-          <button
-            class="edit-btn"
-            *ngIf="!isEditing"
-            (click)="toggleEdit()"
-          >
-            <mat-icon>edit</mat-icon>
-            Edit
-          </button>
-          <button
-            class="save-btn"
-            *ngIf="isEditing"
-            (click)="saveChanges()"
-          >
-            <mat-icon>check</mat-icon>
-            Save
-          </button>
-        </div>
       </div>
 
-      <div class="form-content" *ngIf="hasFormData(); else emptyForm">
-        <div class="form-fields">
-          <div
-            *ngFor="let field of getFilledFields()"
-            class="form-field"
-            [class.editing]="isEditing"
-          >
-            <label>{{ field.label }}</label>
-            <input
-              *ngIf="isEditing"
-              [formControl]="getFormControl(field.key)"
-              class="field-input"
-            />
-            <span *ngIf="!isEditing" class="field-value">{{ field.value }}</span>
-          </div>
+      <div class="form-content">
+        <div class="booking-fields-list">
+          <input
+            *ngFor="let field of formFields"
+            [formControl]="getFormControl(field.key)"
+            class="booking-field-input"
+            [placeholder]="field.label"
+            readonly
+          />
         </div>
-
-        <button
-          class="proceed-btn"
-          *ngIf="!isEditing && hasFormData()"
-          (click)="proceedToBooking()"
-        >
-          <span>Continue to Booking</span>
-          <mat-icon>arrow_forward</mat-icon>
-        </button>
       </div>
-
-      <ng-template #emptyForm>
-        <div class="empty-form">
-          <div class="empty-icon">
-            <mat-icon>description</mat-icon>
-          </div>
-          <h4>No information yet</h4>
-          <p>Start speaking with the assistant to fill in your booking details. The form will automatically update as you provide information.</p>
-        </div>
-      </ng-template>
     </div>
   </div>
 </div>

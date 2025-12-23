@@ -31,7 +31,7 @@ export class SignupComponent implements OnInit {
   ngOnInit(): void {
     // Redirect if already authenticated
     if (this.authService.isAuthenticated) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/book-test']);
     }
   }
 
@@ -63,7 +63,7 @@ export class SignupComponent implements OnInit {
     this.isLoading = false;
 
     if (result.success) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/book-test']);
     } else {
       this.errorMessage = result.error || 'Sign up failed. Please try again.';
     }

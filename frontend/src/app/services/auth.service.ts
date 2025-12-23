@@ -117,10 +117,35 @@ export class AuthService {
 
   /**
    * Sign in with social provider (Google, Facebook, Apple)
+   * Better-Auth expects a POST request that returns a redirect URL
    */
-  signInWithSocial(provider: 'google' | 'facebook' | 'apple'): void {
-    // Redirect to the OAuth endpoint
-    window.location.href = `${this.API_URL}/sign-in/social/${provider}`;
+  async signInWithSocial(provider: 'google' | 'facebook' | 'apple'): Promise<void> {
+    try {
+      const callbackURL = `${window.location.origin}/book-test`;
+      
+      // Make POST request to get the OAuth redirect URL
+      const response = await this.http.post<{ url?: string; redirect?: boolean }>(
+        `${this.API_URL}/sign-in/social`,
+        { 
+          provider,
+          callbackURL 
+        },
+        { withCredentials: true }
+      ).toPromise();
+
+      // Better-Auth returns the redirect URL in the response
+      if (response?.url) {
+        window.location.href = response.url;
+      }
+    } catch (error: any) {
+      // If the request returns a redirect status, follow it
+      // Some implementations redirect directly from the POST
+      console.error('Social sign-in error:', error);
+      
+      // Fallback: try direct navigation to the OAuth endpoint
+      const callbackURL = encodeURIComponent(`${window.location.origin}/book-test`);
+      window.location.href = `${this.API_URL}/sign-in/social?provider=${provider}&callbackURL=${callbackURL}`;
+    }
   }
 
   /**

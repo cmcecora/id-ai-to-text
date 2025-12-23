@@ -15,17 +15,18 @@ export interface ChatMessage {
 }
 
 export interface BookingFormData {
-  testType?: string;
-  patientName?: string;
-  dateOfBirth?: string;
-  phoneNumber?: string;
-  email?: string;
-  preferredDate?: string;
-  preferredTime?: string;
+  fullName?: string;
+  sex?: string;
+  dob?: string;
+  address?: string;
+  test?: string;
+  reasons?: string;
+  testQuestions?: string;
+  dateTime?: string;
   location?: string;
-  insuranceProvider?: string;
+  company?: string;
+  insurance?: string;
   insuranceId?: string;
-  notes?: string;
 }
 
 @Component({
@@ -85,17 +86,18 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   bookingForm: FormGroup;
   isEditing = false;
   formFields: { key: keyof BookingFormData; label: string; type: string }[] = [
-    { key: 'testType', label: 'Test Type', type: 'text' },
-    { key: 'patientName', label: 'Patient Name', type: 'text' },
-    { key: 'dateOfBirth', label: 'Date of Birth', type: 'text' },
-    { key: 'phoneNumber', label: 'Phone Number', type: 'tel' },
-    { key: 'email', label: 'Email', type: 'email' },
-    { key: 'preferredDate', label: 'Preferred Date', type: 'text' },
-    { key: 'preferredTime', label: 'Preferred Time', type: 'text' },
+    { key: 'fullName', label: 'Full name', type: 'text' },
+    { key: 'sex', label: 'Sex', type: 'text' },
+    { key: 'dob', label: 'DOB', type: 'text' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'test', label: 'Test', type: 'text' },
+    { key: 'reasons', label: 'Reasons', type: 'text' },
+    { key: 'testQuestions', label: 'Test Qs', type: 'text' },
+    { key: 'dateTime', label: 'Date/Time', type: 'text' },
     { key: 'location', label: 'Location', type: 'text' },
-    { key: 'insuranceProvider', label: 'Insurance Provider', type: 'text' },
-    { key: 'insuranceId', label: 'Insurance ID', type: 'text' },
-    { key: 'notes', label: 'Notes', type: 'text' }
+    { key: 'company', label: 'Company', type: 'text' },
+    { key: 'insurance', label: 'Insurance', type: 'text' },
+    { key: 'insuranceId', label: 'InsuranceID', type: 'text' }
   ];
 
   private shouldScrollToBottom = false;
@@ -106,17 +108,18 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     private fb: FormBuilder
   ) {
     this.bookingForm = this.fb.group({
-      testType: [''],
-      patientName: [''],
-      dateOfBirth: [''],
-      phoneNumber: [''],
-      email: [''],
-      preferredDate: [''],
-      preferredTime: [''],
+      fullName: [''],
+      sex: [''],
+      dob: [''],
+      address: [''],
+      test: [''],
+      reasons: [''],
+      testQuestions: [''],
+      dateTime: [''],
       location: [''],
-      insuranceProvider: [''],
-      insuranceId: [''],
-      notes: ['']
+      company: [''],
+      insurance: [''],
+      insuranceId: ['']
     });
   }
 
@@ -225,46 +228,54 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       'Complete Blood Count', 'CBC', 'Lipid Panel', 'Thyroid Panel', 'TSH',
       'Hemoglobin A1C', 'Vitamin D', 'MRI', 'CT Scan', 'X-Ray', 'ECG', 'EKG'
     ];
-    for (const test of testTypes) {
-      if (lowerText.includes(test.toLowerCase())) {
-        this.bookingForm.patchValue({ testType: test });
+    for (const testType of testTypes) {
+      if (lowerText.includes(testType.toLowerCase())) {
+        this.bookingForm.patchValue({ test: testType });
         break;
       }
     }
 
-    // Extract name patterns
-    const nameMatch = text.match(/(?:name is|I'm|I am|patient name is|for)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i);
+    // Extract full name patterns
+    const nameMatch = text.match(/(?:name is|I'm|I am|patient name is|for|my name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
     if (nameMatch) {
-      this.bookingForm.patchValue({ patientName: nameMatch[1].trim() });
+      this.bookingForm.patchValue({ fullName: nameMatch[1].trim() });
     }
 
-    // Extract phone number
-    const phoneMatch = text.match(/(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/);
-    if (phoneMatch) {
-      this.bookingForm.patchValue({ phoneNumber: phoneMatch[1] });
+    // Extract sex/gender
+    const sexMatch = text.match(/(?:sex is|gender is|I am a|I'm a)\s+(male|female|man|woman)/i);
+    if (sexMatch) {
+      const sexValue = sexMatch[1].toLowerCase();
+      const normalizedSex = (sexValue === 'male' || sexValue === 'man') ? 'Male' : 'Female';
+      this.bookingForm.patchValue({ sex: normalizedSex });
     }
 
-    // Extract email
-    const emailMatch = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-    if (emailMatch) {
-      this.bookingForm.patchValue({ email: emailMatch[1] });
+    // Extract date of birth
+    const dobMatch = text.match(/(?:date of birth|birthday|born on|dob is)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?,?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+    if (dobMatch) {
+      this.bookingForm.patchValue({ dob: dobMatch[1].trim() });
     }
 
-    // Extract date patterns
-    const dateMatch = text.match(/(?:on|for|scheduled for|date is)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/i);
-    if (dateMatch) {
-      this.bookingForm.patchValue({ preferredDate: dateMatch[1].trim() });
+    // Extract address
+    const addressMatch = text.match(/(?:address is|I live at|my address is)\s+([^.]+)/i);
+    if (addressMatch) {
+      this.bookingForm.patchValue({ address: addressMatch[1].trim() });
     }
 
-    // Extract time patterns
-    const timeMatch = text.match(/(?:at|time is|around)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM)?)/i);
-    if (timeMatch) {
-      this.bookingForm.patchValue({ preferredTime: timeMatch[1].trim() });
+    // Extract reasons for test
+    const reasonsMatch = text.match(/(?:reason is|because|for|due to)\s+([^.]+)/i);
+    if (reasonsMatch && !this.bookingForm.get('reasons')?.value) {
+      this.bookingForm.patchValue({ reasons: reasonsMatch[1].trim() });
+    }
+
+    // Extract date/time patterns
+    const dateTimeMatch = text.match(/(?:on|for|scheduled for|appointment is)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)?|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)?)/i);
+    if (dateTimeMatch) {
+      this.bookingForm.patchValue({ dateTime: dateTimeMatch[1].trim() });
     }
 
     // Extract location/clinic
     const locationPatterns = [
-      /(?:at|location is|clinic is|center at)\s+([A-Z][a-zA-Z\s]+(?:Clinic|Center|Hospital|Lab|Laboratory))/i
+      /(?:at|location is|clinic is|center at)\s+([A-Z][a-zA-Z\s]+(?:Clinic|Center|Hospital|Lab|Laboratory)?)/i
     ];
     for (const pattern of locationPatterns) {
       const match = text.match(pattern);
@@ -274,22 +285,47 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
       }
     }
 
+    // Extract company/employer
+    const companyMatch = text.match(/(?:company is|work at|employer is|work for)\s+([A-Z][a-zA-Z\s&]+)/i);
+    if (companyMatch) {
+      this.bookingForm.patchValue({ company: companyMatch[1].trim() });
+    }
+
     // Extract insurance info
-    const insuranceMatch = text.match(/(?:insurance is|insured by|coverage through)\s+([A-Z][a-zA-Z\s]+)/i);
+    const insuranceMatch = text.match(/(?:insurance is|insured by|coverage through|insurance provider is)\s+([A-Z][a-zA-Z\s]+)/i);
     if (insuranceMatch) {
-      this.bookingForm.patchValue({ insuranceProvider: insuranceMatch[1].trim() });
+      this.bookingForm.patchValue({ insurance: insuranceMatch[1].trim() });
+    }
+
+    // Extract insurance ID
+    const insuranceIdMatch = text.match(/(?:insurance id is|member id is|policy number is|id number is)\s+([A-Z0-9]+)/i);
+    if (insuranceIdMatch) {
+      this.bookingForm.patchValue({ insuranceId: insuranceIdMatch[1].trim() });
     }
   }
 
   private updateFormFromParams(params: any): void {
     const fieldMapping: Record<string, keyof BookingFormData> = {
-      test_type: 'testType',
-      patient_name: 'patientName',
-      date_of_birth: 'dateOfBirth',
-      phone_number: 'phoneNumber',
-      preferred_date: 'preferredDate',
-      preferred_time: 'preferredTime',
-      insurance_provider: 'insuranceProvider',
+      full_name: 'fullName',
+      patient_name: 'fullName',
+      sex: 'sex',
+      gender: 'sex',
+      date_of_birth: 'dob',
+      dob: 'dob',
+      address: 'address',
+      test: 'test',
+      test_type: 'test',
+      reasons: 'reasons',
+      reason: 'reasons',
+      test_questions: 'testQuestions',
+      date_time: 'dateTime',
+      preferred_date: 'dateTime',
+      preferred_time: 'dateTime',
+      location: 'location',
+      company: 'company',
+      employer: 'company',
+      insurance: 'insurance',
+      insurance_provider: 'insurance',
       insurance_id: 'insuranceId'
     };
 
