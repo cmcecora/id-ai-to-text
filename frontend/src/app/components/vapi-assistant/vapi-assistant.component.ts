@@ -100,6 +100,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
 
   // Chat messages
   messages: ChatMessage[] = [];
+  userResponses: ChatMessage[] = [];
 
   // Form data
   bookingForm: FormGroup;
@@ -1358,11 +1359,19 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   private addMessage(role: 'user' | 'assistant' | 'system', content: string): void {
-    this.messages.push({
+    const message: ChatMessage = {
       role,
       content,
       timestamp: new Date()
-    });
+    };
+
+    this.messages.push(message);
+
+    // Keep a running list of user answers for the response column
+    if (role === 'user' && content.trim()) {
+      this.userResponses.push(message);
+    }
+
     this.shouldScrollToBottom = true;
   }
 
@@ -1404,6 +1413,7 @@ export class VapiAssistantComponent implements OnInit, OnDestroy, AfterViewCheck
     }
 
     // Start a new call
+    this.userResponses = [];
     this.isConnecting = true;
     this.addSystemMessage('Connecting to assistant...');
 

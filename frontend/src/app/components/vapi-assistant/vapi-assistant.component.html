@@ -95,44 +95,17 @@
       </div>
     </div>
 
-    <!-- Right: Booking Form -->
-    <div class="form-panel">
-      <div class="form-header">
-        <h3>Booking Information</h3>
-        <span class="form-status" *ngIf="hasFormData()">
-          <mat-icon>check_circle</mat-icon>
-          {{ getFilledFields().length }} fields collected
-        </span>
-      </div>
-
-      <div class="form-content">
-        <div class="booking-fields-list">
-          <div class="field-item" *ngFor="let field of formFields">
-            <label class="field-label">{{ field.label }}</label>
-            <input
-              [formControl]="getFormControl(field.key)"
-              class="booking-field-input"
-              [class.has-value]="getFormControl(field.key).value"
-              [placeholder]="'—'"
-              readonly
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Continue Button -->
-      <div class="form-actions" *ngIf="hasFormData()">
-        <button 
-          class="continue-btn"
-          (click)="proceedToBooking()"
-          [disabled]="isCallActive"
+    <!-- Right: User Responses -->
+    <div class="response-panel">
+      <div class="responses-list" *ngIf="userResponses.length">
+        <div
+          class="response-item"
+          *ngFor="let response of userResponses; let idx = index"
+          @messageAnimation
         >
-          <mat-icon>arrow_forward</mat-icon>
-          <span>Continue to Booking</span>
-        </button>
-        <p class="action-hint" *ngIf="isCallActive">
-          End the call to continue with your booking
-        </p>
+          <span class="response-index">{{ idx + 1 }}.</span>
+          <p class="response-text">{{ response.content }}</p>
+        </div>
       </div>
     </div>
   </div>
