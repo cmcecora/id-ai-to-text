@@ -4,25 +4,30 @@ import { Subject } from 'rxjs';
 import Vapi from '@vapi-ai/web';
 
 // Interface for booking form data collected via voice (incremental updates)
+// Field names are CANONICAL - the normalizeFieldName() method maps any Vapi field name to these
+// FIELD ORDER:
+// 1. test, 2. reasons, 3. preferredLocation, 4. preferredDate, 5. preferredTime,
+// 6. firstName, 7. lastName, 8. dob, 9. sex, 10. addressStreet, 11. addressCity,
+// 12. addressState, 13. addressZip, 14. email, 15. phone, 16. insuranceProvider, 17. insuranceId
 export interface VoiceBookingData {
-  test?: string;
-  reasons?: string;
-  preferredDate?: string;
-  preferredTime?: string;
-  preferredLocation?: string;
-  firstName?: string;
-  lastName?: string;
-  dob?: string;
-  sex?: string;
-  addressStreet?: string;
-  addressCity?: string;
-  addressState?: string;
-  addressZip?: string;
-  email?: string;
-  phone?: string;
-  insuranceProvider?: string;
-  insuranceId?: string;
-  hasDoctorOrder?: boolean;
+  test?: string;              // 1. What test do they want?
+  reasons?: string;           // 2. Why do they need this test?
+  preferredLocation?: string; // 3. Where? (city, state, or zipcode)
+  preferredDate?: string;     // 4. When? (date in words or numbers)
+  preferredTime?: string;     // 5. What time? (time in words or numbers)
+  firstName?: string;         // 6. First name
+  lastName?: string;          // 7. Last name
+  dob?: string;               // 8. Date of birth (words or numbers)
+  sex?: string;               // 9. Sex (male or female)
+  addressStreet?: string;     // 10. Street address
+  addressCity?: string;       // 11. City (for address)
+  addressState?: string;      // 12. State
+  addressZip?: string;        // 13. ZIP code
+  email?: string;             // 14. Email address
+  phone?: string;             // 15. Phone number (just numbers)
+  insuranceProvider?: string; // 16. Insurance company name
+  insuranceId?: string;       // 17. Insurance ID / Member ID
+  hasDoctorOrder?: boolean;   // Extra: Has doctor's order?
 }
 
 // Interface for the complete appointment booking (final submission)
@@ -94,6 +99,54 @@ export class VapiService {
 
   endCall() {
     this.vapi.stop();
+    this.isPaused = false;
+  }
+
+  // Track pause state
+  private isPaused = false;
+
+  /**
+   * Pause the call by muting the microphone.
+   * The call remains active but the user can't speak.
+   * This allows resuming from where they left off.
+   */
+  pauseCall(): void {
+    if (!this.isPaused) {
+      this.vapi.setMuted(true);
+      this.isPaused = true;
+      console.log('>>> [VapiService] Call paused (microphone muted)');
+    }
+  }
+
+  /**
+   * Resume the call by unmuting the microphone.
+   * The conversation continues from where it was paused.
+   */
+  resumeCall(): void {
+    if (this.isPaused) {
+      this.vapi.setMuted(false);
+      this.isPaused = false;
+      console.log('>>> [VapiService] Call resumed (microphone unmuted)');
+    }
+  }
+
+  /**
+   * Check if the call is currently paused.
+   */
+  isCallPaused(): boolean {
+    return this.isPaused;
+  }
+
+  /**
+   * Toggle pause state.
+   */
+  togglePause(): boolean {
+    if (this.isPaused) {
+      this.resumeCall();
+    } else {
+      this.pauseCall();
+    }
+    return this.isPaused;
   }
 
   // Get all collected booking data
@@ -118,28 +171,281 @@ export class VapiService {
     });
   }
 
-  // Handle tool calls from Vapi assistant
-  handleToolCall(toolCall: { id: string; function: { name: string; arguments: string } }): void {
-    const { id, function: func } = toolCall;
+  /**
+   * Normalize any incoming field name to our canonical form field name.
+   * Uses EXACT and SPECIFIC pattern matching to avoid incorrect mappings.
+   * 
+   * FIELD ORDER:
+   * 1. test, 2. reasons, 3. preferredLocation, 4. preferredDate, 5. preferredTime,
+   * 6. firstName, 7. lastName, 8. dob, 9. sex, 10. addressStreet, 11. addressCity,
+   * 12. addressState, 13. addressZip, 14. email, 15. phone, 16. insuranceProvider, 17. insuranceId
+   * 
+   * IMPORTANT: Each field should capture the FULL user response for that question.
+   * We use exact matching where possible to avoid cross-contamination between fields.
+   */
+  private normalizeFieldName(key: string): string | null {
+    // Normalize the key: lowercase and remove underscores/hyphens
+    const lowerKey = key.toLowerCase().replace(/[_-]/g, '');
+    const originalLower = key.toLowerCase();
     
+    console.log(`>>> [VapiService] normalizeFieldName input: "${key}" -> normalized: "${lowerKey}"`);
+    
+    // =============================================================================
+    // EXACT MATCHES FIRST - these are unambiguous field names
+    // =============================================================================
+    
+    // Exact matches for common field names (highest priority)
+    const exactMatches: Record<string, string> = {
+      'test': 'test',
+      'testtype': 'test',
+      'testname': 'test',
+      'exam': 'test',
+      'procedure': 'test',
+      
+      'reason': 'reasons',
+      'reasons': 'reasons',
+      'reasonfortest': 'reasons',
+      'purpose': 'reasons',
+      'why': 'reasons',
+      
+      'location': 'preferredLocation',
+      'preferredlocation': 'preferredLocation',
+      'cliniclocation': 'preferredLocation',
+      'facility': 'preferredLocation',
+      'clinic': 'preferredLocation',
+      'center': 'preferredLocation',
+      'where': 'preferredLocation',
+      
+      'date': 'preferredDate',
+      'preferreddate': 'preferredDate',
+      'appointmentdate': 'preferredDate',
+      'day': 'preferredDate',
+      'when': 'preferredDate',
+      
+      'time': 'preferredTime',
+      'preferredtime': 'preferredTime',
+      'appointmenttime': 'preferredTime',
+      'hour': 'preferredTime',
+      'timeslot': 'preferredTime',
+      
+      'firstname': 'firstName',
+      'first': 'firstName',
+      'fname': 'firstName',
+      
+      'lastname': 'lastName',
+      'last': 'lastName',
+      'lname': 'lastName',
+      'surname': 'lastName',
+      
+      'dob': 'dob',
+      'dateofbirth': 'dob',
+      'birthday': 'dob',
+      'birthdate': 'dob',
+      'bday': 'dob',
+      
+      'sex': 'sex',
+      'gender': 'sex',
+      
+      // ADDRESS fields - require explicit "address" prefix or specific field names
+      'address': 'addressStreet',
+      'addressstreet': 'addressStreet',
+      'streetaddress': 'addressStreet',
+      'street': 'addressStreet',
+      
+      'addresscity': 'addressCity',
+      // NOTE: 'city' alone is NOT mapped here - it could be location or address
+      
+      'addressstate': 'addressState',
+      // NOTE: 'state' alone is NOT mapped here - too ambiguous
+      
+      'addresszip': 'addressZip',
+      'zipcode': 'addressZip',
+      'zip': 'addressZip',
+      'postalcode': 'addressZip',
+      'postal': 'addressZip',
+      
+      'email': 'email',
+      'emailaddress': 'email',
+      
+      'phone': 'phone',
+      'phonenumber': 'phone',
+      'mobile': 'phone',
+      'cell': 'phone',
+      'telephone': 'phone',
+      'tel': 'phone',
+      
+      'insurance': 'insuranceProvider',
+      'insuranceprovider': 'insuranceProvider',
+      'insurancecarrier': 'insuranceProvider',
+      'insurancecompany': 'insuranceProvider',
+      'carrier': 'insuranceProvider',
+      'payer': 'insuranceProvider',
+      
+      'insuranceid': 'insuranceId',
+      'memberid': 'insuranceId',
+      'policynumber': 'insuranceId',
+      'subscriberid': 'insuranceId',
+    };
+    
+    // Check for exact match first
+    if (exactMatches[lowerKey]) {
+      console.log(`>>> [VapiService] Exact match: "${key}" -> "${exactMatches[lowerKey]}"`);
+      return exactMatches[lowerKey];
+    }
+    
+    // =============================================================================
+    // PATTERN MATCHES - only for fields that weren't matched exactly
+    // These are more lenient but ordered by priority
+    // =============================================================================
+    
+    // 1. TEST - check for test-related patterns
+    if (lowerKey.includes('test') || lowerKey.includes('exam') || lowerKey.includes('procedure')) {
+      return 'test';
+    }
+    
+    // 2. REASONS - check for reason-related patterns (BEFORE location/address)
+    if (lowerKey.includes('reason') || lowerKey.includes('purpose') || lowerKey.includes('why')) {
+      return 'reasons';
+    }
+    
+    // 3. LOCATION - check for location patterns
+    if (lowerKey.includes('location') || lowerKey.includes('clinic') || lowerKey.includes('facility') ||
+        lowerKey.includes('center') || lowerKey.includes('where') || lowerKey.includes('preferred')) {
+      return 'preferredLocation';
+    }
+    
+    // 4. DATE - check for date patterns (exclude birthday/birthdate)
+    if ((lowerKey.includes('date') || lowerKey.includes('day') || lowerKey.includes('when') || lowerKey.includes('appointment')) &&
+        !lowerKey.includes('birth') && !lowerKey.includes('dob')) {
+      return 'preferredDate';
+    }
+    
+    // 5. TIME - check for time patterns
+    if (lowerKey.includes('time') || lowerKey.includes('hour') || lowerKey.includes('slot')) {
+      return 'preferredTime';
+    }
+    
+    // 6-7. NAMES - check for name patterns
+    if (lowerKey.includes('firstname') || lowerKey.includes('first') && lowerKey.includes('name')) {
+      return 'firstName';
+    }
+    if (lowerKey.includes('lastname') || lowerKey.includes('last') && lowerKey.includes('name') || lowerKey.includes('surname')) {
+      return 'lastName';
+    }
+    
+    // 8. DOB - check for birth-related patterns
+    if (lowerKey.includes('birth') || lowerKey.includes('dob') || lowerKey.includes('bday')) {
+      return 'dob';
+    }
+    
+    // 9. SEX/GENDER
+    if (lowerKey.includes('sex') || lowerKey.includes('gender')) {
+      return 'sex';
+    }
+    
+    // 10-13. ADDRESS - ONLY match if explicitly contains "address"
+    if (lowerKey.includes('address')) {
+      if (lowerKey.includes('street') || lowerKey === 'address') {
+        return 'addressStreet';
+      }
+      if (lowerKey.includes('city')) {
+        return 'addressCity';
+      }
+      if (lowerKey.includes('state')) {
+        return 'addressState';
+      }
+      if (lowerKey.includes('zip') || lowerKey.includes('postal')) {
+        return 'addressZip';
+      }
+    }
+    
+    // Street is unambiguous
+    if (lowerKey.includes('street')) {
+      return 'addressStreet';
+    }
+    
+    // ZIP/postal is unambiguous
+    if (lowerKey.includes('zip') || lowerKey.includes('postal')) {
+      return 'addressZip';
+    }
+    
+    // 14. EMAIL
+    if (lowerKey.includes('email') || lowerKey.includes('mail')) {
+      return 'email';
+    }
+    
+    // 15. PHONE
+    if (lowerKey.includes('phone') || lowerKey.includes('mobile') || lowerKey.includes('cell') || lowerKey.includes('tel')) {
+      return 'phone';
+    }
+    
+    // 16-17. INSURANCE
+    if (lowerKey.includes('insurance') || lowerKey.includes('carrier') || lowerKey.includes('payer')) {
+      if (lowerKey.includes('id') || lowerKey.includes('member') || lowerKey.includes('policy') || lowerKey.includes('subscriber')) {
+        return 'insuranceId';
+      }
+      return 'insuranceProvider';
+    }
+    
+    // =============================================================================
+    // AMBIGUOUS FIELDS - these are NOT automatically mapped
+    // 'city' and 'state' alone are ignored because they could be:
+    // - Part of an address
+    // - Part of a location
+    // - Something else entirely (like extracted from reasons text)
+    // =============================================================================
+    
+    // Log but don't map ambiguous or unknown fields
+    console.log(`>>> [VapiService] UNMAPPED field: "${key}" (normalized: "${lowerKey}") - field ignored`);
+    return null;
+  }
+
+  // Handle tool calls from Vapi assistant
+  handleToolCall(toolCall: { id: string; function: { name: string; arguments: string | object } }): void {
+    const { id, function: func } = toolCall;
+
+    console.log('>>> [VapiService] handleToolCall received:', { id, functionName: func.name, arguments: func.arguments, argumentsType: typeof func.arguments });
+
     if (func.name === 'update_booking_form') {
       try {
-        const params: VoiceBookingData = JSON.parse(func.arguments);
-        console.log('Tool call received - update_booking_form:', params);
-        
+        // Handle both string and object arguments (VAPI may send either)
+        const rawParams = typeof func.arguments === 'string'
+          ? JSON.parse(func.arguments)
+          : func.arguments;
+
+        console.log('>>> [VapiService] Raw params from Vapi:', rawParams);
+
+        // Normalize all field names to our canonical form
+        const normalizedParams: VoiceBookingData = {};
+        for (const [key, value] of Object.entries(rawParams)) {
+          if (value === undefined || value === null || value === '') continue;
+          
+          const normalizedKey = this.normalizeFieldName(key);
+          if (normalizedKey) {
+            (normalizedParams as any)[normalizedKey] = value;
+            console.log(`>>> [VapiService] Mapped "${key}" -> "${normalizedKey}" = "${value}"`);
+          }
+        }
+
+        console.log('>>> [VapiService] Normalized params:', normalizedParams);
+
         // Merge new data with existing collected data
         this.collectedData = {
           ...this.collectedData,
-          ...this.filterUndefined(params)
+          ...normalizedParams
         };
-        
+
+        console.log('>>> [VapiService] Updated collectedData:', this.collectedData);
+        console.log('>>> [VapiService] EMITTING via bookingDataSubject.next()');
+
         // Emit the updated data
         this.bookingDataSubject.next(this.collectedData);
-        
+
         // Send success result back to Vapi
         this.sendToolResult(id, { success: true, message: 'Form updated successfully' });
+        console.log('>>> [VapiService] Sent tool result back to VAPI');
       } catch (error) {
-        console.error('Error parsing tool call arguments:', error);
+        console.error('>>> [VapiService] Error parsing tool call arguments:', error, 'Raw arguments:', func.arguments);
         this.sendToolResult(id, { success: false, error: 'Failed to parse arguments' });
       }
     }
@@ -147,8 +453,11 @@ export class VapiService {
     // Handle the save_appointment_booking tool call (final submission)
     if (func.name === 'save_appointment_booking') {
       try {
-        const bookingData: AppointmentBookingData = JSON.parse(func.arguments);
-        console.log('Tool call received - save_appointment_booking:', bookingData);
+        // Handle both string and object arguments
+        const bookingData: AppointmentBookingData = typeof func.arguments === 'string'
+          ? JSON.parse(func.arguments)
+          : func.arguments as AppointmentBookingData;
+        console.log('>>> [VapiService] save_appointment_booking received:', bookingData);
         
         // Emit via the observable
         this.appointmentBookingSubject.next(bookingData);

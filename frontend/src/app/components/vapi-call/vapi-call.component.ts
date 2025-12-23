@@ -69,12 +69,25 @@ import { VapiService, VoiceBookingData, AppointmentBookingData } from '../../ser
         </div>
       </div>
 
-      <button 
-        (click)="toggleCall()" 
-        [class.active]="isCallActive"
-        [disabled]="isConnecting">
-        {{ buttonText }}
-      </button>
+      <div class="call-controls">
+        <button 
+          (click)="toggleCall()" 
+          [class.active]="isCallActive"
+          [disabled]="isConnecting"
+          class="call-button">
+          {{ buttonText }}
+        </button>
+        
+        <button 
+          *ngIf="isCallActive && !isConnecting"
+          (click)="togglePause()"
+          [class.paused]="isPaused"
+          class="pause-button">
+          <span class="pause-icon" *ngIf="!isPaused">⏸</span>
+          <span class="play-icon" *ngIf="isPaused">▶</span>
+          {{ isPaused ? 'Resume' : 'Pause' }}
+        </button>
+      </div>
     </div>
   `,
   styles: [`
@@ -93,7 +106,14 @@ import { VapiService, VoiceBookingData, AppointmentBookingData } from '../../ser
       color: #2e7d32;
       font-size: 1.3rem;
     }
-    button {
+    .call-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .call-button {
       padding: 1rem 2rem;
       font-size: 1rem;
       border-radius: 50px;
@@ -101,13 +121,42 @@ import { VapiService, VoiceBookingData, AppointmentBookingData } from '../../ser
       cursor: pointer;
       background: #4CAF50;
       color: white;
+      transition: all 0.2s ease;
     }
-    button.active {
+    .call-button.active {
       background: #f44336;
     }
-    button:disabled {
+    .call-button:disabled {
       background: #ccc;
       cursor: not-allowed;
+    }
+    .pause-button {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      border-radius: 50px;
+      border: 2px solid #ff9800;
+      cursor: pointer;
+      background: white;
+      color: #ff9800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .pause-button:hover {
+      background: #fff3e0;
+    }
+    .pause-button.paused {
+      background: #ff9800;
+      color: white;
+      border-color: #ff9800;
+    }
+    .pause-button.paused:hover {
+      background: #f57c00;
+      border-color: #f57c00;
+    }
+    .pause-icon, .play-icon {
+      font-size: 1rem;
     }
     .transcript {
       max-width: 400px;
@@ -174,6 +223,7 @@ export class VapiCallComponent implements OnInit, OnDestroy {
 
   isCallActive = false;
   isConnecting = false;
+  isPaused = false;
   status = 'Ready to call';
   transcript = '';
   bookingData: VoiceBookingData = {};
@@ -240,6 +290,7 @@ export class VapiCallComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.isCallActive = false;
         this.isConnecting = false;
+        this.isPaused = false;
         this.status = 'Call ended';
       });
     });
@@ -309,6 +360,7 @@ export class VapiCallComponent implements OnInit, OnDestroy {
   async toggleCall() {
     if (this.isCallActive) {
       this.vapiService.endCall();
+      this.isPaused = false;
     } else {
       this.isConnecting = true;
       this.status = 'Connecting...';
@@ -316,7 +368,22 @@ export class VapiCallComponent implements OnInit, OnDestroy {
       this.bookingData = {};
       this.appointmentData = null;
       this.bookingConfirmed = false;
+      this.isPaused = false;
       await this.vapiService.startCall();
+    }
+  }
+
+  /**
+   * Toggle pause/resume state of the call.
+   * When paused, the microphone is muted and the assistant waits.
+   * When resumed, the conversation continues from where it was paused.
+   */
+  togglePause() {
+    this.isPaused = this.vapiService.togglePause();
+    if (this.isPaused) {
+      this.status = '⏸ Call paused - click Resume to continue';
+    } else {
+      this.status = 'Listening...';
     }
   }
 

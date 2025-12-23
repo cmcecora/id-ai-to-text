@@ -145,7 +145,8 @@
   }
 
   &.has-tags {
-    padding-left: 12px;
+    // Keep space for the search icon so tags/text don’t overlap it
+    padding-left: 44px;
   }
 }
 

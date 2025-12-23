@@ -187,6 +187,17 @@ interface CalendarDay {
       transition(':leave', [
         animate('250ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 0, height: '0px', transform: 'translateY(-10px)' }))
       ])
+    ]),
+
+    // Slide in up animation for assistant
+    trigger('slideInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(50px)' }),
+        animate('500ms 100ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('400ms ease-in', style({ opacity: 0, transform: 'translateY(50px)' }))
+      ])
     ])
   ]
 })
@@ -1772,8 +1783,6 @@ export class MedicalBookingComponent implements OnInit {
    */
   openVoiceAssistant(): void {
     this.showVoiceAssistant = true;
-    // Prevent body scroll when modal is open
-    document.body.style.overflow = 'hidden';
   }
 
   /**
@@ -1781,8 +1790,6 @@ export class MedicalBookingComponent implements OnInit {
    */
   closeVoiceAssistant(): void {
     this.showVoiceAssistant = false;
-    // Restore body scroll
-    document.body.style.overflow = '';
   }
 
   /**

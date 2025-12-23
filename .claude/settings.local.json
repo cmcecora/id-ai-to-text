@@ -8,7 +8,11 @@
       "WebFetch(domain:www.better-auth.com)",
       "Bash(npm install:*)",
       "Bash(grep:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "mcp__browsermcp__browser_click",
+      "mcp__browsermcp__browser_get_console_logs",
+      "mcp__browsermcp__browser_screenshot"
     ],
     "deny": [],
     "ask": []

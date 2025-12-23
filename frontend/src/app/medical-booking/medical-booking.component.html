@@ -2,22 +2,23 @@
   <div class="booking-container">
     <!-- Header -->
     <div class="booking-header">
-      <h1>Book Your Medical Test</h1>
+      <h1><a routerLink="/">Book Your Medical Test</a></h1>
       <p class="header-subtitle">Schedule your appointment in just a few simple steps</p>
       
       <!-- Voice Assistant Button -->
       <button 
-        class="voice-assistant-btn"
+        class="talk-assistant-btn"
         (click)="openVoiceAssistant()"
         title="Use Voice Assistant to fill out the form"
       >
-        <mat-icon>mic</mat-icon>
+        <mat-icon>support_agent</mat-icon>
         <span>Use Voice Assistant</span>
       </button>
     </div>
 
-    <!-- Progress Steps -->
-    <div class="progress-steps">
+    <div class="booking-main-content" *ngIf="!showVoiceAssistant">
+      <!-- Progress Steps -->
+      <div class="progress-steps">
       <!-- Step 1 -->
       <div class="step-item" 
            [class.active]="currentStep >= 1" 
@@ -1428,6 +1429,14 @@
         </button>
       </div>
     </div>
+
+    <!-- VAPI Assistant View -->
+    <div class="assistant-view" *ngIf="showVoiceAssistant" @slideInUp>
+      <app-vapi-assistant 
+        (closeAssistant)="closeVoiceAssistant()"
+        (bookingDataCollected)="onVoiceBookingDataCollected($event)"
+      ></app-vapi-assistant>
+    </div>
   </div>
 
   <!-- Image Preview Modal -->
@@ -1447,16 +1456,6 @@
         <mat-icon>close</mat-icon>
       </button>
       <img [src]="insuranceImageUrl" alt="Uploaded Insurance Card - Full Size">
-    </div>
-  </div>
-
-  <!-- Voice Assistant Modal -->
-  <div class="voice-assistant-modal-overlay" *ngIf="showVoiceAssistant" (click)="closeVoiceAssistant()">
-    <div class="voice-assistant-modal-content" (click)="$event.stopPropagation()">
-      <app-vapi-assistant
-        (closeAssistant)="closeVoiceAssistant()"
-        (bookingDataCollected)="onVoiceBookingDataCollected($event)"
-      ></app-vapi-assistant>
     </div>
   </div>
 </div>

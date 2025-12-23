@@ -120,10 +120,29 @@ app.get('/api/health', (req, res) => {
 });
 
 // Better Auth routes - handles /api/auth/*
-app.all('/api/auth/*', (req, res, next) => {
+app.all('/api/auth/*', async (req, res, next) => {
+  console.log(`[Auth] ${req.method} ${req.path}`, {
+    body: req.body,
+    headers: {
+      'content-type': req.headers['content-type'],
+      origin: req.headers.origin
+    }
+  });
+
   if (!auth) {
+    console.log('[Auth] ERROR: Auth not initialized');
     return res.status(503).json({ error: 'Auth not initialized' });
   }
+
+  console.log('[Auth] Passing to Better Auth handler...');
+
+  // Wrap the response to log what Better Auth returns
+  const originalJson = res.json.bind(res);
+  res.json = (data) => {
+    console.log('[Auth] Response:', { status: res.statusCode, data });
+    return originalJson(data);
+  };
+
   return toNodeHandler(auth)(req, res);
 });
 

@@ -73,13 +73,24 @@
           class="call-btn"
           [class.active]="isCallActive"
           [class.connecting]="isConnecting"
-          [disabled]="isConnecting"
           (click)="toggleCall()"
         >
           <mat-icon *ngIf="!isCallActive && !isConnecting">mic</mat-icon>
           <mat-icon *ngIf="isCallActive">call_end</mat-icon>
-          <mat-icon *ngIf="isConnecting">sync</mat-icon>
+          <mat-icon *ngIf="isConnecting" class="spinning">close</mat-icon>
           <span>{{ callButtonText }}</span>
+        </button>
+
+        <!-- Pause/Resume Button - only visible during active call -->
+        <button
+          *ngIf="isCallActive && !isConnecting"
+          class="pause-btn"
+          [class.paused]="isPaused"
+          (click)="togglePause()"
+        >
+          <mat-icon *ngIf="!isPaused">pause</mat-icon>
+          <mat-icon *ngIf="isPaused">play_arrow</mat-icon>
+          <span>{{ pauseButtonText }}</span>
         </button>
       </div>
     </div>

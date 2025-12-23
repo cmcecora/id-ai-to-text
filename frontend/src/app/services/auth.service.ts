@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom, timeout, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface User {
@@ -59,11 +59,23 @@ export class AuthService {
    * Check if user has an active session
    */
   async checkSession(): Promise<void> {
+    console.log('[AuthService] Checking session...');
+
     try {
-      const response = await this.http.get<AuthResponse>(
-        `${this.API_URL}/get-session`,
-        { withCredentials: true }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.get<AuthResponse>(
+          `${this.API_URL}/get-session`,
+          { withCredentials: true }
+        ).pipe(
+          timeout(10000), // 10 second timeout for session check
+          catchError(error => {
+            console.error('[AuthService] Session check HTTP error:', error);
+            throw error;
+          })
+        )
+      );
+
+      console.log('[AuthService] Session response:', response);
 
       if (response?.user && response?.session) {
         this.authState.next({
@@ -80,8 +92,10 @@ export class AuthService {
           isLoading: false
         });
       }
-    } catch (error) {
-      console.error('Session check failed:', error);
+    } catch (error: any) {
+      console.error('[AuthService] Session check failed:', error);
+
+      // Don't show connection errors for session checks - just log and set not authenticated
       this.authState.next({
         user: null,
         session: null,
@@ -95,12 +109,24 @@ export class AuthService {
    * Sign up with email and password
    */
   async signUp(email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> {
+    console.log('[AuthService] signUp called for:', email);
+
     try {
-      const response = await this.http.post<AuthResponse>(
-        `${this.API_URL}/sign-up/email`,
-        { email, password, name: name || email.split('@')[0] },
-        { withCredentials: true }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.post<AuthResponse>(
+          `${this.API_URL}/sign-up/email`,
+          { email, password, name: name || email.split('@')[0] },
+          { withCredentials: true }
+        ).pipe(
+          timeout(15000), // 15 second timeout
+          catchError(error => {
+            console.error('[AuthService] signUp HTTP error:', error);
+            throw error;
+          })
+        )
+      );
+
+      console.log('[AuthService] signUp response:', response);
 
       if (response?.error) {
         return { success: false, error: response.error.message };
@@ -110,7 +136,35 @@ export class AuthService {
       await this.checkSession();
       return { success: true };
     } catch (error: any) {
-      const message = error?.error?.message || error?.message || 'Sign up failed';
+      console.error('[AuthService] signUp failed:', error);
+      console.error('[AuthService] Error details:', {
+        status: error?.status,
+        statusText: error?.statusText,
+        errorBody: error?.error,
+        message: error?.message
+      });
+
+      // Handle timeout specifically
+      if (error?.name === 'TimeoutError') {
+        return { success: false, error: 'Request timed out. Please check if the server is running.' };
+      }
+
+      // Handle connection refused
+      if (error?.status === 0) {
+        return { success: false, error: 'Cannot connect to server. Please ensure the backend is running on port 3220.' };
+      }
+
+      // Handle 422 - validation error (e.g., user already exists)
+      if (error?.status === 422) {
+        const betterAuthError = error?.error?.message || error?.error?.error || error?.error;
+        if (typeof betterAuthError === 'string') {
+          return { success: false, error: betterAuthError };
+        }
+        return { success: false, error: 'This email is already registered. Please sign in instead.' };
+      }
+
+      // Handle other errors - extract Better Auth error message
+      const message = error?.error?.message || error?.error?.error || error?.message || 'Sign up failed';
       return { success: false, error: message };
     }
   }
@@ -152,12 +206,24 @@ export class AuthService {
    * Sign in with email and password
    */
   async signIn(email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> {
+    console.log('[AuthService] signIn called for:', email);
+
     try {
-      const response = await this.http.post<AuthResponse>(
-        `${this.API_URL}/sign-in/email`,
-        { email, password, rememberMe },
-        { withCredentials: true }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.post<AuthResponse>(
+          `${this.API_URL}/sign-in/email`,
+          { email, password, rememberMe },
+          { withCredentials: true }
+        ).pipe(
+          timeout(15000), // 15 second timeout
+          catchError(error => {
+            console.error('[AuthService] signIn HTTP error:', error);
+            throw error;
+          })
+        )
+      );
+
+      console.log('[AuthService] signIn response:', response);
 
       if (response?.error) {
         return { success: false, error: response.error.message };
@@ -167,7 +233,36 @@ export class AuthService {
       await this.checkSession();
       return { success: true };
     } catch (error: any) {
-      const message = error?.error?.message || error?.message || 'Sign in failed';
+      console.error('[AuthService] signIn failed:', error);
+      console.error('[AuthService] Error details:', {
+        status: error?.status,
+        statusText: error?.statusText,
+        errorBody: error?.error,
+        message: error?.message
+      });
+
+      // Handle timeout specifically
+      if (error?.name === 'TimeoutError') {
+        return { success: false, error: 'Request timed out. Please check if the server is running.' };
+      }
+
+      // Handle connection refused
+      if (error?.status === 0) {
+        return { success: false, error: 'Cannot connect to server. Please ensure the backend is running on port 3220.' };
+      }
+
+      // Handle 401 Unauthorized - usually means invalid credentials
+      if (error?.status === 401) {
+        // Better Auth returns error details in different formats
+        const betterAuthError = error?.error?.message || error?.error?.error || error?.error;
+        if (typeof betterAuthError === 'string') {
+          return { success: false, error: betterAuthError };
+        }
+        return { success: false, error: 'Invalid email or password. Please check your credentials.' };
+      }
+
+      // Handle other errors
+      const message = error?.error?.message || error?.error?.error || error?.message || 'Sign in failed';
       return { success: false, error: message };
     }
   }

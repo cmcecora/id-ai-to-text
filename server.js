@@ -33,6 +33,6 @@ app.post('/', (req, res) => {
   }
 });
 
-app.listen(4200, () => {
-  console.log('🚀 Vapi webhook server running on http://localhost:4200');
+app.listen(4350, () => {
+  console.log('🚀 Vapi webhook server running on http://localhost:4350');
 });
