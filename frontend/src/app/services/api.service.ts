@@ -230,8 +230,29 @@ export class ApiService {
       addressState: backendData.addressState || '',
       addressZip: backendData.addressZip || '',
       sex: backendData.sex || '',
-      dob: backendData.dob ? new Date(backendData.dob) : null
+      dob: backendData.dob ? this.parseDateAsLocal(backendData.dob) : null
     };
+  }
+
+  /**
+   * Parse a date string (YYYY-MM-DD) as a local date to avoid timezone issues.
+   * Using new Date("YYYY-MM-DD") interprets the date as UTC midnight, which can
+   * display as the previous day in timezones behind UTC.
+   */
+  private parseDateAsLocal(dateValue: string | Date): Date {
+    if (!dateValue) return new Date();
+    // Handle Date objects - return as-is
+    if (dateValue instanceof Date) return dateValue;
+    // Parse YYYY-MM-DD format as local date
+    const parts = dateValue.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    // Fallback: append time to force local interpretation
+    return new Date(dateValue + 'T00:00:00');
   }
 
   /**

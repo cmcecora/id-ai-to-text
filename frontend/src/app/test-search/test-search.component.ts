@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { trigger, style, animate, transition, state, query, group } from '@angular/animations';
 
@@ -89,7 +89,13 @@ export class TestSearchComponent implements OnInit {
     { id: 'psa', name: 'Prostate Specific Antigen (PSA)', description: 'Prostate health screening', category: 'blood', price: 45, resultsTime: '24 hours', icon: 'science' },
     { id: 'liver', name: 'Liver Function Panel', description: 'Hepatic health assessment', category: 'blood', price: 42, resultsTime: '24 hours', icon: 'science' },
     { id: 'glucose', name: 'Blood Glucose Test', description: 'Fasting blood sugar level', category: 'blood', price: 25, resultsTime: '12 hours', icon: 'water_drop' },
-    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', price: 50, resultsTime: '24 hours', icon: 'biotech' }
+    { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', price: 50, resultsTime: '24 hours', icon: 'biotech' },
+    { id: 'tb-test', name: 'TB Test (Tuberculosis)', description: 'Skin or blood test for TB infection', category: 'blood', price: 35, resultsTime: '48-72 hours', icon: 'vaccines' },
+    { id: 'drug-test', name: 'Drug Screening Panel', description: '10-panel urine drug test', category: 'blood', price: 65, resultsTime: '24-48 hours', icon: 'medication' },
+    { id: 'calcium-score', name: 'Coronary Calcium Score', description: 'CT scan for heart disease risk', category: 'cardiac', price: 149, resultsTime: '24 hours', icon: 'favorite' },
+    { id: 'pregnancy', name: 'Pregnancy Test (hCG)', description: 'Blood test to confirm pregnancy', category: 'blood', price: 39, resultsTime: '24 hours', icon: 'pregnant_woman' },
+    { id: 'std-panel', name: 'STD/STI Panel', description: 'Comprehensive sexual health screening', category: 'blood', price: 189, resultsTime: '2-5 days', icon: 'health_and_safety' },
+    { id: 'hormone-panel', name: 'Complete Hormone Panel', description: 'Full hormone level assessment', category: 'hormone', price: 249, resultsTime: '3-5 days', icon: 'monitor_heart' }
   ];
 
   // Search results
@@ -113,13 +119,14 @@ export class TestSearchComponent implements OnInit {
   // Popular tests
   popularTests: MedicalTest[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Set popular tests
-    this.popularTests = this.medicalTests.filter(t =>
-      ['cbc', 'tsh', 'lipid'].includes(t.id)
-    );
+    // Set popular tests in specific order
+    const popularTestIds = ['tb-test', 'drug-test', 'calcium-score', 'pregnancy', 'std-panel', 'hormone-panel', 'tsh', 'cbc', 'lipid'];
+    this.popularTests = popularTestIds
+      .map(id => this.medicalTests.find(t => t.id === id))
+      .filter((t): t is MedicalTest => t !== undefined);
   }
 
   @HostListener('document:click', ['$event'])
@@ -148,6 +155,7 @@ export class TestSearchComponent implements OnInit {
         );
         this.isLoading = false;
         this.highlightedIndex = -1;
+        this.cdr.detectChanges(); // Force change detection after async update
       }, 200);
     } else {
       this.searchResults = [];

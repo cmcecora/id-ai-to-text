@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -257,6 +257,12 @@ export class MedicalBookingComponent implements OnInit {
     { id: 'liver', name: 'Liver Function Panel', description: 'Hepatic health assessment', category: 'blood', resultsTime: '24 hours', price: 42, icon: 'science' },
     { id: 'glucose', name: 'Blood Glucose Test', description: 'Fasting blood sugar level', category: 'blood', resultsTime: '12 hours', price: 25, icon: 'water_drop' },
     { id: 'metabolic', name: 'Basic Metabolic Panel', description: 'Kidney function and electrolytes', category: 'blood', resultsTime: '24 hours', price: 50, icon: 'biotech' },
+    { id: 'tb-test', name: 'TB Test (Tuberculosis)', description: 'Skin or blood test for TB infection', category: 'blood', resultsTime: '48-72 hours', price: 35, icon: 'vaccines' },
+    { id: 'drug-test', name: 'Drug Screening Panel', description: '10-panel urine drug test', category: 'blood', resultsTime: '24-48 hours', price: 65, icon: 'medication' },
+    { id: 'calcium-score', name: 'Coronary Calcium Score', description: 'CT scan for heart disease risk', category: 'cardiac', resultsTime: '24 hours', price: 149, icon: 'favorite' },
+    { id: 'pregnancy', name: 'Pregnancy Test (hCG)', description: 'Blood test to confirm pregnancy', category: 'blood', resultsTime: '24 hours', price: 39, icon: 'pregnant_woman' },
+    { id: 'std-panel', name: 'STD/STI Panel', description: 'Comprehensive sexual health screening', category: 'blood', resultsTime: '2-5 days', price: 189, icon: 'health_and_safety' },
+    { id: 'hormone-panel', name: 'Complete Hormone Panel', description: 'Full hormone level assessment', category: 'hormone', resultsTime: '3-5 days', price: 249, icon: 'monitor_heart' },
 
     // Nervous System Tests
     { id: 'b12-neuro', name: 'Vitamin B12 Level', description: 'Neurological health marker', category: 'nervous', resultsTime: '24 hours', price: 45, icon: 'psychology' },
@@ -506,7 +512,8 @@ export class MedicalBookingComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private apiService: ApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -800,6 +807,7 @@ export class MedicalBookingComponent implements OnInit {
         );
         this.isTestSearchLoading = false;
         this.testHighlightedIndex = -1;
+        this.cdr.detectChanges(); // Force change detection after async update
       }, 200);
     } else {
       this.filteredTests = [];
@@ -874,10 +882,12 @@ export class MedicalBookingComponent implements OnInit {
       this.dropdownView = 'tests';
       this.isTestSearchLoading = false;
       this.testHighlightedIndex = -1;
+      this.cdr.detectChanges(); // Force change detection after async update
 
       // Animation complete
       setTimeout(() => {
         this.isDropdownAnimating = false;
+        this.cdr.detectChanges(); // Force change detection after async update
       }, 200);
     }, 150);
   }
@@ -892,9 +902,11 @@ export class MedicalBookingComponent implements OnInit {
       this.selectedCategory = null;
       this.filteredTests = [];
       this.testSearchQuery = '';
+      this.cdr.detectChanges(); // Force change detection after async update
 
       setTimeout(() => {
         this.isDropdownAnimating = false;
+        this.cdr.detectChanges(); // Force change detection after async update
       }, 200);
     }, 150);
   }
@@ -1197,6 +1209,7 @@ export class MedicalBookingComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       this.uploadedImageUrl = e.target?.result as string;
+      this.cdr.detectChanges(); // Force change detection after async update
     };
     reader.readAsDataURL(file);
   }
@@ -1217,10 +1230,12 @@ export class MedicalBookingComponent implements OnInit {
           case 'uploading':
             this.ocrProgress = 10;
             this.currentJobId = response.data?.jobId || null;
+            this.cdr.detectChanges(); // Force change detection after async update
             break;
 
           case 'processing':
             this.ocrProgress = 20 + ((response.data?.progress || 0) * 0.6);
+            this.cdr.detectChanges(); // Force change detection after async update
             break;
 
           case 'completed':
@@ -1228,6 +1243,7 @@ export class MedicalBookingComponent implements OnInit {
             this.isProcessingOcr = false;
             this.ocrData = response.data?.extractedData || null;
             this.currentJobId = response.data?.jobId || null;
+            this.cdr.detectChanges(); // Force change detection after async update
             this.snackBar.open(
               'ID processed successfully! Your information has been extracted.',
               'Close',
@@ -1243,6 +1259,7 @@ export class MedicalBookingComponent implements OnInit {
             this.isProcessingOcr = false;
             this.ocrProgress = 0;
             this.ocrError = response.error || 'Failed to process ID document';
+            this.cdr.detectChanges(); // Force change detection after async update
             this.snackBar.open(
               this.ocrError,
               'Close',
@@ -1259,6 +1276,7 @@ export class MedicalBookingComponent implements OnInit {
         this.isProcessingOcr = false;
         this.ocrProgress = 0;
         this.ocrError = error.message || 'Failed to process document';
+        this.cdr.detectChanges(); // Force change detection after async update
         this.snackBar.open(
           'Failed to process ID: ' + this.ocrError,
           'Close',
@@ -1322,6 +1340,7 @@ export class MedicalBookingComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       this.insuranceImageUrl = e.target?.result as string;
+      this.cdr.detectChanges(); // Force change detection after async update
     };
     reader.readAsDataURL(file);
   }
@@ -1340,6 +1359,7 @@ export class MedicalBookingComponent implements OnInit {
     const progressInterval = setInterval(() => {
       if (this.insuranceProgress < 80) {
         this.insuranceProgress += 10;
+        this.cdr.detectChanges(); // Force change detection after async update
       }
     }, 200);
 
@@ -1355,6 +1375,7 @@ export class MedicalBookingComponent implements OnInit {
             carrier: response.data.carrier || '',
             memberId: response.data.memberId || ''
           };
+          this.cdr.detectChanges(); // Force change detection after async update
           this.snackBar.open(
             'Insurance card processed successfully!',
             'Close',
@@ -1366,6 +1387,7 @@ export class MedicalBookingComponent implements OnInit {
           );
         } else if (response.status === 'error') {
           this.insuranceError = response.error || 'Failed to process insurance card';
+          this.cdr.detectChanges(); // Force change detection after async update
         }
       },
       error: (error) => {
@@ -1373,6 +1395,7 @@ export class MedicalBookingComponent implements OnInit {
         this.isProcessingInsurance = false;
         this.insuranceProgress = 0;
         this.insuranceError = error.message || 'Failed to process insurance card';
+        this.cdr.detectChanges(); // Force change detection after async update
         this.snackBar.open(
           'Failed to process insurance card: ' + this.insuranceError,
           'Close',
@@ -1444,8 +1467,8 @@ export class MedicalBookingComponent implements OnInit {
         formUpdates['lastName'] = this.ocrData.lastName;
       }
       if (this.ocrData.dob) {
-        // Parse date string to Date object for the datepicker
-        formUpdates['dob'] = new Date(this.ocrData.dob);
+        // Parse date as local date to avoid timezone issues
+        formUpdates['dob'] = this.parseDateAsLocal(this.ocrData.dob);
       }
       if (this.ocrData.sex) {
         formUpdates['sex'] = this.ocrData.sex;
@@ -1538,12 +1561,33 @@ export class MedicalBookingComponent implements OnInit {
    */
   formatDob(dob: Date | null): string {
     if (!dob) return '';
-    const date = dob instanceof Date ? dob : new Date(dob);
+    const date = dob instanceof Date ? dob : this.parseDateAsLocal(dob);
     return date.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  /**
+   * Parse a date value as a local date to avoid timezone issues.
+   * Using new Date("YYYY-MM-DD") interprets the date as UTC midnight, which can
+   * display as the previous day in timezones behind UTC.
+   */
+  private parseDateAsLocal(dateValue: string | Date): Date {
+    if (!dateValue) return new Date();
+    // Handle Date objects - return as-is
+    if (dateValue instanceof Date) return dateValue;
+    // Parse YYYY-MM-DD format as local date
+    const parts = dateValue.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    // Fallback: append time to force local interpretation
+    return new Date(dateValue + 'T00:00:00');
   }
 
   // ===========================

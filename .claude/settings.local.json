@@ -7,7 +7,8 @@
       "Bash(npm run build:*)",
       "WebFetch(domain:www.better-auth.com)",
       "Bash(npm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
